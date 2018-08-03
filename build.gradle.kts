@@ -6,6 +6,7 @@ val jar = tasks["jar"] as Jar
 jar.manifest.attributes["Main-Class"] = "com.atlassian.performance.tools.virtualusers.EntryPointKt";
 
 plugins {
+    kotlin("jvm").version("1.2.30")
     id("com.github.johnrengelman.shadow").version("2.0.4")
     id("com.atlassian.performance.tools.gradle-release").version("0.0.2")
 }
