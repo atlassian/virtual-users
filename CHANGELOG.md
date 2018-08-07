@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-0.0.2%0Dmaster
 
+### Fixed
+- Restore main log. See #2.
+
 ## [0.0.2] - 2018-08-03
 [0.0.2]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-0.0.2%0Drelease-0.0.1
 

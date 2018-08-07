@@ -13,7 +13,7 @@ class LogConfiguration : AbstractConfiguration(null, ConfigurationSource.NULL_SO
             .withConfiguration(this)
             .build()
 
-        val loggerConfig = LoggerConfig("com.atlassian.jira.test.performance", DEBUG, false)
+        val loggerConfig = LoggerConfig("com.atlassian.performance.tools", DEBUG, false)
         val fileAppender = FileAppenderBuilderWrapper()
             .create(
                 "file",
