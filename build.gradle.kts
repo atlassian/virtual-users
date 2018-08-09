@@ -30,7 +30,7 @@ dependencies {
 
     log4jCore().forEach { compile(it) }
     compile("io.github.bonigarcia:webdrivermanager:1.7.1")
-    compile("net.jcip:jcip-annotations:1.0")
+    compile("com.github.stephenc.jcip:jcip-annotations:1.0-1")
 }
 
 fun webdriver(): List<String> = listOf(
