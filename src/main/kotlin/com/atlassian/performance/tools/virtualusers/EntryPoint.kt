@@ -5,6 +5,7 @@ import com.atlassian.performance.tools.jiraactions.MergingActionMetricsParser
 import com.atlassian.performance.tools.jiraactions.SeededRandom
 import com.atlassian.performance.tools.jiraactions.scenario.Scenario
 import com.atlassian.performance.tools.jirasoftwareactions.JiraSoftwareScenario
+import com.atlassian.performance.tools.report.PlaintextReport
 import com.atlassian.performance.tools.virtualusers.logs.LogConfigurationFactory
 import org.apache.commons.cli.*
 import org.apache.logging.log4j.LogManager
@@ -192,7 +193,7 @@ class Application {
             virtualUsers = options.virtualUsers
         )
         val metrics = MergingActionMetricsParser().parse(metricsFiles)
-        val report = SimpleReport(ActionMetricStatistics(metrics)).generate()
+        val report = PlaintextReport(ActionMetricStatistics(metrics)).generate()
         println(report)
     }
 }
