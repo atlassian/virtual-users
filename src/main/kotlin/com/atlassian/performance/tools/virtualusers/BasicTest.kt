@@ -22,14 +22,16 @@ import org.apache.logging.log4j.CloseableThreadContext
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.openqa.selenium.WebDriver
-import java.io.File
 import java.net.URI
 import java.nio.file.Paths
 import java.time.Duration
 import java.time.Instant
 import java.time.Instant.now
 import java.util.*
-import java.util.concurrent.*
+import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 /**
  * A [load test](https://en.wikipedia.org/wiki/Load_testing).
@@ -47,14 +49,13 @@ class BasicTest(
     private val workspace = Paths.get("test-results")
     private val nodeCounter = JiraNodeCounter()
     private val driverRuntime = ChromedriverRuntime()
-    private val metricsFiles: MutableList<File> = CopyOnWriteArrayList()
     private val diagnosisLimit = DiagnosisLimit(64)
     private val diagnosisPatience = DiagnosisPatience(Duration.ofSeconds(5))
 
     fun run(
         minimumRun: Duration,
         virtualUsers: Int
-    ): List<File> {
+    ) {
         val enoughLoad = now() + minimumRun
         workspace.toFile().ensureDirectory()
         setUpJira()
@@ -64,7 +65,6 @@ class BasicTest(
             nodeCounter.dump(it)
         }
         logger.debug("Dumped node's counts to $nodesDump")
-        return metricsFiles
     }
 
     private fun setUpJira() {
@@ -148,15 +148,13 @@ class BasicTest(
             logger.info("Waiting for $rampUpWait")
             Thread.sleep(rampUpWait.toMillis())
 
-            val metricsFile = workspace
+            workspace
                 .resolve(uuid.toString())
                 .toFile()
                 .ensureDirectory()
                 .resolve("action-metrics.jpt")
-            metricsFiles.add(metricsFile)
-            metricsFile.bufferedWriter().use { output ->
-                applyLoad(output, uuid)
-            }
+                .bufferedWriter()
+                .use { output -> applyLoad(output, uuid) }
         }
     }
 
