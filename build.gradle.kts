@@ -16,7 +16,6 @@ shadowJar.isZip64 = true
 
 dependencies {
     compile("com.atlassian.performance.tools:concurrency:0.0.1")
-    compile("com.atlassian.performance.tools:report:0.0.3")
     compile("com.atlassian.performance.tools:jira-actions:0.0.1")
     compile("com.atlassian.performance.tools:io:0.0.1")
     compile("com.atlassian.performance.tools:jira-software-actions:0.1.0")

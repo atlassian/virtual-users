@@ -7,8 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-0.0.3%0Dmaster
 
-### Fixed
-- Extract plain text report to report module.
+### Removed
+- Remove plain text report
 
 ## [0.0.3] - 2018-08-07
 [0.0.3]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-0.0.3%0Drelease-0.0.2
