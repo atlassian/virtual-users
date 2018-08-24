@@ -24,7 +24,8 @@ class TestOptions(
     val virtualUsers: Int,
     val seededRandom: SeededRandom,
     val rampUpInterval: Duration,
-    val scenario: Scenario
+    val scenario: Scenario,
+    val diagnosticsLimit: Int
 ) {
 
     companion object {
@@ -33,6 +34,7 @@ class TestOptions(
         const val seedParameter = "seed"
         const val rampUpInterval = "ramp-up-interval"
         const val customScenario = "scenario"
+        const val diagnosticsLimit = "diagnostics-limit"
 
         val options: Options = Options()
             .addOption(
@@ -108,6 +110,14 @@ class TestOptions(
                     .desc("Interval duration between virtual users ramp-up in ISO 8601")
                     .build()
             )
+            .addOption(
+                Option
+                    .builder()
+                    .longOpt(diagnosticsLimit)
+                    .hasArg()
+                    .desc("Limiting how many times diagnostics can be executed")
+                    .build()
+            )
     }
 
     fun printHelp() {
@@ -129,6 +139,7 @@ class TestOptions(
             val timeout = Duration.ofMinutes(commandLine.getOptionValue("minimum-run", "5").toLong())
             val virtualUsers = commandLine.getOptionValue("virtual-users", "10").toInt()
             val rampUpInterval = Duration.parse(commandLine.getOptionValue(rampUpInterval, "PT0S"))
+            val diagnosticsLimit = commandLine.getOptionValue(diagnosticsLimit, "64").toInt()
 
             val seed = commandLine
                 .getOptionValue(seedParameter)
@@ -144,7 +155,8 @@ class TestOptions(
                 virtualUsers = virtualUsers,
                 seededRandom = SeededRandom(seed),
                 rampUpInterval = rampUpInterval,
-                scenario = getScenario(commandLine)
+                scenario = getScenario(commandLine),
+                diagnosticsLimit = diagnosticsLimit
             )
         }
 
@@ -184,7 +196,8 @@ class Application {
             adminLogin = options.adminLogin,
             adminPassword = options.adminPassword,
             random = options.seededRandom,
-            rampUpInterval = options.rampUpInterval
+            rampUpInterval = options.rampUpInterval,
+            diagnosticsLimit = options.diagnosticsLimit
         ).run(
             minimumRun = options.minimumRun,
             virtualUsers = options.virtualUsers

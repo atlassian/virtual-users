@@ -42,15 +42,16 @@ class BasicTest(
     private val adminLogin: String,
     private val adminPassword: String,
     private val random: SeededRandom,
-    private val rampUpInterval: Duration
+    private val rampUpInterval: Duration,
+    diagnosticsLimit: Int
 ) {
     private val logger: Logger = LogManager.getLogger(this::class.java)
 
     private val workspace = Paths.get("test-results")
     private val nodeCounter = JiraNodeCounter()
     private val driverRuntime = ChromedriverRuntime()
-    private val diagnosisLimit = DiagnosisLimit(64)
     private val diagnosisPatience = DiagnosisPatience(Duration.ofSeconds(5))
+    private val diagnosisLimit = DiagnosisLimit(diagnosticsLimit)
 
     fun run(
         minimumRun: Duration,
@@ -224,6 +225,7 @@ class BasicTest(
     private fun startChrome(): DiagnosableDriver {
         val chrome = GoogleChrome(driverRuntime).start()
         chrome.manage().timeouts().pageLoadTimeout(1, TimeUnit.MINUTES)
+
         return DiagnosableDriver(
             chrome,
             LimitedDiagnostics(
