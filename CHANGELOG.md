@@ -5,10 +5,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-0.0.3%0Dmaster
+[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-0.0.4%0Dmaster
+
+## [0.0.4] - 2018-08-28
+[0.0.4]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-0.0.4%0Drelease-0.0.3
 
 ### Removed
-- Remove plain text report
+- Remove plain text report.
+
+### Added
+- Add diagnosticsLimit parameter.
 
 ## [0.0.3] - 2018-08-07
 [0.0.3]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-0.0.3%0Drelease-0.0.2
