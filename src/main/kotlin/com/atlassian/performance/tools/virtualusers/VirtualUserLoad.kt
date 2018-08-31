@@ -10,10 +10,4 @@ data class VirtualUserLoad(
 ) {
     val total: Duration = hold + ramp + flat
     val rampInterval: Duration = ramp.dividedBy(virtualUsers.toLong())
-
-    @Deprecated(message = "For Seba compatibility :)", replaceWith = ReplaceWith("flat"))
-    val load = flat
-
-    @Deprecated(message = "For Seba compatibility :)", replaceWith = ReplaceWith("total"))
-    val test: Duration = total
 }

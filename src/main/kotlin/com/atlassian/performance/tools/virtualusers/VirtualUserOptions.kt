@@ -27,11 +27,13 @@ data class VirtualUserOptions(
         const val jiraAddressParameter = "jira-address"
         const val loginParameter = "login"
         const val passwordParameter = "password"
-        const val minimumRunParameter = "minimum-run"
+
         const val virtualUsersParameter = "virtual-users"
+        const val holdParameter = "hold"
+        const val rampParameter = "ramp"
+        const val flatParameter = "flat"
+        const val scenarioParameter = "scenario"
         const val seedParameter = "seed"
-        const val rampUpIntervalParameter = "ramp-up-interval"
-        const val customScenario = "scenario"
         const val diagnosticsLimitParameter = "diagnostics-limit"
 
         val options: Options = Options()
@@ -65,13 +67,6 @@ data class VirtualUserOptions(
             )
             .addOption(
                 Option.builder()
-                    .longOpt(minimumRunParameter)
-                    .hasArg()
-                    .desc("Minimum duration (in minutes) of virtual users activity")
-                    .build()
-            )
-            .addOption(
-                Option.builder()
                     .longOpt(virtualUsersParameter)
                     .hasArg(true)
                     .desc("Number of virtual users to execute.")
@@ -79,7 +74,28 @@ data class VirtualUserOptions(
             )
             .addOption(
                 Option.builder()
-                    .longOpt(customScenario)
+                    .longOpt(holdParameter)
+                    .hasArg()
+                    .desc("Initial hold duration in ISO-8601 format")
+                    .build()
+            )
+            .addOption(
+                Option.builder()
+                    .longOpt(rampParameter)
+                    .hasArg()
+                    .desc("Load ramp duration in ISO-8601 format")
+                    .build()
+            )
+            .addOption(
+                Option.builder()
+                    .longOpt(flatParameter)
+                    .hasArg()
+                    .desc("Flat load duration in ISO-8601 format")
+                    .build()
+            )
+            .addOption(
+                Option.builder()
+                    .longOpt(scenarioParameter)
                     .hasArg(true)
                     .desc("Custom scenario")
                     .build()
@@ -89,13 +105,6 @@ data class VirtualUserOptions(
                     .longOpt(seedParameter)
                     .hasArg(true)
                     .desc("Root seed.")
-                    .build()
-            )
-            .addOption(
-                Option.builder()
-                    .longOpt(rampUpIntervalParameter)
-                    .hasArg()
-                    .desc("Interval duration between virtual users ramp-up in ISO 8601")
                     .build()
             )
             .addOption(
@@ -115,17 +124,20 @@ data class VirtualUserOptions(
             jiraAddressParameter to jiraAddress.toString(),
             loginParameter to adminLogin,
             passwordParameter to adminPassword,
-//            TODO
-//            minimumRunParameter to loadProfile.loadSchedule.duration minimumRun.toMinutes().toString(),
-//            virtualUsersParameter to virtualUsers.toString(),
-//            rampUpIntervalParameter to rampUpInterval.toString(),
+            virtualUsersParameter to virtualUserLoad.virtualUsers.toString(),
+            holdParameter to virtualUserLoad.hold.toString(),
+            rampParameter to virtualUserLoad.ramp.toString(),
+            flatParameter to virtualUserLoad.flat.toString(),
             diagnosticsLimitParameter to diagnosticsLimit.toString()
         )
-        if (help) {
-            args[helpParameter] = ""
-        }
 
-        return args.entries.map { "--${it.key} ${it.value}" }.toTypedArray()
+        val cliArgs = args.entries.flatMap { listOf("--${it.key}", it.value) }.toTypedArray()
+
+        return if (help) {
+            cliArgs + helpParameter
+        } else {
+            cliArgs
+        }
     }
 
     fun printHelp() {
@@ -144,9 +156,10 @@ data class VirtualUserOptions(
             val jiraAddress = URI(commandLine.getOptionValue(jiraAddressParameter))
             val adminLogin = commandLine.getOptionValue(loginParameter)
             val adminPassword = commandLine.getOptionValue(passwordParameter)
-            val timeout = Duration.ofMinutes(commandLine.getOptionValue(minimumRunParameter).toLong())
             val virtualUsers = commandLine.getOptionValue(virtualUsersParameter).toInt()
-            val rampUpInterval = Duration.parse(commandLine.getOptionValue(rampUpIntervalParameter))
+            val hold = Duration.parse(commandLine.getOptionValue(holdParameter))
+            val ramp = Duration.parse(commandLine.getOptionValue(rampParameter))
+            val flat = Duration.parse(commandLine.getOptionValue(flatParameter))
             val diagnosticsLimit = commandLine.getOptionValue(diagnosticsLimitParameter).toInt()
             val seed = commandLine.getOptionValue(seedParameter).toLong()
 
@@ -155,18 +168,19 @@ data class VirtualUserOptions(
                 jiraAddress = jiraAddress,
                 adminLogin = adminLogin,
                 adminPassword = adminPassword,
-//                TODO
-//                minimumRun = timeout,
-//                virtualUsers = virtualUsers,
-//                seededRandom = SeededRandom(seed),
-//                rampUpInterval = rampUpInterval,
+                virtualUserLoad = VirtualUserLoad(
+                    virtualUsers = virtualUsers,
+                    hold = hold,
+                    ramp = ramp,
+                    flat = flat
+                ),
                 scenario = getScenario(commandLine),
                 diagnosticsLimit = diagnosticsLimit
             )
         }
 
         private fun getScenario(commandLine: CommandLine): Scenario {
-            val scenario = commandLine.getOptionValue(customScenario, JiraSoftwareScenario::class.java.canonicalName)
+            val scenario = commandLine.getOptionValue(scenarioParameter)
             val scenarioClass = Class.forName(scenario) as Class<*>
             val scenarioConstructor = scenarioClass.getConstructor()
             return scenarioConstructor.newInstance() as Scenario
