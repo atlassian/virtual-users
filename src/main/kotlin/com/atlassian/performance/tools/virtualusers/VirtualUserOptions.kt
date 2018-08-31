@@ -5,6 +5,7 @@ import com.atlassian.performance.tools.jirasoftwareactions.JiraSoftwareScenario
 import org.apache.commons.cli.*
 import java.net.URI
 import java.time.Duration
+import java.util.*
 
 /**
  * Parsed cli args stored as fields.
@@ -17,6 +18,7 @@ data class VirtualUserOptions(
     val adminPassword: String = "admin",
     val virtualUserLoad: VirtualUserLoad = VirtualUserLoad(),
     val scenario: Scenario = JiraSoftwareScenario(),
+    val seed: Long = Random().nextLong(),
     val diagnosticsLimit: Int = 64
 ) {
 
