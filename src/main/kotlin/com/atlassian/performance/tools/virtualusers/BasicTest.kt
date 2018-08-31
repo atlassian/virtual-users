@@ -13,7 +13,6 @@ import com.atlassian.performance.tools.jiraactions.measure.output.AppendableActi
 import com.atlassian.performance.tools.jiraactions.memories.User
 import com.atlassian.performance.tools.jiraactions.memories.UserMemory
 import com.atlassian.performance.tools.jiraactions.memories.adaptive.AdaptiveUserMemory
-import com.atlassian.performance.tools.jiraactions.scenario.Scenario
 import com.atlassian.performance.tools.virtualusers.browsers.ChromedriverRuntime
 import com.atlassian.performance.tools.virtualusers.browsers.GoogleChrome
 import com.atlassian.performance.tools.virtualusers.measure.*
@@ -22,10 +21,8 @@ import org.apache.logging.log4j.CloseableThreadContext
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.openqa.selenium.WebDriver
-import java.net.URI
 import java.nio.file.Paths
 import java.time.Duration
-import java.time.Instant
 import java.time.Instant.now
 import java.util.*
 import java.util.concurrent.Executors
@@ -37,30 +34,21 @@ import java.util.concurrent.TimeUnit
  * A [load test](https://en.wikipedia.org/wiki/Load_testing).
  */
 class BasicTest(
-    private val jiraAddress: URI,
-    private val scenario: Scenario,
-    private val adminLogin: String,
-    private val adminPassword: String,
-    private val random: SeededRandom,
-    private val rampUpInterval: Duration,
-    diagnosticsLimit: Int
+    private val options: VirtualUserOptions
 ) {
     private val logger: Logger = LogManager.getLogger(this::class.java)
 
     private val workspace = Paths.get("test-results")
     private val nodeCounter = JiraNodeCounter()
     private val driverRuntime = ChromedriverRuntime()
+    private val random = SeededRandom(options.seed)
     private val diagnosisPatience = DiagnosisPatience(Duration.ofSeconds(5))
-    private val diagnosisLimit = DiagnosisLimit(diagnosticsLimit)
+    private val diagnosisLimit = DiagnosisLimit(options.diagnosticsLimit)
 
-    fun run(
-        minimumRun: Duration,
-        virtualUsers: Int
-    ) {
-        val enoughLoad = now() + minimumRun
+    fun run() {
         workspace.toFile().ensureDirectory()
         setUpJira()
-        applyLoad(virtualUsers, enoughLoad, Duration.ofMinutes(2))
+        applyLoad()
         val nodesDump = workspace.resolve("nodes.csv")
         nodesDump.toFile().bufferedWriter().use {
             nodeCounter.dump(it)
@@ -74,15 +62,15 @@ class BasicTest(
             val meter = ActionMeter(virtualUser = UUID.randomUUID())
             val jira = WebJira(
                 driver = driver,
-                base = jiraAddress,
-                adminPassword = adminPassword
+                base = options.jiraAddress,
+                adminPassword = options.adminPassword
             )
             val userMemory = AdaptiveUserMemory(random)
             userMemory.remember(
                 listOf(
                     User(
-                        name = adminLogin,
-                        password = adminPassword
+                        name = options.adminLogin,
+                        password = options.adminPassword
                     )
                 )
             )
@@ -95,14 +83,12 @@ class BasicTest(
         }
     }
 
-    /**
-     * Apply load for at least [enoughLoad] and wait to gracefully stop for at most [maxStop] afterwards.
-     */
-    private fun applyLoad(
-        virtualUsers: Int,
-        enoughLoad: Instant,
-        maxStop: Duration
-    ) {
+    private fun applyLoad() {
+        val load = options.virtualUserLoad
+        Thread.sleep(load.hold.toMillis())
+        val virtualUsers = load.virtualUsers
+        val finish = load.total
+        val maxStop = Duration.ofMinutes(2)
         val loadPool = ThreadPoolExecutor(
             virtualUsers,
             virtualUsers,
@@ -124,10 +110,10 @@ class BasicTest(
                     throw Exception("Expected $virtualUsers VUs to still be active, but encountered $active")
                 }
             },
-            Duration.between(now(), enoughLoad).toMillis(),
+            finish.toMillis(),
             TimeUnit.MILLISECONDS
         )
-        val deadline = enoughLoad + maxStop
+        val deadline = now() + finish + maxStop
         (1..virtualUsers)
             .mapIndexed { i: Int, _ ->
                 val task = TraceableTask { applyLoad(i.toLong()) }
@@ -145,7 +131,7 @@ class BasicTest(
         val uuid = UUID.randomUUID()
         CloseableThreadContext.push("applying load #$uuid").use {
 
-            val rampUpWait = rampUpInterval.multipliedBy(vuOrder)
+            val rampUpWait = options.virtualUserLoad.rampInterval.multipliedBy(vuOrder)
             logger.info("Waiting for $rampUpWait")
             Thread.sleep(rampUpWait.toMillis())
 
@@ -171,15 +157,15 @@ class BasicTest(
         }
         val jira = WebJira(
             driver = driver,
-            base = jiraAddress,
-            adminPassword = adminPassword
+            base = options.jiraAddress,
+            adminPassword = options.adminPassword
         )
         val userMemory = AdaptiveUserMemory(random)
         userMemory.remember(
             listOf(
                 User(
-                    name = adminLogin,
-                    password = adminPassword
+                    name = options.adminLogin,
+                    password = options.adminPassword
                 )
             )
         )
@@ -204,7 +190,7 @@ class BasicTest(
         return ExploratoryVirtualUser(
             jira = jira,
             nodeCounter = nodeCounter,
-            actions = scenario.getActions(
+            actions = options.scenario.getActions(
                 jira = jira,
                 seededRandom = SeededRandom(random.random.nextLong()),
                 meter = meter

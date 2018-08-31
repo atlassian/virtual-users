@@ -4,9 +4,16 @@ import java.time.Duration
 
 data class VirtualUserLoad(
     val virtualUsers: Int = 10,
-    val hold: Duration = Duration.ofSeconds(0),
-    val ramp: Duration = Duration.ofSeconds(0),
-    val load: Duration = Duration.ofMinutes(10)
+    val hold: Duration = Duration.ZERO,
+    val ramp: Duration = Duration.ofSeconds(15),
+    val flat: Duration = Duration.ofMinutes(5)
 ) {
-    val test: Duration = hold + ramp + load
+    val total: Duration = hold + ramp + flat
+    val rampInterval: Duration = ramp.dividedBy(virtualUsers.toLong())
+
+    @Deprecated(message = "For Seba compatibility :)", replaceWith = ReplaceWith("flat"))
+    val load = flat
+
+    @Deprecated(message = "For Seba compatibility :)", replaceWith = ReplaceWith("total"))
+    val test: Duration = total
 }
