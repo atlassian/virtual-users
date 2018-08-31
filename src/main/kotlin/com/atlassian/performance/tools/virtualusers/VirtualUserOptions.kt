@@ -49,6 +49,7 @@ data class VirtualUserOptions(
                     .hasArg()
                     .argName("address")
                     .desc("Address of tested JIRA as URI")
+                    .required()
                     .build()
             )
             .addOption(
@@ -56,6 +57,7 @@ data class VirtualUserOptions(
                     .longOpt(loginParameter)
                     .hasArg()
                     .desc("Login of an admin user")
+                    .required()
                     .build()
             )
             .addOption(
@@ -63,6 +65,7 @@ data class VirtualUserOptions(
                     .longOpt(passwordParameter)
                     .hasArg()
                     .desc("Password of an admin user")
+                    .required()
                     .build()
             )
             .addOption(
@@ -70,6 +73,7 @@ data class VirtualUserOptions(
                     .longOpt(virtualUsersParameter)
                     .hasArg(true)
                     .desc("Number of virtual users to execute.")
+                    .required()
                     .build()
             )
             .addOption(
@@ -77,6 +81,7 @@ data class VirtualUserOptions(
                     .longOpt(holdParameter)
                     .hasArg()
                     .desc("Initial hold duration in ISO-8601 format")
+                    .required()
                     .build()
             )
             .addOption(
@@ -84,6 +89,7 @@ data class VirtualUserOptions(
                     .longOpt(rampParameter)
                     .hasArg()
                     .desc("Load ramp duration in ISO-8601 format")
+                    .required()
                     .build()
             )
             .addOption(
@@ -91,6 +97,7 @@ data class VirtualUserOptions(
                     .longOpt(flatParameter)
                     .hasArg()
                     .desc("Flat load duration in ISO-8601 format")
+                    .required()
                     .build()
             )
             .addOption(
@@ -98,6 +105,7 @@ data class VirtualUserOptions(
                     .longOpt(scenarioParameter)
                     .hasArg(true)
                     .desc("Custom scenario")
+                    .required()
                     .build()
             )
             .addOption(
@@ -105,6 +113,7 @@ data class VirtualUserOptions(
                     .longOpt(seedParameter)
                     .hasArg(true)
                     .desc("Root seed.")
+                    .required()
                     .build()
             )
             .addOption(
@@ -112,6 +121,7 @@ data class VirtualUserOptions(
                     .longOpt(diagnosticsLimitParameter)
                     .hasArg()
                     .desc("Limiting how many times diagnostics can be executed")
+                    .required()
                     .build()
             )
     }
@@ -128,6 +138,7 @@ data class VirtualUserOptions(
             holdParameter to virtualUserLoad.hold.toString(),
             rampParameter to virtualUserLoad.ramp.toString(),
             flatParameter to virtualUserLoad.flat.toString(),
+            scenarioParameter to scenario::class.java.canonicalName,
             diagnosticsLimitParameter to diagnosticsLimit.toString(),
             seedParameter to seed.toString()
         )
