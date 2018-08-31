@@ -128,7 +128,8 @@ data class VirtualUserOptions(
             holdParameter to virtualUserLoad.hold.toString(),
             rampParameter to virtualUserLoad.ramp.toString(),
             flatParameter to virtualUserLoad.flat.toString(),
-            diagnosticsLimitParameter to diagnosticsLimit.toString()
+            diagnosticsLimitParameter to diagnosticsLimit.toString(),
+            seedParameter to seed.toString()
         )
 
         val cliArgs = args.entries.flatMap { listOf("--${it.key}", it.value) }.toTypedArray()
@@ -175,7 +176,8 @@ data class VirtualUserOptions(
                     flat = flat
                 ),
                 scenario = getScenario(commandLine),
-                diagnosticsLimit = diagnosticsLimit
+                diagnosticsLimit = diagnosticsLimit,
+                seed = seed
             )
         }
 
