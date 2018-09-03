@@ -12,6 +12,19 @@ plugins {
     `java-library`
 }
 
+configurations.all {
+    resolutionStrategy {
+        failOnVersionConflict()
+        eachDependency {
+            when (requested.module.toString()) {
+                "commons-codec:commons-codec" -> useVersion("1.10")
+                "com.google.code.gson:gson" -> useVersion("2.8.2")
+                "org.slf4j:slf4j-api" -> useVersion("1.8.0-alpha2")
+            }
+        }
+    }
+}
+
 val shadowJar = tasks["shadowJar"] as ShadowJar
 shadowJar.isZip64 = true
 

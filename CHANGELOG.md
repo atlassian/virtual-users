@@ -29,6 +29,9 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ### Added
 - API for virtual users JAR command line arguments.
 
+### Fixed
+- Strict dependency resolution.
+
 ## [0.0.4] - 2018-08-28
 [0.0.4]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-0.0.4%0Drelease-0.0.3
 
