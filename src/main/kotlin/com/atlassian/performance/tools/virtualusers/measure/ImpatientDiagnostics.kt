@@ -10,7 +10,7 @@ import java.time.Instant.now
  * Diagnoses as long as no diagnosis exhausts [patience].
  */
 @NotThreadSafe
-class ImpatientDiagnostics(
+internal class ImpatientDiagnostics(
     private val diagnostics: Diagnostics,
     private val patience: DiagnosisPatience
 ) : Diagnostics {

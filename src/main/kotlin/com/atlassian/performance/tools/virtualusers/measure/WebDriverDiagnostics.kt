@@ -10,7 +10,7 @@ import java.io.File
 import java.nio.file.Paths
 import java.util.*
 
-class WebDriverDiagnostics(
+internal class WebDriverDiagnostics(
     private val driver: WebDriver,
     private val display: TakesScreenshot
 ) : Diagnostics {

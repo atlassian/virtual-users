@@ -5,7 +5,7 @@ import org.apache.commons.csv.CSVPrinter
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
-class JiraNodeCounter {
+internal class JiraNodeCounter {
     private val counter: MutableMap<String, AtomicInteger> = ConcurrentHashMap()
 
     fun count(nodeId: String) {

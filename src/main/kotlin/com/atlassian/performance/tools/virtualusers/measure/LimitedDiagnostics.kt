@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * Can be used to limit information overload and resource consumption.
  */
 @NotThreadSafe
-class LimitedDiagnostics(
+internal class LimitedDiagnostics(
     private val diagnostics: Diagnostics,
     private val limit: DiagnosisLimit
 ) : Diagnostics {

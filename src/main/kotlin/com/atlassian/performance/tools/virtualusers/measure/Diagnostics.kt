@@ -1,6 +1,6 @@
 package com.atlassian.performance.tools.virtualusers.measure
 
-interface Diagnostics {
+internal interface Diagnostics {
 
     /**
      * @return diagnosis

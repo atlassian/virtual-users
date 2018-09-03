@@ -13,8 +13,9 @@ import com.atlassian.performance.tools.jiraactions.measure.output.AppendableActi
 import com.atlassian.performance.tools.jiraactions.memories.User
 import com.atlassian.performance.tools.jiraactions.memories.UserMemory
 import com.atlassian.performance.tools.jiraactions.memories.adaptive.AdaptiveUserMemory
-import com.atlassian.performance.tools.virtualusers.browsers.ChromedriverRuntime
-import com.atlassian.performance.tools.virtualusers.browsers.GoogleChrome
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
+import com.atlassian.performance.tools.virtualusers.api.browsers.ChromedriverRuntime
+import com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome
 import com.atlassian.performance.tools.virtualusers.measure.*
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.apache.logging.log4j.CloseableThreadContext
@@ -33,7 +34,7 @@ import java.util.concurrent.TimeUnit
 /**
  * A [load test](https://en.wikipedia.org/wiki/Load_testing).
  */
-class BasicTest(
+internal class LoadTest(
     private val options: VirtualUserOptions
 ) {
     private val logger: Logger = LogManager.getLogger(this::class.java)
@@ -227,7 +228,7 @@ class BasicTest(
         )
     }
 
-    data class DiagnosableDriver(
+    internal data class DiagnosableDriver(
         val driver: WebDriver,
         val diagnostics: Diagnostics
     )

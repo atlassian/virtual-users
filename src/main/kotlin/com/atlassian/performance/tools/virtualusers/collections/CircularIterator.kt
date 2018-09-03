@@ -1,6 +1,6 @@
 package com.atlassian.performance.tools.virtualusers.collections
 
-class CircularIterator<T>(private val delegate: Iterable<T>) : Iterator<T> {
+internal class CircularIterator<T>(private val delegate: Iterable<T>) : Iterator<T> {
 
     private var iterator: Iterator<T> = delegate.iterator()
 

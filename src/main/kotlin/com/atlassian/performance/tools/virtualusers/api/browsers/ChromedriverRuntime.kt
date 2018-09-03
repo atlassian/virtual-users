@@ -1,4 +1,4 @@
-package com.atlassian.performance.tools.virtualusers.browsers
+package com.atlassian.performance.tools.virtualusers.api.browsers
 
 import io.github.bonigarcia.wdm.ChromeDriverManager
 import net.jcip.annotations.ThreadSafe

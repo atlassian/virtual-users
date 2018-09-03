@@ -6,7 +6,7 @@ import org.apache.logging.log4j.core.config.ConfigurationSource
 import org.apache.logging.log4j.core.config.LoggerConfig
 import org.apache.logging.log4j.core.layout.PatternLayout
 
-class LogConfiguration : AbstractConfiguration(null, ConfigurationSource.NULL_SOURCE) {
+internal class LogConfiguration : AbstractConfiguration(null, ConfigurationSource.NULL_SOURCE) {
     override fun doConfigure() {
         val layout = PatternLayout.newBuilder()
             .withPattern("%d{ISO8601}{UTC}Z %-5level %X %x [%logger{1}] %msg%n")

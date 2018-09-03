@@ -18,7 +18,7 @@ import java.time.Duration
  * Applies load on a Jira via page objects. Explores the instance to learn about data and choose pages to visit.
  * Wanders preset Jira pages with different proportions of each page. Their order is random.
  */
-class ExploratoryVirtualUser(
+internal class ExploratoryVirtualUser(
     private val jira: WebJira,
     private val nodeCounter: JiraNodeCounter,
     private val actions: Iterable<Action>,

@@ -1,4 +1,4 @@
-package com.atlassian.performance.tools.virtualusers
+package com.atlassian.performance.tools.virtualusers.api
 
 import com.atlassian.performance.tools.jiraactions.scenario.Scenario
 import com.atlassian.performance.tools.jirasoftwareactions.JiraSoftwareScenario
@@ -153,7 +153,9 @@ data class VirtualUserOptions(
     }
 
     fun printHelp() {
-        HelpFormatter().printHelp("EntryPoint", options)
+        HelpFormatter().printHelp("EntryPoint",
+            options
+        )
     }
 
     class Parser {

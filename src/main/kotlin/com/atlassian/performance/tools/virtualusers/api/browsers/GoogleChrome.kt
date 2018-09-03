@@ -1,4 +1,4 @@
-package com.atlassian.performance.tools.virtualusers.browsers
+package com.atlassian.performance.tools.virtualusers.api.browsers
 
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger

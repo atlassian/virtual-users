@@ -1,9 +1,15 @@
-package com.atlassian.performance.tools.virtualusers
+package com.atlassian.performance.tools.virtualusers.api
 
+import com.atlassian.performance.tools.virtualusers.LoadTest
 import com.atlassian.performance.tools.virtualusers.logs.LogConfigurationFactory
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.config.ConfigurationFactory.setConfigurationFactory
 
+/**
+ * Main entry point for the virtual users load test.
+ *
+ * [args] command line args. Use [VirtualUserOptions.toCliArgs] to provide the args.
+ */
 fun main(args: Array<String>) {
     Application().tryRunning(args)
 }
@@ -25,6 +31,6 @@ class Application {
             options.printHelp()
             System.exit(0)
         }
-        BasicTest(options).run()
+        LoadTest(options).run()
     }
 }

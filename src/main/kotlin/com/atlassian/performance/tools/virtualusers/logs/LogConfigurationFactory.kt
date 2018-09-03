@@ -7,7 +7,7 @@ import org.apache.logging.log4j.core.config.ConfigurationSource
 import java.net.URI
 
 
-class LogConfigurationFactory : ConfigurationFactory() {
+internal class LogConfigurationFactory : ConfigurationFactory() {
     override fun getConfiguration(loggerContext: LoggerContext?, name: String, configLocation: URI?): Configuration {
         return createConfiguration()
     }

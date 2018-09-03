@@ -1,4 +1,4 @@
-package com.atlassian.performance.tools.virtualusers
+package com.atlassian.performance.tools.virtualusers.api
 
 import java.time.Duration
 
