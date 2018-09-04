@@ -29,10 +29,10 @@ val shadowJar = tasks["shadowJar"] as ShadowJar
 shadowJar.isZip64 = true
 
 dependencies {
-    api("com.atlassian.performance.tools:jira-software-actions:[1.0.0,2.0.0)")
     api("com.atlassian.performance.tools:jira-actions:[2.0.0,3.0.0)")
     api("com.github.stephenc.jcip:jcip-annotations:1.0-1")
 
+    implementation("com.atlassian.performance.tools:jira-software-actions:[1.0.0,2.0.0)")
     implementation("com.atlassian.performance.tools:concurrency:[1.0.0, 2.0.0)")
     implementation("com.atlassian.performance.tools:io:[1.0.0, 2.0.0)")
     implementation("com.google.guava:guava:23.6-jre")
