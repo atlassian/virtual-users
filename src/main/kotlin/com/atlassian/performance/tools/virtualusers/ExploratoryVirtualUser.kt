@@ -1,10 +1,10 @@
 package com.atlassian.performance.tools.virtualusers
 
-import com.atlassian.performance.tools.concurrency.representsInterrupt
-import com.atlassian.performance.tools.jiraactions.WebJira
-import com.atlassian.performance.tools.jiraactions.action.Action
-import com.atlassian.performance.tools.jiraactions.action.LogInAction
-import com.atlassian.performance.tools.jiraactions.action.SetUpAction
+import com.atlassian.performance.tools.concurrency.api.representsInterrupt
+import com.atlassian.performance.tools.jiraactions.api.WebJira
+import com.atlassian.performance.tools.jiraactions.api.action.Action
+import com.atlassian.performance.tools.jiraactions.api.action.LogInAction
+import com.atlassian.performance.tools.jiraactions.api.action.SetUpAction
 import com.atlassian.performance.tools.virtualusers.collections.CircularIterator
 import com.atlassian.performance.tools.virtualusers.measure.Diagnostics
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter

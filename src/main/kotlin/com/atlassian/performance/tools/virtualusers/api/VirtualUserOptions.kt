@@ -1,7 +1,7 @@
 package com.atlassian.performance.tools.virtualusers.api
 
-import com.atlassian.performance.tools.jiraactions.scenario.Scenario
-import com.atlassian.performance.tools.jirasoftwareactions.JiraSoftwareScenario
+import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
+import com.atlassian.performance.tools.jirasoftwareactions.api.JiraSoftwareScenario
 import org.apache.commons.cli.*
 import java.net.URI
 import java.time.Duration

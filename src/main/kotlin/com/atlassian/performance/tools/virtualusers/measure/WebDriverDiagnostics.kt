@@ -1,6 +1,6 @@
 package com.atlassian.performance.tools.virtualusers.measure
 
-import com.atlassian.performance.tools.io.ensureDirectory
+import com.atlassian.performance.tools.io.api.ensureDirectory
 import org.apache.logging.log4j.LogManager
 import org.openqa.selenium.OutputType
 import org.openqa.selenium.TakesScreenshot
