@@ -23,6 +23,9 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-1.0.0%0Dmaster
 
+### Changed
+- `VirtualUserOptions` API
+
 ## [1.0.0] - 2018-09-04
 [1.0.0]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-1.0.0%0Drelease-0.0.4
 

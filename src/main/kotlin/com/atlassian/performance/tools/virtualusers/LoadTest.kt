@@ -13,6 +13,7 @@ import com.atlassian.performance.tools.jiraactions.api.measure.output.Appendable
 import com.atlassian.performance.tools.jiraactions.api.memories.User
 import com.atlassian.performance.tools.jiraactions.api.memories.UserMemory
 import com.atlassian.performance.tools.jiraactions.api.memories.adaptive.AdaptiveUserMemory
+import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.browsers.ChromedriverRuntime
 import com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome
@@ -191,10 +192,11 @@ internal class LoadTest(
         userMemory: UserMemory,
         diagnostics: Diagnostics
     ): ExploratoryVirtualUser {
+        val scenario = options.scenario.getConstructor().newInstance() as Scenario
         return ExploratoryVirtualUser(
             jira = jira,
             nodeCounter = nodeCounter,
-            actions = options.scenario.getActions(
+            actions = scenario.getActions(
                 jira = jira,
                 seededRandom = SeededRandom(random.random.nextLong()),
                 meter = meter

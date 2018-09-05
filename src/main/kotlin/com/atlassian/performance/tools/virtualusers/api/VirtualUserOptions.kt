@@ -17,7 +17,7 @@ data class VirtualUserOptions(
     val adminLogin: String = "admin",
     val adminPassword: String = "admin",
     val virtualUserLoad: VirtualUserLoad = VirtualUserLoad(),
-    val scenario: Scenario = JiraSoftwareScenario(),
+    val scenario: Class<out Scenario> = JiraSoftwareScenario::class.java,
     val seed: Long = Random().nextLong(),
     val diagnosticsLimit: Int = 64
 ) {
@@ -138,7 +138,7 @@ data class VirtualUserOptions(
             holdParameter to virtualUserLoad.hold.toString(),
             rampParameter to virtualUserLoad.ramp.toString(),
             flatParameter to virtualUserLoad.flat.toString(),
-            scenarioParameter to scenario::class.java.canonicalName,
+            scenarioParameter to scenario.canonicalName,
             diagnosticsLimitParameter to diagnosticsLimit.toString(),
             seedParameter to seed.toString()
         )
@@ -194,11 +194,11 @@ data class VirtualUserOptions(
             )
         }
 
-        private fun getScenario(commandLine: CommandLine): Scenario {
+        private fun getScenario(commandLine: CommandLine): Class<out Scenario> {
             val scenario = commandLine.getOptionValue(scenarioParameter)
-            val scenarioClass = Class.forName(scenario) as Class<*>
+            val scenarioClass = Class.forName(scenario)
             val scenarioConstructor = scenarioClass.getConstructor()
-            return scenarioConstructor.newInstance() as Scenario
+            return (scenarioConstructor.newInstance() as Scenario)::class.java
         }
     }
 }
