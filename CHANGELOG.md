@@ -21,10 +21,13 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-1.0.0%0Dmaster
+[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-2.0.0
+
+## [2.0.0] - 2018-09-05
+[2.0.0]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-2.0.0%0Drelease-1.0.0
 
 ### Changed
-- `VirtualUserOptions` API
+- Change the type of `VirtualUserOptions.scenario`.
 
 ## [1.0.0] - 2018-09-04
 [1.0.0]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-1.0.0%0Drelease-0.0.4
