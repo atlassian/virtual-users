@@ -1,4 +1,4 @@
-package com.atlassian.performance.tools.virtualusers.measure
+package com.atlassian.performance.tools.virtualusers.api.diagnostics
 
 import com.atlassian.performance.tools.io.api.ensureDirectory
 import org.apache.logging.log4j.LogManager
@@ -10,7 +10,7 @@ import java.io.File
 import java.nio.file.Paths
 import java.util.*
 
-internal class WebDriverDiagnostics(
+class WebDriverDiagnostics(
     private val driver: WebDriver,
     private val display: TakesScreenshot
 ) : Diagnostics {
@@ -26,13 +26,12 @@ internal class WebDriverDiagnostics(
 
     override fun diagnose(
         exception: Exception
-    ): String {
+    ) {
         val dump = Paths.get("diagnoses")
             .resolve(UUID.randomUUID().toString())
             .toFile()
             .ensureDirectory()
         logger.error("URL: ${driver.currentUrl}, ${dumpHtml(dump)}, ${saveScreenshot(dump)}", exception)
-        return "in $dump"
     }
 
     private fun dumpHtml(

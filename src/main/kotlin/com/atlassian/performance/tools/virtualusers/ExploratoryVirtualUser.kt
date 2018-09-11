@@ -6,7 +6,7 @@ import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.jiraactions.api.action.LogInAction
 import com.atlassian.performance.tools.jiraactions.api.action.SetUpAction
 import com.atlassian.performance.tools.virtualusers.collections.CircularIterator
-import com.atlassian.performance.tools.virtualusers.measure.Diagnostics
+import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
