@@ -21,7 +21,13 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-1.0.2
+[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-2.0.0
+
+## [2.0.0] - 2018-09-06
+[2.0.0]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-2.0.0%0Drelease-1.0.2
+
+### Changed
+- Change the type of `VirtualUserOptions.scenario`.
 
 ## [1.0.2] - 2018-09-06
 [1.0.2]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-1.0.2%0Drelease-1.0.1
@@ -34,7 +40,7 @@ Dropping a requirement of a major version of a dependency is a new contract.
 
 ### INCOMPATIBILITY BUG
 Break source and binary compatibility for `com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions`.
-Switch to `1.0.2` or newer to restore this compatibility.
+Switch to `1.0.2` or newer to restore this compatibility or roll forward with `2.0.0`.
 
 ## [1.0.0] - 2018-09-04
 [1.0.0]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-1.0.0%0Drelease-0.0.4
