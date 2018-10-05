@@ -31,8 +31,8 @@ internal class ExploratoryVirtualUser(
 
     fun setUpJira() {
         logger.info("Setting up Jira...")
-        logInAction.run()
-        setUpAction.run()
+        runWithDiagnostics(logInAction)
+        runWithDiagnostics(setUpAction)
         logger.info("Jira is set up")
     }
 
@@ -66,7 +66,7 @@ internal class ExploratoryVirtualUser(
     private fun logIn() {
         for (i: Int in 0..loginRetryLimit) {
             try {
-                logInAction.run()
+                runWithDiagnostics(logInAction)
                 break
             } catch (e: Exception) {
                 val backOff = Duration.ofSeconds(5)
