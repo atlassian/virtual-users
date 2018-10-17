@@ -2,9 +2,6 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 val kotlinVersion = "1.2.30"
 
-val jar = tasks["jar"] as Jar
-jar.manifest.attributes["Main-Class"] = "com.atlassian.performance.tools.virtualusers.api.EntryPointKt";
-
 plugins {
     kotlin("jvm").version("1.2.30")
     id("com.github.johnrengelman.shadow").version("2.0.4")
@@ -25,8 +22,13 @@ configurations.all {
     }
 }
 
-val shadowJar = tasks["shadowJar"] as ShadowJar
-shadowJar.isZip64 = true
+tasks.getByName("jar", Jar::class).apply {
+    manifest.attributes["Main-Class"] = "com.atlassian.performance.tools.virtualusers.api.EntryPointKt"
+}
+
+tasks.getByName("shadowJar", ShadowJar::class).apply {
+    isZip64 = true
+}
 
 dependencies {
     api("com.atlassian.performance.tools:jira-actions:[2.0.0,3.0.0)")
@@ -68,6 +70,7 @@ fun log4j(
     "org.apache.logging.log4j:log4j-$module:2.10.0"
 }
 
-val wrapper = tasks["wrapper"] as Wrapper
-wrapper.gradleVersion = "4.9"
-wrapper.distributionType = Wrapper.DistributionType.ALL
+task<Wrapper>("wrapper") {
+    gradleVersion = "4.9"
+    distributionType = Wrapper.DistributionType.ALL
+}
