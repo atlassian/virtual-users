@@ -5,8 +5,8 @@ import com.atlassian.performance.tools.jiraactions.api.WebJira
 import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.jiraactions.api.action.LogInAction
 import com.atlassian.performance.tools.jiraactions.api.action.SetUpAction
-import com.atlassian.performance.tools.virtualusers.collections.CircularIterator
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
+import com.atlassian.performance.tools.virtualusers.collections.CircularIterator
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -53,7 +53,7 @@ internal class ExploratoryVirtualUser(
                 if (e.representsInterrupt()) {
                     currentThread().interrupt()
                 } else {
-                    logger.error("Diagnosis failed for $action", e)
+                    logger.error("Failed to run $action, but we keep running", e)
                 }
             }
             if (interrupted()) {
@@ -83,11 +83,10 @@ internal class ExploratoryVirtualUser(
             logger.trace("Running $action")
             action.run()
         } catch (e: Exception) {
-            if (e.representsInterrupt()) {
-                throw e
-            } else {
+            if (e.representsInterrupt().not()) {
                 diagnostics.diagnose(e)
             }
+            throw Exception("Failed to run $action", e)
         }
     }
 }

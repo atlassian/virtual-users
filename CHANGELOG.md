@@ -23,6 +23,11 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-2.1.1
 
+### Fixed
+- Terminate the virtual user when it fails to log in or set up in the `setUp` phase. Fix [JPERF-217].
+
+[JPERF-217]: https://ecosystem.atlassian.net/browse/JPERF-217
+
 ### [2.1.1] - 2018-10-16
 [2.1.1]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-2.1.1%0Drelease-2.1.0
 
