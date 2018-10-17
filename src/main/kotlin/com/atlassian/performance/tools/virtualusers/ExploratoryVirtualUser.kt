@@ -5,6 +5,8 @@ import com.atlassian.performance.tools.jiraactions.api.WebJira
 import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.jiraactions.api.action.LogInAction
 import com.atlassian.performance.tools.jiraactions.api.action.SetUpAction
+import com.atlassian.performance.tools.jvmtasks.api.Backoff
+import com.atlassian.performance.tools.jvmtasks.api.IdempotentAction
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
 import com.atlassian.performance.tools.virtualusers.collections.CircularIterator
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
@@ -64,16 +66,12 @@ internal class ExploratoryVirtualUser(
     }
 
     private fun logIn() {
-        for (i: Int in 0..loginRetryLimit) {
-            try {
-                runWithDiagnostics(logInAction)
-                break
-            } catch (e: Exception) {
-                val backOff = Duration.ofSeconds(5)
-                logger.error("Login failed $i times. Retrying after $backOff", e)
-                Thread.sleep(backOff.toMillis())
-            }
-        }
+        IdempotentAction("log in") {
+            runWithDiagnostics(logInAction)
+        }.retry(
+            backoff = StaticBackoff(Duration.ofSeconds(5)),
+            maxAttempts = loginRetryLimit
+        )
     }
 
     private fun runWithDiagnostics(
@@ -89,4 +87,11 @@ internal class ExploratoryVirtualUser(
             throw Exception("Failed to run $action", e)
         }
     }
+
+}
+
+private class StaticBackoff(
+    private val backOff: Duration
+) : Backoff {
+    override fun backOff(attempt: Int): Duration = backOff
 }
