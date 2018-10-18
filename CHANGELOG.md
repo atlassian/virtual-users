@@ -21,7 +21,10 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-2.1.1
+[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-2.1.2
+
+### [2.1.2] - 2018-10-18
+[2.1.2]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-2.1.2%0Drelease-2.1.1
 
 ### Fixed
 - Terminate the virtual user when it fails to log in or set up in the `setUp` phase. Fix [JPERF-217].
