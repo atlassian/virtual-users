@@ -11,7 +11,7 @@ class ChromedriverRuntime {
     fun ensureRunning() {
         synchronized(this) {
             if (!running) {
-                ChromeDriverManager.getInstance().version("2.41").setup()
+                ChromeDriverManager.getInstance().version("2.43").setup()
                 running = true
             }
         }

@@ -23,6 +23,11 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-2.1.2
 
+### Fixed
+- Support for Chrome v69-71. Fix [JPERF-224].
+
+[JPERF-224]: https://ecosystem.atlassian.net/browse/JPERF-224
+
 ### [2.1.2] - 2018-10-18
 [2.1.2]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-2.1.2%0Drelease-2.1.1
 
