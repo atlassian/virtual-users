@@ -21,7 +21,10 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-2.1.2
+[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-2.1.3
+
+## [2.1.3] - 2018-10-22
+[2.1.3]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-2.1.3%0Drelease-2.1.2
 
 ### Fixed
 - Support for Chrome v69-71. Fix [JPERF-224].
