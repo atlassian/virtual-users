@@ -23,6 +23,11 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-2.1.3
 
+### Fixed
+- Validate Jira URI. Fix [JPERF-206].
+
+[JPERF-206]: https://ecosystem.atlassian.net/browse/JPERF-206
+
 ## [2.1.3] - 2018-10-22
 [2.1.3]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-2.1.3%0Drelease-2.1.2
 
