@@ -4,6 +4,7 @@ import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 import com.atlassian.performance.tools.jirasoftwareactions.api.JiraSoftwareScenario
 import org.apache.commons.cli.*
 import java.net.URI
+import java.net.URL
 import java.time.Duration
 import java.util.*
 
@@ -21,6 +22,7 @@ data class VirtualUserOptions(
     val seed: Long = Random().nextLong(),
     val diagnosticsLimit: Int = 64
 ) {
+    private val normalizedJiraAddress: URI = validateJiraAddress()
 
     companion object {
         const val helpParameter = "help"
@@ -131,7 +133,7 @@ data class VirtualUserOptions(
      */
     fun toCliArgs(): Array<String> {
         val args = mutableMapOf(
-            jiraAddressParameter to jiraAddress.toString(),
+            jiraAddressParameter to normalizedJiraAddress.toString(),
             loginParameter to adminLogin,
             passwordParameter to adminPassword,
             virtualUsersParameter to virtualUserLoad.virtualUsers.toString(),
@@ -150,6 +152,24 @@ data class VirtualUserOptions(
         } else {
             cliArgs
         }
+    }
+
+    private fun validateJiraAddress(): URI {
+        val url = try {
+            jiraAddress.toURL()
+        } catch (e: Exception) {
+            throw Exception("Invalid Jira URL: $jiraAddress", e)
+        }
+        return URL(
+            url.protocol,
+            url.host,
+            url.port,
+            when {
+                url.file.endsWith("/") -> url.file
+                else -> url.file + "/"
+            },
+            null
+        ).toURI()
     }
 
     fun printHelp() {
