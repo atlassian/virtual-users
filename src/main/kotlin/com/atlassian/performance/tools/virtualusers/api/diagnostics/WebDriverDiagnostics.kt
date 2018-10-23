@@ -39,7 +39,7 @@ class WebDriverDiagnostics(
     ): String {
         val htmlDump = File(dumpDirectory, "dump.html")
         htmlDump.bufferedWriter().use { it.write(driver.pageSource) }
-        return "HTML dumped at ${htmlDump.absolutePath}"
+        return "HTML dumped at ${htmlDump.path}"
     }
 
     private fun saveScreenshot(
@@ -50,8 +50,8 @@ class WebDriverDiagnostics(
             val temporaryScreenshot = display.getScreenshotAs(OutputType.FILE)
             val moved = temporaryScreenshot.renameTo(screenshot)
             when {
-                moved -> "screenshot saved to ${screenshot.absolutePath}"
-                else -> "screenshot failed to migrate from ${temporaryScreenshot.absolutePath}"
+                moved -> "screenshot saved to ${screenshot.path}"
+                else -> "screenshot failed to migrate from ${temporaryScreenshot.path}"
             }
         } catch (e: Exception) {
             logger.error("Failed to take a screenshot", e)
