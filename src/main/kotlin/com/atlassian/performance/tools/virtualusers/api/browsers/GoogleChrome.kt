@@ -43,25 +43,17 @@ class GoogleChrome internal constructor(
 
     private fun getOptions(
         headless: Boolean
-    ): ChromeOptions {
-        val options = ChromeOptions()
-        if (headless) {
-            options.setHeadless()
-        }
-        if (allowInsecureConnections) {
-            options.addArguments("--ignore-certificate-errors")
-        }
-        options
-            .disableSandbox()
-            .disableInfobars()
-            .setExperimentalOption(
-                "prefs",
-                mapOf(
-                    "credentials_enable_service" to false
-                )
+    ): ChromeOptions = ChromeOptions()
+        .apply { if (headless) setHeadless() }
+        .apply { addArguments("--no-sandbox") }
+        .apply { addArguments("--disable-infobars") }
+        .apply { if (allowInsecureConnections) addArguments("--ignore-certificate-errors") }
+        .setExperimentalOption(
+            "prefs",
+            mapOf(
+                "credentials_enable_service" to false
             )
-        return options
-    }
+        )
 
     /**
      * Additional --disable-gpu flag is necessary only on Windows.
@@ -69,20 +61,10 @@ class GoogleChrome internal constructor(
      */
     private fun ChromeOptions.setHeadless(): ChromeOptions {
         val osName = System.getProperty("os.name").toLowerCase()
-        this.addArguments("--headless")
+        addArguments("--headless")
         if (osName.contains("win")) {
-            this.addArguments("--disable-gpu")
+            addArguments("--disable-gpu")
         }
-        return this
-    }
-
-    private fun ChromeOptions.disableSandbox(): ChromeOptions {
-        this.addArguments("--no-sandbox")
-        return this
-    }
-
-    private fun ChromeOptions.disableInfobars(): ChromeOptions {
-        this.addArguments("--disable-infobars")
         return this
     }
 }
