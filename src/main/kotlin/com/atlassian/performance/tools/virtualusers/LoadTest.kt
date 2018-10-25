@@ -49,6 +49,9 @@ internal class LoadTest(
     private val diagnosisLimit = DiagnosisLimit(options.diagnosticsLimit)
 
     fun run() {
+        val load = options.virtualUserLoad
+        logger.info("Holding for ${load.hold}.")
+        Thread.sleep(load.hold.toMillis())
         workspace.toFile().ensureDirectory()
         setUpJira()
         applyLoad()
@@ -89,7 +92,7 @@ internal class LoadTest(
     private fun applyLoad() {
         val load = options.virtualUserLoad
         val virtualUsers = load.virtualUsers
-        val finish = load.total
+        val finish = load.ramp + load.flat
         val maxStop = Duration.ofMinutes(2)
         val loadPool = ThreadPoolExecutor(
             virtualUsers,
@@ -117,8 +120,6 @@ internal class LoadTest(
         )
         val deadline = now() + finish + maxStop
         logger.info("Deadline for tests is $deadline.")
-        logger.info("Holding for ${load.hold}.")
-        Thread.sleep(load.hold.toMillis())
 
         (1..virtualUsers)
             .mapIndexed { i: Int, _ ->
