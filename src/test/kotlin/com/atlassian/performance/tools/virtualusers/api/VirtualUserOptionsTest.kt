@@ -16,7 +16,8 @@ class VirtualUserOptionsTest {
         virtualUserLoad = VirtualUserLoad(),
         scenario = JiraSoftwareScenario::class.java,
         seed = 352798235,
-        diagnosticsLimit = 8
+        diagnosticsLimit = 8,
+        allowInsecureConnections = false
     )
 
     @Test
@@ -102,5 +103,12 @@ class VirtualUserOptionsTest {
         val options = optionsTemplate.copy(jiraAddress = URI("http://localhost:8080/context-path"))
 
         assertThat(options.toCliArgs()).contains("http://localhost:8080/context-path/")
+    }
+
+    @Test
+    fun shouldAllowInsecureConnections() {
+        val options = optionsTemplate.copy(allowInsecureConnections = true)
+
+        assertThat(options.toCliArgs()).contains("--allow-insecure-connections")
     }
 }
