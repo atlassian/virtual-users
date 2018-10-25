@@ -9,11 +9,19 @@ import org.openqa.selenium.chrome.ChromeOptions
 import org.openqa.selenium.remote.RemoteWebDriver
 import java.io.File
 
-class GoogleChrome(
-    private val driverRuntime: ChromedriverRuntime
+class GoogleChrome internal constructor(
+    private val driverRuntime: ChromedriverRuntime,
+    private val allowInsecureConnections: Boolean
 ) {
 
     private val logger: Logger = LogManager.getLogger(this::class.java)
+
+    constructor(
+        driverRuntime: ChromedriverRuntime
+    ) : this(
+        driverRuntime = driverRuntime,
+        allowInsecureConnections = false
+    )
 
     fun start(
         headless: Boolean = true,
@@ -40,15 +48,18 @@ class GoogleChrome(
         if (headless) {
             options.setHeadless()
         }
+        if (allowInsecureConnections) {
+            options.addArguments("--ignore-certificate-errors")
+        }
         options
             .disableSandbox()
             .disableInfobars()
             .setExperimentalOption(
-            "prefs",
-            mapOf(
-                "credentials_enable_service" to false
+                "prefs",
+                mapOf(
+                    "credentials_enable_service" to false
+                )
             )
-        )
         return options
     }
 

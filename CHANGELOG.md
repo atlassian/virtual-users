@@ -23,10 +23,17 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-2.1.5
 
+### Added
+- Allow insecure connections. Resolve [JPERF-196].
+
 ### Fixed
 - Print relative paths for dumps in WebDriverDiagnostics as a workaround for [JPERF-158].
 - Fix serialization of the `help` CLI argument.
 
+### Deprecated
+- Deprecate the Kotlin-defaults-ridden `VirtualUserOptions` constructor.
+
+[JPERF-196]: https://ecosystem.atlassian.net/browse/JPERF-196
 [JPERF-158]: https://ecosystem.atlassian.net/browse/JPERF-158
 
 ## [2.1.5] - 2018-10-25

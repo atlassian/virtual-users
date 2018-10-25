@@ -13,16 +13,43 @@ import java.util.*
  * Use {@link TestOptions.Parser} to parse.
  */
 data class VirtualUserOptions(
-    val help: Boolean = false,
-    val jiraAddress: URI = URI("http://localhost:8080/"),
-    val adminLogin: String = "admin",
-    val adminPassword: String = "admin",
-    val virtualUserLoad: VirtualUserLoad = VirtualUserLoad(),
-    val scenario: Class<out Scenario> = JiraSoftwareScenario::class.java,
-    val seed: Long = Random().nextLong(),
-    val diagnosticsLimit: Int = 64
+    val help: Boolean,
+    val jiraAddress: URI,
+    val adminLogin: String,
+    val adminPassword: String,
+    val virtualUserLoad: VirtualUserLoad,
+    val scenario: Class<out Scenario>,
+    val seed: Long,
+    val diagnosticsLimit: Int,
+    val allowInsecureConnections: Boolean
 ) {
     private val normalizedJiraAddress: URI = validateJiraAddress()
+
+    @Deprecated(
+        message = "Use the primary constructor. " +
+            "Kotlin defaults don't work from Java and introduce binary compatibility problems. " +
+            "Moreover, forcing to think about the values exposes the powerful options at the users disposal."
+    )
+    constructor(
+        help: Boolean = false,
+        jiraAddress: URI = URI("http://localhost:8080/"),
+        adminLogin: String = "admin",
+        adminPassword: String = "admin",
+        virtualUserLoad: VirtualUserLoad = VirtualUserLoad(),
+        scenario: Class<out Scenario> = JiraSoftwareScenario::class.java,
+        seed: Long = Random().nextLong(),
+        diagnosticsLimit: Int = 64
+    ) : this(
+        help = help,
+        jiraAddress = jiraAddress,
+        adminLogin = adminLogin,
+        adminPassword = adminPassword,
+        virtualUserLoad = virtualUserLoad,
+        scenario = scenario,
+        seed = seed,
+        diagnosticsLimit = diagnosticsLimit,
+        allowInsecureConnections = false
+    )
 
     companion object {
         const val helpParameter = "help"
@@ -37,6 +64,7 @@ data class VirtualUserOptions(
         const val scenarioParameter = "scenario"
         const val seedParameter = "seed"
         const val diagnosticsLimitParameter = "diagnostics-limit"
+        const val allowInsecureConnectionsParameter = "allow-insecure-connections"
 
         val options: Options = Options()
             .addOption(
@@ -126,6 +154,12 @@ data class VirtualUserOptions(
                     .required()
                     .build()
             )
+            .addOption(
+                Option.builder()
+                    .longOpt(allowInsecureConnectionsParameter)
+                    .desc("Allows insecure connections to the browser")
+                    .build()
+            )
     }
 
     /**
@@ -145,13 +179,14 @@ data class VirtualUserOptions(
             seedParameter to seed.toString()
         )
 
-        val cliArgs = args.entries.flatMap { listOf("--${it.key}", it.value) }.toTypedArray()
-
-        return if (help) {
-            cliArgs + "--$helpParameter"
-        } else {
-            cliArgs
+        val cliArgs = args.entries.flatMap { listOf("--${it.key}", it.value) }.toMutableList()
+        if (help) {
+            cliArgs.add("--$helpParameter")
         }
+        if (allowInsecureConnections) {
+            cliArgs.add("--$allowInsecureConnectionsParameter")
+        }
+        return cliArgs.toTypedArray()
     }
 
     private fun validateJiraAddress(): URI {
@@ -173,7 +208,8 @@ data class VirtualUserOptions(
     }
 
     fun printHelp() {
-        HelpFormatter().printHelp("EntryPoint",
+        HelpFormatter().printHelp(
+            "EntryPoint",
             options
         )
     }
@@ -196,6 +232,7 @@ data class VirtualUserOptions(
             val flat = Duration.parse(commandLine.getOptionValue(flatParameter))
             val diagnosticsLimit = commandLine.getOptionValue(diagnosticsLimitParameter).toInt()
             val seed = commandLine.getOptionValue(seedParameter).toLong()
+            val allowInsecureConnections = commandLine.hasOption(allowInsecureConnectionsParameter)
 
             return VirtualUserOptions(
                 help = help,
@@ -210,7 +247,8 @@ data class VirtualUserOptions(
                 ),
                 scenario = getScenario(commandLine),
                 diagnosticsLimit = diagnosticsLimit,
-                seed = seed
+                seed = seed,
+                allowInsecureConnections = allowInsecureConnections
             )
         }
 
