@@ -148,7 +148,7 @@ data class VirtualUserOptions(
         val cliArgs = args.entries.flatMap { listOf("--${it.key}", it.value) }.toTypedArray()
 
         return if (help) {
-            cliArgs + helpParameter
+            cliArgs + "--$helpParameter"
         } else {
             cliArgs
         }

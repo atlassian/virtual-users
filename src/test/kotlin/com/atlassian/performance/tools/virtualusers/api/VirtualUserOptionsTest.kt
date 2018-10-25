@@ -24,7 +24,7 @@ class VirtualUserOptionsTest {
         val args = optionsTemplate.toCliArgs()
 
         assertThat(args)
-            .contains("help")
+            .contains("--help")
             .containsSequence(
                 "--jira-address",
                 "http://localhost/jira/"

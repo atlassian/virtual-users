@@ -25,6 +25,7 @@ Dropping a requirement of a major version of a dependency is a new contract.
 
 ### Fixed
 - Print relative paths for dumps in WebDriverDiagnostics as a workaround for [JPERF-158].
+- Fix serialization of the `help` CLI argument.
 
 [JPERF-158]: https://ecosystem.atlassian.net/browse/JPERF-158
 
