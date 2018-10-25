@@ -163,30 +163,30 @@ data class VirtualUserOptions(
     }
 
     /**
-     * Serializes to cli args.
+     * Serializes to CLI args.
      */
     fun toCliArgs(): Array<String> {
-        val args = mutableMapOf(
-            jiraAddressParameter to normalizedJiraAddress.toString(),
+        val flags: List<String> = mapOf(
+            helpParameter to help,
+            allowInsecureConnectionsParameter to allowInsecureConnections
+        ).mapNotNull { (parameter, value) ->
+            if (value) "--$parameter" else null
+        }
+        val parameters: List<String> = mapOf(
+            jiraAddressParameter to normalizedJiraAddress,
             loginParameter to adminLogin,
             passwordParameter to adminPassword,
-            virtualUsersParameter to virtualUserLoad.virtualUsers.toString(),
-            holdParameter to virtualUserLoad.hold.toString(),
-            rampParameter to virtualUserLoad.ramp.toString(),
-            flatParameter to virtualUserLoad.flat.toString(),
+            virtualUsersParameter to virtualUserLoad.virtualUsers,
+            holdParameter to virtualUserLoad.hold,
+            rampParameter to virtualUserLoad.ramp,
+            flatParameter to virtualUserLoad.flat,
             scenarioParameter to scenario.canonicalName,
-            diagnosticsLimitParameter to diagnosticsLimit.toString(),
-            seedParameter to seed.toString()
-        )
-
-        val cliArgs = args.entries.flatMap { listOf("--${it.key}", it.value) }.toMutableList()
-        if (help) {
-            cliArgs.add("--$helpParameter")
+            diagnosticsLimitParameter to diagnosticsLimit,
+            seedParameter to seed
+        ).flatMap { (parameter, value) ->
+            listOf("--$parameter", value.toString())
         }
-        if (allowInsecureConnections) {
-            cliArgs.add("--$allowInsecureConnectionsParameter")
-        }
-        return cliArgs.toTypedArray()
+        return (flags + parameters).toTypedArray()
     }
 
     private fun validateJiraAddress(): URI {
