@@ -218,8 +218,6 @@ internal class LoadTest(
 
     private fun startChrome(): DiagnosableDriver {
         val chrome = GoogleChrome(driverRuntime).start()
-        chrome.manage().timeouts().pageLoadTimeout(1, TimeUnit.MINUTES)
-
         return DiagnosableDriver(
             chrome,
             LimitedDiagnostics(
