@@ -36,19 +36,21 @@ import java.util.concurrent.TimeUnit
  * A [load test](https://en.wikipedia.org/wiki/Load_testing).
  */
 internal class LoadTest(
-    private val options: VirtualUserOptions
+    options: VirtualUserOptions
 ) {
     private val logger: Logger = LogManager.getLogger(this::class.java)
 
+    private val behavior = options.behavior
+    private val target = options.target
     private val workspace = Paths.get("test-results")
     private val nodeCounter = JiraNodeCounter()
-    private val random = SeededRandom(options.seed)
+    private val random = SeededRandom(behavior.seed)
     private val diagnosisPatience = DiagnosisPatience(Duration.ofSeconds(5))
-    private val diagnosisLimit = DiagnosisLimit(options.diagnosticsLimit)
-    private val scenario = options.scenario.getConstructor().newInstance() as Scenario
+    private val diagnosisLimit = DiagnosisLimit(behavior.diagnosticsLimit)
+    private val scenario = behavior.scenario.getConstructor().newInstance() as Scenario
 
     fun run() {
-        val load = options.virtualUserLoad
+        val load = behavior.load
         logger.info("Holding for ${load.hold}.")
         Thread.sleep(load.hold.toMillis())
         workspace.toFile().ensureDirectory()
@@ -68,15 +70,15 @@ internal class LoadTest(
                 val meter = ActionMeter(virtualUser = UUID.randomUUID())
                 val jira = WebJira(
                     driver = driver,
-                    base = options.jiraAddress,
-                    adminPassword = options.adminPassword
+                    base = target.webApplication,
+                    adminPassword = target.password
                 )
                 val userMemory = AdaptiveUserMemory(random)
                 userMemory.remember(
                     listOf(
                         User(
-                            name = options.adminLogin,
-                            password = options.adminPassword
+                            name = target.userName,
+                            password = target.password
                         )
                     )
                 )
@@ -87,7 +89,7 @@ internal class LoadTest(
     }
 
     private fun applyLoad() {
-        val load = options.virtualUserLoad
+        val load = behavior.load
         val virtualUsers = load.virtualUsers
         val finish = load.ramp + load.flat
         val maxStop = Duration.ofMinutes(2)
@@ -136,7 +138,7 @@ internal class LoadTest(
         val uuid = UUID.randomUUID()
         CloseableThreadContext.push("applying load #$uuid").use {
 
-            val rampUpWait = options.virtualUserLoad.rampInterval.multipliedBy(vuOrder)
+            val rampUpWait = behavior.load.rampInterval.multipliedBy(vuOrder)
             logger.info("Waiting for $rampUpWait")
             Thread.sleep(rampUpWait.toMillis())
 
@@ -158,15 +160,15 @@ internal class LoadTest(
             val (driver, diagnostics) = closeableDriver.getDriver().toDiagnosableDriver()
             val jira = WebJira(
                 driver = driver,
-                base = options.jiraAddress,
-                adminPassword = options.adminPassword
+                base = target.webApplication,
+                adminPassword = target.password
             )
             val userMemory = AdaptiveUserMemory(random)
             userMemory.remember(
                 listOf(
                     User(
-                        name = options.adminLogin,
-                        password = options.adminPassword
+                        name = target.userName,
+                        password = target.password
                     )
                 )
             )
@@ -208,7 +210,7 @@ internal class LoadTest(
     }
 
     private fun startBrowser(): CloseableRemoteWebDriver {
-        val browser = options.browser.getConstructor().newInstance() as Browser
+        val browser = behavior.browser.getConstructor().newInstance() as Browser
         return browser.start()
     }
 

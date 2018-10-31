@@ -28,6 +28,7 @@ class Application {
 
     private fun run(args: Array<String>) {
         val options = VirtualUserOptions.Parser().parse(args)
+        @Suppress("DEPRECATION")
         if (options.help) {
             options.printHelp()
         } else {

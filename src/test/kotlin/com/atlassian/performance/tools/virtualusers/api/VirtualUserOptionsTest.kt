@@ -1,8 +1,8 @@
 package com.atlassian.performance.tools.virtualusers.api
 
 import com.atlassian.performance.tools.jirasoftwareactions.api.JiraSoftwareScenario
-import com.atlassian.performance.tools.virtualusers.GoogleChromeWithInsecureConnectionSupport
 import com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome
+import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
 import org.junit.Test
@@ -10,6 +10,7 @@ import java.net.URI
 
 class VirtualUserOptionsTest {
 
+    @Suppress("DEPRECATION")
     private val optionsTemplate = VirtualUserOptions(
         help = true,
         jiraAddress = URI("http://localhost/jira/"),
@@ -115,18 +116,15 @@ class VirtualUserOptionsTest {
 
     private fun VirtualUserOptions.withJiraAddress(
         jiraAddress: URI
-    ) = VirtualUserOptions(
-        jiraAddress = jiraAddress,
-        scenario = scenario,
-        virtualUserLoad = virtualUserLoad,
-        adminLogin = adminLogin,
-        adminPassword = adminPassword,
-        diagnosticsLimit = diagnosticsLimit,
-        seed = seed,
-        browser = GoogleChromeWithInsecureConnectionSupport::class.java,
-        help = help
+    ) = withTarget(
+        VirtualUserTarget(
+            webApplication = jiraAddress,
+            userName = target.userName,
+            password = target.password
+        )
     )
 
+    @Suppress("DEPRECATION")
     private fun VirtualUserOptions.withAllowInsecureConnections(
         allowInsecureConnections: Boolean
     ) = VirtualUserOptions(

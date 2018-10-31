@@ -23,6 +23,13 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.2.0
 
+### Added
+- Compose `VirtualUserOptions` from `VirtualUserTarget` and `VirtualUserBehavior`.
+
+### Deprecate
+- Deprecate the 9-arg `VirtualUserOptions` constructor in favor of the new 2-arg one.
+- Deprecate the `VirtualUserOptions` getters. Prepare to expose only those getters, which are proven useful.
+
 ## [3.2.0] - 2018-11-23
 [3.2.0]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-3.2.0%0Drelease-3.1.1
 

@@ -2,10 +2,11 @@ package com.atlassian.performance.tools.virtualusers.api
 
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 import com.atlassian.performance.tools.jirasoftwareactions.api.JiraSoftwareScenario
-import com.atlassian.performance.tools.virtualusers.GoogleChromeWithInsecureConnectionSupport
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome
 import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeBrowser
+import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
+import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
 import org.apache.commons.cli.*
 import java.net.URI
 import java.net.URL
@@ -16,24 +17,56 @@ import java.util.*
  * Parsed cli args stored as fields.
  * Use {@link TestOptions.Parser} to parse.
  */
+@Suppress("DeprecatedCallableAddReplaceWith")
 class VirtualUserOptions(
-    val help: Boolean,
-    val jiraAddress: URI,
-    val adminLogin: String,
-    val adminPassword: String,
-    val virtualUserLoad: VirtualUserLoad,
-    val scenario: Class<out Scenario>,
-    val seed: Long,
-    val diagnosticsLimit: Int,
-    val browser: Class<out Browser>
+    val target: VirtualUserTarget,
+    val behavior: VirtualUserBehavior
 ) {
+    @Deprecated(deprecatedGetterMessage)
+    @Suppress("DEPRECATION")
+    val help: Boolean
+        get() = behavior.help
+
+    @Deprecated(deprecatedGetterMessage)
+    val jiraAddress: URI
+        get() = target.webApplication
+
+    @Deprecated(deprecatedGetterMessage)
+    val adminLogin: String
+        get() = target.userName
+
+    @Deprecated(deprecatedGetterMessage)
+    val adminPassword: String
+        get() = target.password
+
+    @Deprecated(deprecatedGetterMessage)
+    val virtualUserLoad: VirtualUserLoad
+        get() = behavior.load
+
+    @Deprecated(deprecatedGetterMessage)
+    val scenario: Class<out Scenario>
+        get() = behavior.scenario
+
+    @Deprecated(deprecatedGetterMessage)
+    val seed: Long
+        get() = behavior.seed
+
+    @Deprecated(deprecatedGetterMessage)
+    val diagnosticsLimit: Int
+        get() = behavior.diagnosticsLimit
+
+    @Deprecated(deprecatedGetterMessage)
+    val browser: Class<out Browser>
+        get() = behavior.browser
+
     private val normalizedJiraAddress: URI = validateJiraAddress()
 
     @Deprecated(
-        message = "Use the primary constructor. " +
+        message = "Use the 2-arg constructor. " +
             "Kotlin defaults don't work from Java and introduce binary compatibility problems. " +
             "Moreover, forcing to think about the values exposes the powerful options at the users disposal."
     )
+    @Suppress("DEPRECATION")
     constructor(
         help: Boolean = false,
         jiraAddress: URI = URI("http://localhost:8080/"),
@@ -54,10 +87,52 @@ class VirtualUserOptions(
         seed = seed,
         diagnosticsLimit = diagnosticsLimit,
         browser = if (allowInsecureConnections) {
-            GoogleChromeWithInsecureConnectionSupport::class.java
+            com.atlassian.performance.tools.virtualusers.GoogleChromeWithInsecureConnectionSupport::class.java
         } else {
             HeadlessChromeBrowser::class.java
         }
+    )
+
+    @Deprecated(message = "Use the 2-arg constructor")
+    @Suppress("DEPRECATION")
+    constructor(
+        help: Boolean,
+        jiraAddress: URI,
+        adminLogin: String,
+        adminPassword: String,
+        virtualUserLoad: VirtualUserLoad,
+        scenario: Class<out Scenario>,
+        seed: Long,
+        diagnosticsLimit: Int,
+        browser: Class<out Browser>
+    ) : this(
+        target = VirtualUserTarget(
+            webApplication = jiraAddress,
+            userName = adminLogin,
+            password = adminPassword
+        ),
+        behavior = VirtualUserBehavior(
+            scenario = scenario,
+            load = virtualUserLoad,
+            seed = seed,
+            diagnosticsLimit = diagnosticsLimit,
+            browser = browser,
+            help = help
+        )
+    )
+
+    fun withTarget(
+        target: VirtualUserTarget
+    ) = VirtualUserOptions(
+        target = target,
+        behavior = behavior
+    )
+
+    fun withBehavior(
+        behavior: VirtualUserBehavior
+    ) = VirtualUserOptions(
+        target = target,
+        behavior = behavior
     )
 
     companion object {
@@ -182,31 +257,34 @@ class VirtualUserOptions(
     @Deprecated(
         message = "You can configure browser options by implementing Browser SPI"
     )
+    @Suppress("DeprecatedCallableAddReplaceWith")
     fun getAllowInsecureConnections(): Boolean {
-        return browser == GoogleChromeWithInsecureConnectionSupport::class.java
+        @Suppress("DEPRECATION")
+        return behavior.browser == com.atlassian.performance.tools.virtualusers.GoogleChromeWithInsecureConnectionSupport::class.java
     }
 
     /**
      * Serializes to CLI args.
      */
     fun toCliArgs(): Array<String> {
+        @Suppress("DEPRECATION")
         val flags: List<String> = mapOf(
-            helpParameter to help,
+            helpParameter to behavior.help,
             allowInsecureConnectionsParameter to getAllowInsecureConnections()
         ).mapNotNull { (parameter, value) ->
             if (value) "--$parameter" else null
         }
         val parameters: List<String> = mapOf(
             jiraAddressParameter to normalizedJiraAddress,
-            loginParameter to adminLogin,
-            passwordParameter to adminPassword,
-            virtualUsersParameter to virtualUserLoad.virtualUsers,
-            holdParameter to virtualUserLoad.hold,
-            rampParameter to virtualUserLoad.ramp,
-            flatParameter to virtualUserLoad.flat,
-            scenarioParameter to scenario.canonicalName,
-            diagnosticsLimitParameter to diagnosticsLimit,
-            seedParameter to seed
+            loginParameter to target.userName,
+            passwordParameter to target.password,
+            virtualUsersParameter to behavior.load.virtualUsers,
+            holdParameter to behavior.load.hold,
+            rampParameter to behavior.load.ramp,
+            flatParameter to behavior.load.flat,
+            scenarioParameter to behavior.scenario.canonicalName,
+            diagnosticsLimitParameter to behavior.diagnosticsLimit,
+            seedParameter to behavior.seed
         ).flatMap { (parameter, value) ->
             listOf("--$parameter", value.toString())
         }
@@ -215,9 +293,9 @@ class VirtualUserOptions(
 
     private fun validateJiraAddress(): URI {
         val url = try {
-            jiraAddress.toURL()
+            target.webApplication.toURL()
         } catch (e: Exception) {
-            throw Exception("Invalid Jira URL: $jiraAddress", e)
+            throw Exception("Invalid Jira URL: ${target.webApplication}", e)
         }
         return URL(
             url.protocol,
@@ -256,23 +334,27 @@ class VirtualUserOptions(
             val flat = Duration.parse(commandLine.getOptionValue(flatParameter))
             val diagnosticsLimit = commandLine.getOptionValue(diagnosticsLimitParameter).toInt()
             val seed = commandLine.getOptionValue(seedParameter).toLong()
-            val allowInsecureConnections = commandLine.hasOption(allowInsecureConnectionsParameter)
 
+            @Suppress("DEPRECATION")
             return VirtualUserOptions(
-                help = help,
-                jiraAddress = jiraAddress,
-                adminLogin = adminLogin,
-                adminPassword = adminPassword,
-                virtualUserLoad = VirtualUserLoad(
-                    virtualUsers = virtualUsers,
-                    hold = hold,
-                    ramp = ramp,
-                    flat = flat
+                target = VirtualUserTarget(
+                    webApplication = jiraAddress,
+                    userName = adminLogin,
+                    password = adminPassword
                 ),
-                scenario = getScenario(commandLine),
-                diagnosticsLimit = diagnosticsLimit,
-                seed = seed,
-                browser = getBrowser(commandLine)
+                behavior = VirtualUserBehavior(
+                    scenario = getScenario(commandLine),
+                    diagnosticsLimit = diagnosticsLimit,
+                    seed = seed,
+                    browser = getBrowser(commandLine),
+                    load = VirtualUserLoad(
+                        virtualUsers = virtualUsers,
+                        hold = hold,
+                        ramp = ramp,
+                        flat = flat
+                    ),
+                    help = help
+                )
             )
         }
 
@@ -295,3 +377,5 @@ class VirtualUserOptions(
         }
     }
 }
+
+private const val deprecatedGetterMessage = "Raise a JPERF Jira story to explain why you need access to this field"
