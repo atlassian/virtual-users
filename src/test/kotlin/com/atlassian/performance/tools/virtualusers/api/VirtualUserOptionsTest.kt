@@ -1,6 +1,8 @@
 package com.atlassian.performance.tools.virtualusers.api
 
 import com.atlassian.performance.tools.jirasoftwareactions.api.JiraSoftwareScenario
+import com.atlassian.performance.tools.virtualusers.GoogleChromeWithInsecureConnectionSupport
+import com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
 import org.junit.Test
@@ -17,7 +19,7 @@ class VirtualUserOptionsTest {
         scenario = JiraSoftwareScenario::class.java,
         seed = 352798235,
         diagnosticsLimit = 8,
-        allowInsecureConnections = false
+        browser = GoogleChrome::class.java
     )
 
     @Test
@@ -121,7 +123,7 @@ class VirtualUserOptionsTest {
         adminPassword = adminPassword,
         diagnosticsLimit = diagnosticsLimit,
         seed = seed,
-        allowInsecureConnections = allowInsecureConnections,
+        browser = GoogleChromeWithInsecureConnectionSupport::class.java,
         help = help
     )
 

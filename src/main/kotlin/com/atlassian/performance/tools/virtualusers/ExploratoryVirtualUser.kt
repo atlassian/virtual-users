@@ -11,8 +11,8 @@ import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.lang.Thread.currentThread
-import java.lang.Thread.interrupted
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Applies load on a Jira via page objects. Explores the instance to learn about data and choose pages to visit.
@@ -26,6 +26,10 @@ internal class ExploratoryVirtualUser(
     private val logInAction: Action,
     private val diagnostics: Diagnostics
 ) {
+    companion object {
+        val shutdown = AtomicBoolean(false)
+    }
+
     private val logger: Logger = LogManager.getLogger(this::class.java)
     private val loginRetryLimit: Int = 1_000_000
 
@@ -56,7 +60,7 @@ internal class ExploratoryVirtualUser(
                     logger.error("Failed to run $action, but we keep running", e)
                 }
             }
-            if (interrupted()) {
+            if (ExploratoryVirtualUser.shutdown.get()) {
                 logger.info("Scenario finished on cue")
                 break
             }

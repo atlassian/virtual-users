@@ -1,35 +1,68 @@
 image: openjdk:8
 
+options:
+  docker: true
+  size: 2x
 pipelines:
   default:
-  - step:
-      name: Build project
-      caches:
-      - gradle
-      script:
-      - bash ./gradlew build
-  - step:
-      name: Publish snapshot
-      caches:
-      - gradle
-      trigger: manual
-      script:
-      - bash ./gradlew publish
-  branches:
-    master:
     - step:
         name: Build project
         caches:
-        - gradle
+          - gradle
+          - gradlewrapper
+          - docker
+          - maven
         script:
-        - bash ./gradlew build
+          - bash ./gradlew build
+        services:
+          - docker
+        artifacts:
+          - build/**
     - step:
-        name: Release project
+        name: Publish snapshot
         caches:
-        - gradle
+          - gradle
+          - gradlewrapper
+          - docker
+          - maven
         trigger: manual
         script:
-        - git config --global user.email "bitbucketci-team@atlassian.com"
-        - git config --global user.name "Bitbucket Pipelines"
-        - bash ./gradlew release -Prelease.customKeyFile="/opt/atlassian/pipelines/agent/data/id_rsa"
-        - bash ./gradlew publish
+          - bash ./gradlew publish
+        services:
+          - docker
+  branches:
+    master:
+      - step:
+          name: Build project
+          caches:
+            - gradle
+            - gradlewrapper
+            - docker
+            - maven
+          script:
+            - bash ./gradlew build
+          services:
+            - docker
+          artifacts:
+            - build/**
+      - step:
+          name: Release project
+          caches:
+            - gradle
+            - gradlewrapper
+            - docker
+            - maven
+          trigger: manual
+          script:
+            - git config --global user.email "bitbucketci-team@atlassian.com"
+            - git config --global user.name "Bitbucket Pipelines"
+            - bash ./gradlew release -Prelease.customKeyFile="/opt/atlassian/pipelines/agent/data/id_rsa"
+            - bash ./gradlew publish
+          services:
+            - docker
+definitions:
+  services:
+    docker:
+      memory: 6144
+  caches:
+    gradlewrapper: ~/.gradle/wrapper

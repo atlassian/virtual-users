@@ -1,10 +1,16 @@
 package com.atlassian.performance.tools.virtualusers.api
 
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
+import com.atlassian.performance.tools.jirasoftwareactions.api.JiraSoftwareScenario
+import com.atlassian.performance.tools.virtualusers.GoogleChromeWithInsecureConnectionSupport
+import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
+import com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome
+import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeBrowser
 import org.apache.commons.cli.*
 import java.net.URI
 import java.net.URL
 import java.time.Duration
+import java.util.*
 
 /**
  * Parsed cli args stored as fields.
@@ -19,9 +25,40 @@ class VirtualUserOptions(
     val scenario: Class<out Scenario>,
     val seed: Long,
     val diagnosticsLimit: Int,
-    val allowInsecureConnections: Boolean
+    val browser: Class<out Browser>
 ) {
     private val normalizedJiraAddress: URI = validateJiraAddress()
+
+    @Deprecated(
+        message = "Use the primary constructor. " +
+            "Kotlin defaults don't work from Java and introduce binary compatibility problems. " +
+            "Moreover, forcing to think about the values exposes the powerful options at the users disposal."
+    )
+    constructor(
+        help: Boolean = false,
+        jiraAddress: URI = URI("http://localhost:8080/"),
+        adminLogin: String = "admin",
+        adminPassword: String = "admin",
+        virtualUserLoad: VirtualUserLoad = VirtualUserLoad(),
+        scenario: Class<out Scenario> = JiraSoftwareScenario::class.java,
+        seed: Long = Random().nextLong(),
+        diagnosticsLimit: Int = 64,
+        allowInsecureConnections: Boolean = false
+    ) : this(
+        help = help,
+        jiraAddress = jiraAddress,
+        adminLogin = adminLogin,
+        adminPassword = adminPassword,
+        virtualUserLoad = virtualUserLoad,
+        scenario = scenario,
+        seed = seed,
+        diagnosticsLimit = diagnosticsLimit,
+        browser = if (allowInsecureConnections) {
+            GoogleChromeWithInsecureConnectionSupport::class.java
+        } else {
+            HeadlessChromeBrowser::class.java
+        }
+    )
 
     companion object {
         const val helpParameter = "help"
@@ -34,6 +71,7 @@ class VirtualUserOptions(
         const val rampParameter = "ramp"
         const val flatParameter = "flat"
         const val scenarioParameter = "scenario"
+        const val browserParameter = "browser"
         const val seedParameter = "seed"
         const val diagnosticsLimitParameter = "diagnostics-limit"
         const val allowInsecureConnectionsParameter = "allow-insecure-connections"
@@ -112,6 +150,13 @@ class VirtualUserOptions(
             )
             .addOption(
                 Option.builder()
+                    .longOpt(browserParameter)
+                    .hasArg(true)
+                    .desc("Custom browser")
+                    .build()
+            )
+            .addOption(
+                Option.builder()
                     .longOpt(seedParameter)
                     .hasArg(true)
                     .desc("Root seed.")
@@ -134,13 +179,20 @@ class VirtualUserOptions(
             )
     }
 
+    @Deprecated(
+        message = "You can configure browser options by implementing Browser SPI"
+    )
+    fun getAllowInsecureConnections(): Boolean {
+        return browser == GoogleChromeWithInsecureConnectionSupport::class.java
+    }
+
     /**
      * Serializes to CLI args.
      */
     fun toCliArgs(): Array<String> {
         val flags: List<String> = mapOf(
             helpParameter to help,
-            allowInsecureConnectionsParameter to allowInsecureConnections
+            allowInsecureConnectionsParameter to getAllowInsecureConnections()
         ).mapNotNull { (parameter, value) ->
             if (value) "--$parameter" else null
         }
@@ -220,7 +272,7 @@ class VirtualUserOptions(
                 scenario = getScenario(commandLine),
                 diagnosticsLimit = diagnosticsLimit,
                 seed = seed,
-                allowInsecureConnections = allowInsecureConnections
+                browser = getBrowser(commandLine)
             )
         }
 
@@ -229,6 +281,17 @@ class VirtualUserOptions(
             val scenarioClass = Class.forName(scenario)
             val scenarioConstructor = scenarioClass.getConstructor()
             return (scenarioConstructor.newInstance() as Scenario)::class.java
+        }
+
+        private fun getBrowser(commandLine: CommandLine): Class<out Browser> {
+            return if (commandLine.hasOption(browserParameter)) {
+                val browser = commandLine.getOptionValue(browserParameter)
+                val browserClass = Class.forName(browser)
+                val browserConstructor = browserClass.getConstructor()
+                (browserConstructor.newInstance() as Browser)::class.java
+            } else {
+                GoogleChrome::class.java
+            }
         }
     }
 }

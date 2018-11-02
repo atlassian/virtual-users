@@ -9,62 +9,78 @@ import org.openqa.selenium.chrome.ChromeOptions
 import org.openqa.selenium.remote.RemoteWebDriver
 import java.io.File
 
-class GoogleChrome internal constructor(
-    private val driverRuntime: ChromedriverRuntime,
-    private val allowInsecureConnections: Boolean
-) {
+open class GoogleChrome : Browser {
 
-    private val logger: Logger = LogManager.getLogger(this::class.java)
+    private val logger: Logger = LogManager.getLogger(GoogleChrome::class.java)
+    private val driverRuntime: ChromedriverRuntime
+    private val options = ChromeOptions()
 
-    constructor(
-        driverRuntime: ChromedriverRuntime
-    ) : this(
-        driverRuntime = driverRuntime,
-        allowInsecureConnections = false
-    )
+    constructor() {
+        this.driverRuntime = ChromedriverRuntime()
+    }
 
-    fun start(
-        headless: Boolean = true,
-        verboseLog: File? = null
-    ): RemoteWebDriver {
+    override fun start(): CloseableRemoteWebDriver {
         logger.debug("Starting Chrome")
         driverRuntime.ensureRunning()
         System.setProperty("webdriver.http.factory", "apache")
         val service = ChromeDriverService.Builder()
-        if (verboseLog != null) {
-            service
-                .withLogFile(verboseLog)
-                .withVerbose(true)
-        }
-        val driver = ChromeDriver(service.build(), getOptions(headless))
+        configure(options, service)
+        val driver = ChromeDriver(service.build(), options)
         driver.manage().window().size = Dimension(1024, 768)
-        return driver
+        return CloseableRemoteWebDriver(driver)
     }
 
-    private fun getOptions(
-        headless: Boolean
-    ): ChromeOptions = ChromeOptions()
-        .apply { if (headless) setHeadless() }
-        .apply { addArguments("--no-sandbox") }
-        .apply { addArguments("--disable-infobars") }
-        .apply { if (allowInsecureConnections) addArguments("--ignore-certificate-errors") }
-        .setExperimentalOption(
-            "prefs",
-            mapOf(
-                "credentials_enable_service" to false
+    protected open fun configure(options: ChromeOptions, service: ChromeDriverService.Builder) {
+        options
+            .apply { addArguments("--no-sandbox") }
+            .apply { addArguments("--disable-infobars") }
+            .setExperimentalOption(
+                "prefs",
+                mapOf(
+                    "credentials_enable_service" to false
+                )
             )
-        )
+    }
 
-    /**
-     * Additional --disable-gpu flag is necessary only on Windows.
-     * https://bugs.chromium.org/p/chromium/issues/detail?id=737678
-     */
-    private fun ChromeOptions.setHeadless(): ChromeOptions {
-        val osName = System.getProperty("os.name").toLowerCase()
-        addArguments("--headless")
-        if (osName.contains("win")) {
-            addArguments("--disable-gpu")
+    @Deprecated(
+        message = "Do not use."
+    )
+    fun start(
+        headless: Boolean = true,
+        verboseLog: File? = null
+    ): RemoteWebDriver {
+        return object : GoogleChrome() {
+            override fun configure(options: ChromeOptions, service: ChromeDriverService.Builder) {
+                if (verboseLog != null) {
+                    service
+                        .withLogFile(verboseLog)
+                        .withVerbose(true)
+                }
+                if (headless) {
+                    HeadlessChromeBrowser.setHeadless(options)
+                }
+                super.configure(options, service)
+            }
+        }.start().getDriver()
+    }
+
+    @Deprecated(
+        message = "Do not use."
+    )
+    constructor(driverRuntime: ChromedriverRuntime) {
+        this.driverRuntime = driverRuntime
+    }
+
+    @Deprecated(
+        message = "Do not use."
+    )
+    constructor(
+        driverRuntime: ChromedriverRuntime,
+        allowInsecureConnections: Boolean
+    ) {
+        this.driverRuntime = driverRuntime
+        if (allowInsecureConnections) {
+            options.addArguments("--ignore-certificate-errors")
         }
-        return this
     }
 }

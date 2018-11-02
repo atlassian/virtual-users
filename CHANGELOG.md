@@ -23,6 +23,17 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.1.1
 
+### Added
+- Add custom browser support which resolves [JPERF-169] and is required for [JPERF-243].
+ It also adds SPI to resolve or workaround [JPERF-226],[JPERF-238],[JPERF-196],[JPERF-180].
+
+[JPERF-169]: https://ecosystem.atlassian.net/browse/JPERF-169
+[JPERF-243]: https://ecosystem.atlassian.net/browse/JPERF-243
+[JPERF-226]: https://ecosystem.atlassian.net/browse/JPERF-226
+[JPERF-238]: https://ecosystem.atlassian.net/browse/JPERF-238
+[JPERF-196]: https://ecosystem.atlassian.net/browse/JPERF-196
+[JPERF-180]: https://ecosystem.atlassian.net/browse/JPERF-180
+
 ## [3.1.1] - 2018-11-20
 [3.1.1]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-3.1.1%0Drelease-3.1.0
 

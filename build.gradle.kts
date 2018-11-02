@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val kotlinVersion = "1.2.70"
 
@@ -18,6 +19,9 @@ configurations.all {
                 "commons-codec:commons-codec" -> useVersion("1.10")
                 "com.google.code.gson:gson" -> useVersion("2.8.2")
                 "org.slf4j:slf4j-api" -> useVersion("1.8.0-alpha2")
+                "com.google.code.findbugs:jsr305" -> useVersion("1.3.9")
+                "org.jetbrains:annotations" -> useVersion("13.0")
+                "org.apache.commons:commons-compress" -> useVersion("1.9")
             }
             when (requested.group) {
                 "org.jetbrains.kotlin" -> useVersion(kotlinVersion)
@@ -54,6 +58,8 @@ dependencies {
 
     testCompile("junit:junit:4.12")
     testCompile("org.assertj:assertj-core:3.11.0")
+    testCompile("org.testcontainers:testcontainers:1.9.1")
+    testCompile("org.testcontainers:selenium:1.9.1")
 }
 
 fun webdriver(): List<String> = listOf(
@@ -78,4 +84,8 @@ fun log4j(
 task<Wrapper>("wrapper") {
     gradleVersion = "4.9"
     distributionType = Wrapper.DistributionType.ALL
+}
+
+tasks.withType<Test> {
+    testLogging.exceptionFormat = TestExceptionFormat.FULL
 }

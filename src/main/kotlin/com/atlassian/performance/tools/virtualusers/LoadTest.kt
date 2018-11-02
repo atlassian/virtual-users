@@ -13,8 +13,8 @@ import com.atlassian.performance.tools.jiraactions.api.memories.UserMemory
 import com.atlassian.performance.tools.jiraactions.api.memories.adaptive.AdaptiveUserMemory
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
-import com.atlassian.performance.tools.virtualusers.api.browsers.ChromedriverRuntime
-import com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome
+import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
+import com.atlassian.performance.tools.virtualusers.api.browsers.CloseableRemoteWebDriver
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.*
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import com.google.common.util.concurrent.ThreadFactoryBuilder
@@ -22,6 +22,7 @@ import org.apache.logging.log4j.CloseableThreadContext
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.openqa.selenium.WebDriver
+import org.openqa.selenium.remote.RemoteWebDriver
 import java.nio.file.Paths
 import java.time.Duration
 import java.time.Instant.now
@@ -41,10 +42,10 @@ internal class LoadTest(
 
     private val workspace = Paths.get("test-results")
     private val nodeCounter = JiraNodeCounter()
-    private val driverRuntime = ChromedriverRuntime()
     private val random = SeededRandom(options.seed)
     private val diagnosisPatience = DiagnosisPatience(Duration.ofSeconds(5))
     private val diagnosisLimit = DiagnosisLimit(options.diagnosticsLimit)
+    private val scenario = options.scenario.getConstructor().newInstance() as Scenario
 
     fun run() {
         val load = options.virtualUserLoad
@@ -62,27 +63,25 @@ internal class LoadTest(
 
     private fun setUpJira() {
         CloseableThreadContext.push("setup").use {
-            val (driver, diagnostics) = startChrome()
-            val meter = ActionMeter(virtualUser = UUID.randomUUID())
-            val jira = WebJira(
-                driver = driver,
-                base = options.jiraAddress,
-                adminPassword = options.adminPassword
-            )
-            val userMemory = AdaptiveUserMemory(random)
-            userMemory.remember(
-                listOf(
-                    User(
-                        name = options.adminLogin,
-                        password = options.adminPassword
+            startBrowser().use { closeableDriver ->
+                val (driver, diagnostics) = closeableDriver.getDriver().toDiagnosableDriver()
+                val meter = ActionMeter(virtualUser = UUID.randomUUID())
+                val jira = WebJira(
+                    driver = driver,
+                    base = options.jiraAddress,
+                    adminPassword = options.adminPassword
+                )
+                val userMemory = AdaptiveUserMemory(random)
+                userMemory.remember(
+                    listOf(
+                        User(
+                            name = options.adminLogin,
+                            password = options.adminPassword
+                        )
                     )
                 )
-            )
-            val virtualUser = createVirtualUser(jira, meter, userMemory, diagnostics)
-            try {
+                val virtualUser = createVirtualUser(jira, meter, userMemory, diagnostics)
                 virtualUser.setUpJira()
-            } finally {
-                driver.quit()
             }
         }
     }
@@ -108,6 +107,7 @@ internal class LoadTest(
             {
                 val active = loadPool.activeCount
                 logger.info("Stopping load")
+                ExploratoryVirtualUser.shutdown.set(true)
                 loadPool.shutdownNow()
                 if (active != virtualUsers) {
                     throw Exception("Expected $virtualUsers VUs to still be active, but encountered $active")
@@ -154,35 +154,28 @@ internal class LoadTest(
         output: Appendable,
         uuid: UUID
     ) {
-        val (driver, diagnostics) = try {
-            startChrome()
-        } catch (e: Exception) {
-            logger.error("Failed to start Google Chrome", e)
-            return
-        }
-        val jira = WebJira(
-            driver = driver,
-            base = options.jiraAddress,
-            adminPassword = options.adminPassword
-        )
-        val userMemory = AdaptiveUserMemory(random)
-        userMemory.remember(
-            listOf(
-                User(
-                    name = options.adminLogin,
-                    password = options.adminPassword
+        startBrowser().use { closeableDriver ->
+            val (driver, diagnostics) = closeableDriver.getDriver().toDiagnosableDriver()
+            val jira = WebJira(
+                driver = driver,
+                base = options.jiraAddress,
+                adminPassword = options.adminPassword
+            )
+            val userMemory = AdaptiveUserMemory(random)
+            userMemory.remember(
+                listOf(
+                    User(
+                        name = options.adminLogin,
+                        password = options.adminPassword
+                    )
                 )
             )
-        )
-        val meter = ActionMeter(
-            virtualUser = uuid,
-            output = AppendableActionMetricOutput(output)
-        )
-        val virtualUser = createVirtualUser(jira, meter, userMemory, diagnostics)
-        try {
+            val meter = ActionMeter(
+                virtualUser = uuid,
+                output = AppendableActionMetricOutput(output)
+            )
+            val virtualUser = createVirtualUser(jira, meter, userMemory, diagnostics)
             virtualUser.applyLoad()
-        } finally {
-            driver.quit()
         }
     }
 
@@ -192,7 +185,6 @@ internal class LoadTest(
         userMemory: UserMemory,
         diagnostics: Diagnostics
     ): ExploratoryVirtualUser {
-        val scenario = options.scenario.getConstructor().newInstance() as Scenario
         val scenarioAdapter = ScenarioAdapter(scenario)
         return ExploratoryVirtualUser(
             jira = jira,
@@ -215,13 +207,17 @@ internal class LoadTest(
         )
     }
 
-    private fun startChrome(): DiagnosableDriver {
-        val chrome = GoogleChrome(driverRuntime).start()
+    private fun startBrowser(): CloseableRemoteWebDriver {
+        val browser = options.browser.getConstructor().newInstance() as Browser
+        return browser.start()
+    }
+
+    private fun RemoteWebDriver.toDiagnosableDriver(): DiagnosableDriver {
         return DiagnosableDriver(
-            chrome,
+            this,
             LimitedDiagnostics(
                 ImpatientDiagnostics(
-                    WebDriverDiagnostics(chrome),
+                    WebDriverDiagnostics(this),
                     diagnosisPatience
                 ),
                 diagnosisLimit
