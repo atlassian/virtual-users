@@ -1,12 +1,10 @@
 package com.atlassian.performance.tools.virtualusers.api
 
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
-import com.atlassian.performance.tools.jirasoftwareactions.api.JiraSoftwareScenario
 import org.apache.commons.cli.*
 import java.net.URI
 import java.net.URL
 import java.time.Duration
-import java.util.*
 
 /**
  * Parsed cli args stored as fields.
@@ -24,32 +22,6 @@ class VirtualUserOptions(
     val allowInsecureConnections: Boolean
 ) {
     private val normalizedJiraAddress: URI = validateJiraAddress()
-
-    @Deprecated(
-        message = "Use the primary constructor. " +
-            "Kotlin defaults don't work from Java and introduce binary compatibility problems. " +
-            "Moreover, forcing to think about the values exposes the powerful options at the users disposal."
-    )
-    constructor(
-        help: Boolean = false,
-        jiraAddress: URI = URI("http://localhost:8080/"),
-        adminLogin: String = "admin",
-        adminPassword: String = "admin",
-        virtualUserLoad: VirtualUserLoad = VirtualUserLoad(),
-        scenario: Class<out Scenario> = JiraSoftwareScenario::class.java,
-        seed: Long = Random().nextLong(),
-        diagnosticsLimit: Int = 64
-    ) : this(
-        help = help,
-        jiraAddress = jiraAddress,
-        adminLogin = adminLogin,
-        adminPassword = adminPassword,
-        virtualUserLoad = virtualUserLoad,
-        scenario = scenario,
-        seed = seed,
-        diagnosticsLimit = diagnosticsLimit,
-        allowInsecureConnections = false
-    )
 
     companion object {
         const val helpParameter = "help"
