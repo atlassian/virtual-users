@@ -12,7 +12,7 @@ import java.util.*
  * Parsed cli args stored as fields.
  * Use {@link TestOptions.Parser} to parse.
  */
-data class VirtualUserOptions(
+class VirtualUserOptions(
     val help: Boolean,
     val jiraAddress: URI,
     val adminLogin: String,

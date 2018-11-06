@@ -68,23 +68,22 @@ class VirtualUserOptionsTest {
     fun shouldParseItself() {
         val parser = VirtualUserOptions.Parser()
 
-        val parsedOptions = parser.parse(
-            optionsTemplate.toCliArgs()
-        )
+        val cliArgs = optionsTemplate.toCliArgs()
+        val reparsedCliArgs = parser.parse(cliArgs).toCliArgs()
 
-        assertThat(parsedOptions).isEqualTo(optionsTemplate)
+        assertThat(reparsedCliArgs).isEqualTo(cliArgs)
     }
 
     @Test
     fun shouldReturnSamePathIfValid() {
-        val options = optionsTemplate.copy(jiraAddress = URI("http://localhost:8080/"))
+        val options = optionsTemplate.withJiraAddress(URI("http://localhost:8080/"))
 
         assertThat(options.toCliArgs()).contains("http://localhost:8080/")
     }
 
     @Test
     fun shouldAppendPathIfMissing() {
-        val options = optionsTemplate.copy(jiraAddress = URI("http://localhost:8080"))
+        val options = optionsTemplate.withJiraAddress(URI("http://localhost:8080"))
 
         assertThat(options.toCliArgs()).contains("http://localhost:8080/")
     }
@@ -92,7 +91,7 @@ class VirtualUserOptionsTest {
     @Test
     fun shouldThrowOnInvalidUri() {
         val thrown = catchThrowable {
-            optionsTemplate.copy(jiraAddress = URI("http://localhost:8080invalid"))
+            optionsTemplate.withJiraAddress(URI("http://localhost:8080invalid"))
         }
 
         assertThat(thrown).hasMessageContaining("http://localhost:8080invalid")
@@ -100,15 +99,43 @@ class VirtualUserOptionsTest {
 
     @Test
     fun shouldFixDanglingContextPath() {
-        val options = optionsTemplate.copy(jiraAddress = URI("http://localhost:8080/context-path"))
+        val options = optionsTemplate.withJiraAddress(URI("http://localhost:8080/context-path"))
 
         assertThat(options.toCliArgs()).contains("http://localhost:8080/context-path/")
     }
 
     @Test
     fun shouldAllowInsecureConnections() {
-        val options = optionsTemplate.copy(allowInsecureConnections = true)
+        val options = optionsTemplate.withAllowInsecureConnections(true)
 
         assertThat(options.toCliArgs()).contains("--allow-insecure-connections")
     }
+
+    private fun VirtualUserOptions.withJiraAddress(
+        jiraAddress: URI
+    ) = VirtualUserOptions(
+        jiraAddress = jiraAddress,
+        scenario = scenario,
+        virtualUserLoad = virtualUserLoad,
+        adminLogin = adminLogin,
+        adminPassword = adminPassword,
+        diagnosticsLimit = diagnosticsLimit,
+        seed = seed,
+        allowInsecureConnections = allowInsecureConnections,
+        help = help
+    )
+
+    private fun VirtualUserOptions.withAllowInsecureConnections(
+        allowInsecureConnections: Boolean
+    ) = VirtualUserOptions(
+        jiraAddress = jiraAddress,
+        scenario = scenario,
+        virtualUserLoad = virtualUserLoad,
+        adminLogin = adminLogin,
+        adminPassword = adminPassword,
+        diagnosticsLimit = diagnosticsLimit,
+        seed = seed,
+        allowInsecureConnections = allowInsecureConnections,
+        help = help
+    )
 }
