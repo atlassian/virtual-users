@@ -26,6 +26,12 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [2.2.0] - 2018-10-31
 [2.2.0]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-2.2.0%0Drelease-2.1.5
 
+### INCOMPATIBILITY BUG
+Break binary compatibility for `com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions`. See [JPERF-253].
+Roll back to `2.1.5` to restore this compatibility.
+
+[JPERF-253]: https://ecosystem.atlassian.net/browse/JPERF-253
+
 ### Added
 - Allow insecure connections. Resolve [JPERF-196].
 
