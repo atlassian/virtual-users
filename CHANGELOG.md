@@ -21,30 +21,41 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-2.2.0
+[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-2.3.0
+
+## [2.3.0] - 2018-11-07
+[2.3.0]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-2.3.0%0Drelease-2.2.0
+
+### Added
+- Restore `VirtualUserOptions` binary compatibility with `2.0.0`. Resolve [JPERF-253].
+
+### Fixed
+- Remove `VirtualUserOptions.allowInsecureConnections` in order to restore compatibility.
+  This is not a breaking change, because the API from `2.2.0` was not stable.
+  This API is correctly reintroduced in `3.0.0`.
 
 ## [2.2.0] - 2018-10-31
 [2.2.0]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-2.2.0%0Drelease-2.1.5
 
 ### INCOMPATIBILITY BUG
 Break binary compatibility for `com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions`. See [JPERF-253].
-Roll back to `2.1.5` to restore this compatibility.
-
-[JPERF-253]: https://ecosystem.atlassian.net/browse/JPERF-253
+Roll back to `2.1.5` or forward to `2.3.0` to restore this compatibility.
 
 ### Added
 - Allow insecure connections. Resolve [JPERF-196].
+  WARNING, this new API is unstable. It cannot be shipped without breaking API.
+  Therefore it is removed in `2.3.0` and reintroduced in `3.0.0` as per SemVer spec.
 
 ### Fixed
 - Print relative paths for dumps in WebDriverDiagnostics as a workaround for [JPERF-158].
 - Fix serialization of the `help` CLI argument.
 - Remove custom page load timeout. Decreases [JPERF-249] occurrence.
 
-[JPERF-249]: https://ecosystem.atlassian.net/browse/JPERF-249
-
 ### Deprecated
 - Deprecate the Kotlin-defaults-ridden `VirtualUserOptions` constructor.
 
+[JPERF-253]: https://ecosystem.atlassian.net/browse/JPERF-253
+[JPERF-249]: https://ecosystem.atlassian.net/browse/JPERF-249
 [JPERF-196]: https://ecosystem.atlassian.net/browse/JPERF-196
 [JPERF-158]: https://ecosystem.atlassian.net/browse/JPERF-158
 
