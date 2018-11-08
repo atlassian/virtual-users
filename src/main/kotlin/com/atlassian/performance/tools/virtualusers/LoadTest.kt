@@ -6,8 +6,6 @@ import com.atlassian.performance.tools.concurrency.api.finishBy
 import com.atlassian.performance.tools.io.api.ensureDirectory
 import com.atlassian.performance.tools.jiraactions.api.SeededRandom
 import com.atlassian.performance.tools.jiraactions.api.WebJira
-import com.atlassian.performance.tools.jiraactions.api.action.LogInAction
-import com.atlassian.performance.tools.jiraactions.api.action.SetUpAction
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
 import com.atlassian.performance.tools.jiraactions.api.measure.output.AppendableActionMetricOutput
 import com.atlassian.performance.tools.jiraactions.api.memories.User
@@ -18,7 +16,7 @@ import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.browsers.ChromedriverRuntime
 import com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.*
-import com.atlassian.performance.tools.virtualusers.measure.*
+import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.apache.logging.log4j.CloseableThreadContext
 import org.apache.logging.log4j.LogManager
@@ -195,19 +193,20 @@ internal class LoadTest(
         diagnostics: Diagnostics
     ): ExploratoryVirtualUser {
         val scenario = options.scenario.getConstructor().newInstance() as Scenario
+        val scenarioAdapter = ScenarioAdapter(scenario)
         return ExploratoryVirtualUser(
             jira = jira,
             nodeCounter = nodeCounter,
-            actions = scenario.getActions(
+            actions = scenarioAdapter.getActions(
                 jira = jira,
                 seededRandom = SeededRandom(random.random.nextLong()),
                 meter = meter
             ),
-            setUpAction = SetUpAction(
+            setUpAction = scenarioAdapter.getSetupAction(
                 jira = jira,
                 meter = meter
             ),
-            logInAction = LogInAction(
+            logInAction = scenarioAdapter.getLogInAction(
                 jira = jira,
                 meter = meter,
                 userMemory = userMemory

@@ -23,6 +23,12 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.0.0
 
+### Added
+- Allow custom logIn and setup actions. Resolves [JPERF-127] and [JPERF-150].
+
+[JPERF-127]: https://ecosystem.atlassian.net/browse/JPERF-127
+[JPERF-150]: https://ecosystem.atlassian.net/browse/JPERF-150
+
 ## [3.0.0] - 2018-11-06
 [3.0.0]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-3.0.0%0Drelease-2.2.0
 

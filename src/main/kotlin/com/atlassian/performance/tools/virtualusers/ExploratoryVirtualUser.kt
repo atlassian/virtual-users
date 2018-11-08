@@ -3,8 +3,6 @@ package com.atlassian.performance.tools.virtualusers
 import com.atlassian.performance.tools.concurrency.api.representsInterrupt
 import com.atlassian.performance.tools.jiraactions.api.WebJira
 import com.atlassian.performance.tools.jiraactions.api.action.Action
-import com.atlassian.performance.tools.jiraactions.api.action.LogInAction
-import com.atlassian.performance.tools.jiraactions.api.action.SetUpAction
 import com.atlassian.performance.tools.jvmtasks.api.Backoff
 import com.atlassian.performance.tools.jvmtasks.api.IdempotentAction
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
@@ -24,8 +22,8 @@ internal class ExploratoryVirtualUser(
     private val jira: WebJira,
     private val nodeCounter: JiraNodeCounter,
     private val actions: Iterable<Action>,
-    private val setUpAction: SetUpAction,
-    private val logInAction: LogInAction,
+    private val setUpAction: Action,
+    private val logInAction: Action,
     private val diagnostics: Diagnostics
 ) {
     private val logger: Logger = LogManager.getLogger(this::class.java)
