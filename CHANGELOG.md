@@ -21,10 +21,22 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-2.3.0
+[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-2.4.0
+
+## [2.4.0] - 2018-11-15
+[2.4.0]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-2.4.0%0Drelease-2.3.0
+
+### Added
+- Restore `VirtualUserOptions.<init>` source and binary compatibility.
+  Note that due to signature ambiguity, we can no longer supply a Kotlin-defaults-free alternative constructor,
+  so we cannot offer users a way to migrate to `3.0.0` ahead of time.
 
 ## [2.3.0] - 2018-11-07
 [2.3.0]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-2.3.0%0Drelease-2.2.0
+
+### INCOMPATIBILITY BUG
+Break source and binary compatibility for `com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions.<init>`.
+See [JPERF-258]. Roll forward to `2.4.0` to restore this compatibility.
 
 ### Added
 - Restore `VirtualUserOptions` binary compatibility with `2.0.0`. Resolve [JPERF-253].
@@ -54,6 +66,7 @@ Roll back to `2.1.5` or forward to `2.3.0` to restore this compatibility.
 ### Deprecated
 - Deprecate the Kotlin-defaults-ridden `VirtualUserOptions` constructor.
 
+[JPERF-258]: https://ecosystem.atlassian.net/browse/JPERF-258
 [JPERF-253]: https://ecosystem.atlassian.net/browse/JPERF-253
 [JPERF-249]: https://ecosystem.atlassian.net/browse/JPERF-249
 [JPERF-196]: https://ecosystem.atlassian.net/browse/JPERF-196

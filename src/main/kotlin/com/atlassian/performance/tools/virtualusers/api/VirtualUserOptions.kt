@@ -1,24 +1,26 @@
 package com.atlassian.performance.tools.virtualusers.api
 
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
+import com.atlassian.performance.tools.jirasoftwareactions.api.JiraSoftwareScenario
 import org.apache.commons.cli.*
 import java.net.URI
 import java.net.URL
 import java.time.Duration
+import java.util.*
 
 /**
  * Parsed cli args stored as fields.
  * Use {@link TestOptions.Parser} to parse.
  */
 data class VirtualUserOptions(
-    val help: Boolean,
-    val jiraAddress: URI,
-    val adminLogin: String,
-    val adminPassword: String,
-    val virtualUserLoad: VirtualUserLoad,
-    val scenario: Class<out Scenario>,
-    val seed: Long,
-    val diagnosticsLimit: Int
+    val help: Boolean = false,
+    val jiraAddress: URI = URI("http://localhost:8080/"),
+    val adminLogin: String = "admin",
+    val adminPassword: String = "admin",
+    val virtualUserLoad: VirtualUserLoad = VirtualUserLoad(),
+    val scenario: Class<out Scenario> = JiraSoftwareScenario::class.java,
+    val seed: Long = Random().nextLong(),
+    val diagnosticsLimit: Int = 64
 ) {
     private val normalizedJiraAddress: URI = validateJiraAddress()
 
