@@ -20,8 +20,9 @@ class Application {
         try {
             run(args)
         } catch (e: Exception) {
-            LogManager.getLogger(this::class.java).error("Failed to run with $args", e)
-            System.exit(1)
+            val errorMessage = "Failed to run with ${args.toList()}"
+            LogManager.getLogger(this::class.java).error(errorMessage)
+            throw Exception(errorMessage, e)
         }
     }
 
@@ -29,8 +30,8 @@ class Application {
         val options = VirtualUserOptions.Parser().parse(args)
         if (options.help) {
             options.printHelp()
-            System.exit(0)
+        } else {
+            LoadTest(options).run()
         }
-        LoadTest(options).run()
     }
 }

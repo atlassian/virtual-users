@@ -23,6 +23,11 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.1.0
 
+### Fixed
+- Do not shutdown JVM in `EntryPoint`. Resolve [JPERF-259].
+
+[JPERF-259]: https://ecosystem.atlassian.net/browse/JPERF-259
+
 ## [3.1.0] - 2018-11-14
 [3.1.0]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-3.1.0%0Drelease-3.0.0
 
