@@ -21,7 +21,10 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.1.0
+[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.1.1
+
+## [3.1.1] - 2018-11-20
+[3.1.1]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-3.1.1%0Drelease-3.1.0
 
 ### Fixed
 - Do not shutdown JVM in `EntryPoint`. Resolve [JPERF-259].
