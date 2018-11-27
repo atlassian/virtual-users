@@ -39,7 +39,7 @@ class VirtualUserOptions(
     val adminPassword: String
         get() = target.password
 
-    @Deprecated(deprecatedGetterMessage)
+    @Deprecated("This field moved to VirtualUserBehavior", ReplaceWith("behavior.load"))
     val virtualUserLoad: VirtualUserLoad
         get() = behavior.load
 

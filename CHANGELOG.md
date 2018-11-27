@@ -25,6 +25,7 @@ Dropping a requirement of a major version of a dependency is a new contract.
 
 ### Added
 - Compose `VirtualUserOptions` from `VirtualUserTarget` and `VirtualUserBehavior`.
+- Add a `VirtualUserBehavior.withLoad` to avoid rewriting the rest of the parameters.
 
 ### Deprecate
 - Deprecate the 9-arg `VirtualUserOptions` constructor in favor of the new 2-arg one.

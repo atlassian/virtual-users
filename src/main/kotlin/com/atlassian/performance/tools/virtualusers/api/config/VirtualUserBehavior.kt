@@ -13,7 +13,7 @@ class VirtualUserBehavior
     )
     internal val help: Boolean,
     internal val scenario: Class<out Scenario>,
-    internal val load: VirtualUserLoad,
+    val load: VirtualUserLoad,
     internal val seed: Long,
     internal val diagnosticsLimit: Int,
     internal val browser: Class<out Browser>
@@ -30,6 +30,16 @@ class VirtualUserBehavior
         help = false,
         scenario = scenario,
         load = load,
+        seed = seed,
+        diagnosticsLimit = diagnosticsLimit,
+        browser = browser
+    )
+
+    fun withLoad(
+        load: VirtualUserLoad
+    ) = VirtualUserBehavior(
+        load = load,
+        scenario = scenario,
         seed = seed,
         diagnosticsLimit = diagnosticsLimit,
         browser = browser
