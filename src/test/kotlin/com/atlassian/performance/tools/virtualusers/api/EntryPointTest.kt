@@ -1,18 +1,27 @@
 package com.atlassian.performance.tools.virtualusers.api
 
 import com.atlassian.performance.tools.virtualusers.ChromeContainer
+import com.atlassian.performance.tools.virtualusers.DockerContainers
 import com.atlassian.performance.tools.virtualusers.JiraContainer
 import com.atlassian.performance.tools.virtualusers.SimpleScenario
+import org.junit.Before
 import org.junit.Test
 import org.testcontainers.containers.Network
 
 class EntryPointTest {
+    private val networkName = "entry-point-test-network"
+
+    @Before
+    fun before() {
+        DockerContainers().clean(networkName)
+    }
+
     @Test
     fun shouldRunWithCustomScenario() {
         Network.NetworkImpl
             .builder()
             .createNetworkCmdModifier { createNetworkCmd ->
-                createNetworkCmd.withName("entry-point-test-network")
+                createNetworkCmd.withName(networkName)
             }
             .build()
             .use { network ->
