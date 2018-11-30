@@ -27,7 +27,7 @@ internal class ExploratoryVirtualUser(
     private val diagnostics: Diagnostics
 ) {
     companion object {
-        val shutdown = AtomicBoolean(false)
+        val shutdown = AtomicBoolean()
     }
 
     private val logger: Logger = LogManager.getLogger(this::class.java)
@@ -44,6 +44,7 @@ internal class ExploratoryVirtualUser(
      * Repeats [actions] until the thread is interrupted.
      */
     fun applyLoad() {
+        shutdown.set(false)
         logger.info("Applying load...")
         logIn()
         val node = jira.getJiraNode()
@@ -54,9 +55,7 @@ internal class ExploratoryVirtualUser(
             try {
                 runWithDiagnostics(action)
             } catch (e: Exception) {
-                if (e.representsInterrupt()) {
-                    currentThread().interrupt()
-                } else {
+                if (!e.representsInterrupt()) {
                     logger.error("Failed to run $action, but we keep running", e)
                 }
             }
