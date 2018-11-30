@@ -109,8 +109,8 @@ internal class LoadTest(
             {
                 val active = loadPool.activeCount
                 logger.info("Stopping load")
-                ExploratoryVirtualUser.shutdown.set(true)
                 loadPool.shutdownNow()
+                ExploratoryVirtualUser.shutdown.set(true)
                 if (active != virtualUsers) {
                     throw Exception("Expected $virtualUsers VUs to still be active, but encountered $active")
                 }
