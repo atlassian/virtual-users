@@ -284,7 +284,8 @@ class VirtualUserOptions(
             flatParameter to behavior.load.flat,
             scenarioParameter to behavior.scenario.canonicalName,
             diagnosticsLimitParameter to behavior.diagnosticsLimit,
-            seedParameter to behavior.seed
+            seedParameter to behavior.seed,
+            browserParameter to behavior.browser.name
         ).flatMap { (parameter, value) ->
             listOf("--$parameter", value.toString())
         }

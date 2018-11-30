@@ -65,6 +65,10 @@ class VirtualUserOptionsTest {
                 "--flat",
                 "PT5M"
             )
+            .containsSequence(
+                "--browser",
+                "com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome"
+            )
     }
 
     @Test
