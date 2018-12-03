@@ -6,16 +6,10 @@ import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
 import com.atlassian.performance.tools.jiraactions.api.memories.UserMemory
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
 
-internal class SleepingScenario : Scenario {
-    private val logger: Logger = LogManager.getLogger(this::class.java)
-
+internal class NoopScenario : Scenario {
     private val noopAction = object : Action {
         override fun run() {
-            logger.info("Noop action")
-            Thread.sleep(10)
         }
     }
 

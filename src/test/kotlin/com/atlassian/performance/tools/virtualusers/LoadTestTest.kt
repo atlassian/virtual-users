@@ -24,7 +24,7 @@ class LoadTestTest {
                     password = "password"
                 ),
                 behavior = VirtualUserBehavior(
-                    scenario = SleepingScenario::class.java,
+                    scenario = NoopScenario::class.java,
                     load = VirtualUserLoad(
                         virtualUsers = 1,
                         hold = Duration.ZERO,
