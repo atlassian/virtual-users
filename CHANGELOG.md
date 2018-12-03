@@ -23,6 +23,9 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.3.3
 
+### Fixed 
+- Shutting down virtual users which resolves [JPERF-281].
+
 ## [3.3.3] - 2018-11-30
 [3.3.3]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-3.3.3%0Drelease-3.3.2
 

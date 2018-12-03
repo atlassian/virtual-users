@@ -10,7 +10,6 @@ import com.atlassian.performance.tools.virtualusers.collections.CircularIterator
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import java.lang.Thread.currentThread
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -60,10 +59,20 @@ internal class ExploratoryVirtualUser(
                 }
             }
             if (ExploratoryVirtualUser.shutdown.get()) {
+                clearInterruptedState()
                 logger.info("Scenario finished on cue")
                 break
             }
         }
+    }
+
+    /**
+     * We use interruption to break thread's flow. At this point, we no longer care about the interrupted state.
+     * We rely on ExploratoryVirtualUser.shutdown instead. We switched to The ExploratoryVirtualUser.shutdown
+     * because interrupted state is out of our control (a 3rd party code may erase it).
+     */
+    private fun clearInterruptedState() {
+        Thread.interrupted()
     }
 
     private fun logIn() {
