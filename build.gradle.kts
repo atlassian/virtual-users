@@ -58,8 +58,7 @@ dependencies {
 
     testCompile("junit:junit:4.12")
     testCompile("org.assertj:assertj-core:3.11.0")
-    testCompile("org.testcontainers:testcontainers:1.9.1")
-    testCompile("org.testcontainers:selenium:1.9.1")
+    testCompile("com.atlassian.performance.tools:docker-infrastructure:0.1.0")
 }
 
 fun webdriver(): List<String> = listOf(
