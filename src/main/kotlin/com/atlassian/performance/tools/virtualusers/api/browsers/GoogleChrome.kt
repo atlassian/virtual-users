@@ -33,6 +33,7 @@ open class GoogleChrome : Browser {
     protected open fun configure(options: ChromeOptions, service: ChromeDriverService.Builder) {
         options
             .apply { addArguments("--no-sandbox") }
+            .apply { addArguments("--disable-dev-shm-usage") }
             .apply { addArguments("--disable-infobars") }
             .setExperimentalOption(
                 "prefs",

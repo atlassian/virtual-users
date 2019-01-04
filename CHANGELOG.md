@@ -23,6 +23,11 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.3.5
 
+### Fixed
+- Disable /dev/shm usage. Resolves [JPERF-333].
+
+[JPERF-333]: https://ecosystem.atlassian.net/browse/JPERF-333
+
 ## [3.3.5] - 2019-01-03
 [3.3.5]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-3.3.5%0Drelease-3.3.4
 
