@@ -21,7 +21,10 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.3.5
+[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.3.6
+
+## [3.3.6] - 2019-01-04
+[3.3.6]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-3.3.6%0Drelease-3.3.5
 
 ### Fixed
 - Disable /dev/shm usage. Resolves [JPERF-333].
