@@ -23,6 +23,12 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.3.6
 
+## Added
+- Add a builder for `VirtualUserBehavior`.
+
+## Deprecate
+- Deprecate all `VirtualUserBehavior` methods in favor of the builder.
+
 ### Fixed
 - Install ChromeDriver only once instead of for every virtual user. Fix [JPERF-351].
 

@@ -96,7 +96,7 @@ class VirtualUserOptions(
     @Deprecated(message = "Use the 2-arg constructor")
     @Suppress("DEPRECATION")
     constructor(
-        help: Boolean,
+        @Suppress("UNUSED_PARAMETER") help: Boolean,
         jiraAddress: URI,
         adminLogin: String,
         adminPassword: String,
@@ -111,14 +111,12 @@ class VirtualUserOptions(
             userName = adminLogin,
             password = adminPassword
         ),
-        behavior = VirtualUserBehavior(
-            scenario = scenario,
-            load = virtualUserLoad,
-            seed = seed,
-            diagnosticsLimit = diagnosticsLimit,
-            browser = browser,
-            help = help
-        )
+        behavior = VirtualUserBehavior.Builder(scenario)
+            .load(virtualUserLoad)
+            .seed(seed)
+            .diagnosticsLimit(diagnosticsLimit)
+            .browser(browser)
+            .build()
     )
 
     fun withTarget(
@@ -325,7 +323,6 @@ class VirtualUserOptions(
         fun parse(args: Array<String>): VirtualUserOptions {
             val parser: CommandLineParser = DefaultParser()
             val commandLine = parser.parse(options, args)
-            val help = commandLine.hasOption(helpParameter)
             val jiraAddress = URI(commandLine.getOptionValue(jiraAddressParameter))
             val adminLogin = commandLine.getOptionValue(loginParameter)
             val adminPassword = commandLine.getOptionValue(passwordParameter)
@@ -336,26 +333,23 @@ class VirtualUserOptions(
             val diagnosticsLimit = commandLine.getOptionValue(diagnosticsLimitParameter).toInt()
             val seed = commandLine.getOptionValue(seedParameter).toLong()
 
-            @Suppress("DEPRECATION")
             return VirtualUserOptions(
                 target = VirtualUserTarget(
                     webApplication = jiraAddress,
                     userName = adminLogin,
                     password = adminPassword
                 ),
-                behavior = VirtualUserBehavior(
-                    scenario = getScenario(commandLine),
-                    diagnosticsLimit = diagnosticsLimit,
-                    seed = seed,
-                    browser = getBrowser(commandLine),
-                    load = VirtualUserLoad(
+                behavior = VirtualUserBehavior.Builder(getScenario(commandLine))
+                    .diagnosticsLimit(diagnosticsLimit)
+                    .seed(seed)
+                    .browser(getBrowser(commandLine))
+                    .load(VirtualUserLoad(
                         virtualUsers = virtualUsers,
                         hold = hold,
                         ramp = ramp,
                         flat = flat
-                    ),
-                    help = help
-                )
+                    ))
+                    .build()
             )
         }
 

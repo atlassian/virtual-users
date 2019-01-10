@@ -2,6 +2,7 @@ package com.atlassian.performance.tools.virtualusers.api
 
 import com.atlassian.performance.tools.jirasoftwareactions.api.JiraSoftwareScenario
 import com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome
+import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
@@ -10,17 +11,18 @@ import java.net.URI
 
 class VirtualUserOptionsTest {
 
-    @Suppress("DEPRECATION")
     private val optionsTemplate = VirtualUserOptions(
-        help = true,
-        jiraAddress = URI("http://localhost/jira/"),
-        adminLogin = "fred",
-        adminPassword = "secret",
-        virtualUserLoad = VirtualUserLoad(),
-        scenario = JiraSoftwareScenario::class.java,
-        seed = 352798235,
-        diagnosticsLimit = 8,
-        browser = GoogleChrome::class.java
+        target = VirtualUserTarget(
+            webApplication = URI("http://localhost/jira/"),
+            userName = "fred",
+            password = "secret"
+        ),
+        behavior = VirtualUserBehavior.Builder(JiraSoftwareScenario::class.java)
+            .load(VirtualUserLoad())
+            .seed(352798235)
+            .diagnosticsLimit(8)
+            .browser(GoogleChrome::class.java)
+            .build()
     )
 
     @Test
@@ -28,7 +30,6 @@ class VirtualUserOptionsTest {
         val args = optionsTemplate.toCliArgs()
 
         assertThat(args)
-            .contains("--help")
             .containsSequence(
                 "--jira-address",
                 "http://localhost/jira/"

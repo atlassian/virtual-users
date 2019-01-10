@@ -49,18 +49,15 @@ class LoadTestTest {
                 userName = "username",
                 password = "password"
             ),
-            behavior = VirtualUserBehavior(
-                scenario = NoopScenario::class.java,
-                load = VirtualUserLoad(
+            behavior = VirtualUserBehavior.Builder(NoopScenario::class.java)
+                .browser(TestBrowser::class.java)
+                .load(VirtualUserLoad(
                     virtualUsers = virtualUsers,
                     hold = Duration.ZERO,
                     ramp = Duration.ZERO,
                     flat = Duration.ofSeconds(1)
-                ),
-                diagnosticsLimit = 0,
-                seed = 1,
-                browser = TestBrowser::class.java
-            )
+                ))
+                .build()
         )
     )
 
