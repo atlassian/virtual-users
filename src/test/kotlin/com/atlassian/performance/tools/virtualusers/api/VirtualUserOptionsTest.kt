@@ -22,6 +22,7 @@ class VirtualUserOptionsTest {
             .seed(352798235)
             .diagnosticsLimit(8)
             .browser(GoogleChrome::class.java)
+            .skipSetup(true)
             .build()
     )
 
@@ -70,6 +71,7 @@ class VirtualUserOptionsTest {
                 "--browser",
                 "com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome"
             )
+            .contains("--skip-setup")
     }
 
     @Test

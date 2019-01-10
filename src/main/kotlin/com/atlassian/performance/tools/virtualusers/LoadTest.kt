@@ -64,6 +64,10 @@ internal class LoadTest(
     }
 
     private fun setUpJira() {
+        if (behavior.skipSetup) {
+            logger.debug("Skipped the setup")
+            return
+        }
         CloseableThreadContext.push("setup").use {
             browser.start().use { closeableDriver ->
                 val (driver, diagnostics) = closeableDriver.getDriver().toDiagnosableDriver()

@@ -24,6 +24,7 @@ Dropping a requirement of a major version of a dependency is a new contract.
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.3.6
 
 ## Added
+- Let virtual users skip the setup. Unblock [JPERF-346].
 - Add a builder for `VirtualUserBehavior`.
 
 ## Deprecate
@@ -33,6 +34,7 @@ Dropping a requirement of a major version of a dependency is a new contract.
 - Install ChromeDriver only once instead of for every virtual user. Fix [JPERF-351].
 
 [JPERF-351]: https://ecosystem.atlassian.net/browse/JPERF-351
+[JPERF-346]: https://ecosystem.atlassian.net/browse/JPERF-346
 
 ## [3.3.6] - 2019-01-04
 [3.3.6]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-3.3.6%0Drelease-3.3.5

@@ -17,8 +17,30 @@ class VirtualUserBehavior
     val load: VirtualUserLoad,
     internal val seed: Long,
     internal val diagnosticsLimit: Int,
-    internal val browser: Class<out Browser>
+    internal val browser: Class<out Browser>,
+    internal val skipSetup: Boolean
 ) {
+
+    @Suppress("DEPRECATION")
+    @Deprecated(
+        message = "Use the VirtualUserBehavior.Builder instead"
+    )
+    constructor(
+        help: Boolean,
+        scenario: Class<out Scenario>,
+        load: VirtualUserLoad,
+        seed: Long,
+        diagnosticsLimit: Int,
+        browser: Class<out Browser>
+    ) : this(
+        skipSetup = false,
+        help = help,
+        scenario = scenario,
+        load = load,
+        seed = seed,
+        diagnosticsLimit = diagnosticsLimit,
+        browser = browser
+    )
 
     @Deprecated(
         message = "Use the VirtualUserBehavior.Builder instead"
@@ -57,12 +79,14 @@ class VirtualUserBehavior
         private var seed: Long = 12345
         private var diagnosticsLimit: Int = 16
         private var browser: Class<out Browser> = HeadlessChromeBrowser::class.java
+        private var skipSetup = false
 
         fun scenario(scenario: Class<out Scenario>) = apply { this.scenario = scenario }
         fun load(load: VirtualUserLoad) = apply { this.load = load }
         fun seed(seed: Long) = apply { this.seed = seed }
         fun diagnosticsLimit(diagnosticsLimit: Int) = apply { this.diagnosticsLimit = diagnosticsLimit }
         fun browser(browser: Class<out Browser>) = apply { this.browser = browser }
+        fun skipSetup(skipSetup: Boolean) = apply { this.skipSetup = skipSetup }
 
         constructor(
             behavior: VirtualUserBehavior
@@ -73,6 +97,7 @@ class VirtualUserBehavior
             scenario = behavior.scenario
             diagnosticsLimit = behavior.diagnosticsLimit
             browser = behavior.browser
+            skipSetup = behavior.skipSetup
         }
 
         @Suppress("DEPRECATION")
@@ -81,7 +106,9 @@ class VirtualUserBehavior
             load = load,
             seed = seed,
             diagnosticsLimit = diagnosticsLimit,
-            browser = browser
+            browser = browser,
+            skipSetup = skipSetup,
+            help = false
         )
     }
 }

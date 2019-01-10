@@ -148,6 +148,7 @@ class VirtualUserOptions(
         const val seedParameter = "seed"
         const val diagnosticsLimitParameter = "diagnostics-limit"
         const val allowInsecureConnectionsParameter = "allow-insecure-connections"
+        const val skipSetupParameter = "skip-setup"
 
         val options: Options = Options()
             .addOption(
@@ -250,6 +251,12 @@ class VirtualUserOptions(
                     .desc("Allows insecure connections to the browser")
                     .build()
             )
+            .addOption(
+                Option.builder()
+                    .longOpt(skipSetupParameter)
+                    .desc("Skips the setup action")
+                    .build()
+            )
     }
 
     @Deprecated(
@@ -268,7 +275,8 @@ class VirtualUserOptions(
         @Suppress("DEPRECATION")
         val flags: List<String> = mapOf(
             helpParameter to behavior.help,
-            allowInsecureConnectionsParameter to getAllowInsecureConnections()
+            allowInsecureConnectionsParameter to getAllowInsecureConnections(),
+            skipSetupParameter to behavior.skipSetup
         ).mapNotNull { (parameter, value) ->
             if (value) "--$parameter" else null
         }
@@ -332,6 +340,7 @@ class VirtualUserOptions(
             val flat = Duration.parse(commandLine.getOptionValue(flatParameter))
             val diagnosticsLimit = commandLine.getOptionValue(diagnosticsLimitParameter).toInt()
             val seed = commandLine.getOptionValue(seedParameter).toLong()
+            val skipSetup = commandLine.hasOption(skipSetupParameter)
 
             return VirtualUserOptions(
                 target = VirtualUserTarget(
@@ -349,6 +358,7 @@ class VirtualUserOptions(
                         ramp = ramp,
                         flat = flat
                     ))
+                    .skipSetup(skipSetup)
                     .build()
             )
         }
