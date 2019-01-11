@@ -10,12 +10,16 @@ class ChromedriverRuntime {
     private var running = false
 
     fun ensureRunning() {
-        synchronized(this) {
+        synchronized(lock) {
             val chromedriverInstalled = ExecutableFinder().find("chromedriver") != null
             if (!chromedriverInstalled && !running) {
                 ChromeDriverManager.getInstance().version("2.43").setup()
                 running = true
             }
         }
+    }
+
+    private companion object {
+        val lock = Object()
     }
 }
