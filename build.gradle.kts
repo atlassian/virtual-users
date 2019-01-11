@@ -87,4 +87,5 @@ task<Wrapper>("wrapper") {
 
 tasks.withType<Test> {
     testLogging.exceptionFormat = TestExceptionFormat.FULL
+    maxHeapSize = "256m"
 }
