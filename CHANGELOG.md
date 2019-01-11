@@ -23,14 +23,19 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.4.0
 
+### Fixed
+- Isolate `ChromeOptions` state between `GoogleChrome` starts. Fix [JPERF-353].
+
+[JPERF-353]: https://ecosystem.atlassian.net/browse/JPERF-353
+
 ## [3.4.0] - 2019-01-11
 [3.4.0]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-3.4.0%0Drelease-3.3.6
 
-## Added
+### Added
 - Let virtual users skip the setup. Unblock [JPERF-346].
 - Add a builder for `VirtualUserBehavior`.
 
-## Deprecate
+### Deprecate
 - Deprecate all `VirtualUserBehavior` methods in favor of the builder.
 
 ### Fixed

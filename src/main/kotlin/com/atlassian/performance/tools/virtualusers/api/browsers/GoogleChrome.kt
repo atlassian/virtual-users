@@ -13,13 +13,18 @@ open class GoogleChrome : Browser {
 
     private val logger: Logger = LogManager.getLogger(GoogleChrome::class.java)
     private val driverRuntime: ChromedriverRuntime
-    private val options = ChromeOptions()
+    private val allowInsecureConnections: Boolean
 
     constructor() {
         this.driverRuntime = ChromedriverRuntime()
+        allowInsecureConnections = false
     }
 
     override fun start(): CloseableRemoteWebDriver {
+        val options = ChromeOptions()
+        if (allowInsecureConnections) {
+            options.addArguments("--ignore-certificate-errors")
+        }
         logger.debug("Starting Chrome")
         driverRuntime.ensureRunning()
         System.setProperty("webdriver.http.factory", "apache")
@@ -70,6 +75,7 @@ open class GoogleChrome : Browser {
     )
     constructor(driverRuntime: ChromedriverRuntime) {
         this.driverRuntime = driverRuntime
+        this.allowInsecureConnections = false
     }
 
     @Deprecated(
@@ -80,8 +86,6 @@ open class GoogleChrome : Browser {
         allowInsecureConnections: Boolean
     ) {
         this.driverRuntime = driverRuntime
-        if (allowInsecureConnections) {
-            options.addArguments("--ignore-certificate-errors")
-        }
+        this.allowInsecureConnections = allowInsecureConnections
     }
 }
