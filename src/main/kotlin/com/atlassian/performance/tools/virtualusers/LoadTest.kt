@@ -14,7 +14,6 @@ import com.atlassian.performance.tools.jiraactions.api.memories.adaptive.Adaptiv
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
-import com.atlassian.performance.tools.virtualusers.api.browsers.CloseableRemoteWebDriver
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.*
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import com.google.common.util.concurrent.ThreadFactoryBuilder
@@ -48,6 +47,7 @@ internal class LoadTest(
     private val diagnosisPatience = DiagnosisPatience(Duration.ofSeconds(5))
     private val diagnosisLimit = DiagnosisLimit(behavior.diagnosticsLimit)
     private val scenario = behavior.scenario.getConstructor().newInstance() as Scenario
+    private val browser = behavior.browser.getConstructor().newInstance() as Browser
 
     fun run() {
         val load = behavior.load
@@ -65,7 +65,7 @@ internal class LoadTest(
 
     private fun setUpJira() {
         CloseableThreadContext.push("setup").use {
-            startBrowser().use { closeableDriver ->
+            browser.start().use { closeableDriver ->
                 val (driver, diagnostics) = closeableDriver.getDriver().toDiagnosableDriver()
                 val meter = ActionMeter(virtualUser = UUID.randomUUID())
                 val jira = WebJira(
@@ -156,7 +156,7 @@ internal class LoadTest(
         output: Appendable,
         uuid: UUID
     ) {
-        startBrowser().use { closeableDriver ->
+        browser.start().use { closeableDriver ->
             val (driver, diagnostics) = closeableDriver.getDriver().toDiagnosableDriver()
             val jira = WebJira(
                 driver = driver,
@@ -207,11 +207,6 @@ internal class LoadTest(
             ),
             diagnostics = diagnostics
         )
-    }
-
-    private fun startBrowser(): CloseableRemoteWebDriver {
-        val browser = behavior.browser.getConstructor().newInstance() as Browser
-        return browser.start()
     }
 
     private fun RemoteWebDriver.toDiagnosableDriver(): DiagnosableDriver {
