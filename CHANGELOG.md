@@ -21,7 +21,10 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.4.0
+[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.4.1
+
+## [3.4.1] - 2019-01-22
+[3.4.1]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-3.4.1%0Drelease-3.4.0
 
 ### Fixed
 - Isolate `ChromeOptions` state between `GoogleChrome` starts. Fix [JPERF-353].
