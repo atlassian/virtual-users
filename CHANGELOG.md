@@ -23,6 +23,11 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.4.1
 
+### Added
+- Slow down VUs to 818 actions per minute. Work towards [JPERF-403].
+
+[JPERF-403]: https://ecosystem.atlassian.net/browse/JPERF-403
+
 ## [3.4.1] - 2019-01-22
 [3.4.1]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-3.4.1%0Drelease-3.4.0
 

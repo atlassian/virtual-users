@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.system.measureNanoTime
 
 /**
  * Applies load on a Jira via page objects. Explores the instance to learn about data and choose pages to visit.
@@ -49,9 +50,16 @@ internal class ExploratoryVirtualUser(
         nodeCounter.count(node)
         val actionNames = actions.map { it.javaClass.simpleName }
         logger.debug("Circling through $actionNames")
+        val minimumLatency = Duration.ofMillis(200) // https://en.wikipedia.org/wiki/Mental_chronometry
         for (action in CircularIterator(actions)) {
             try {
-                runWithDiagnostics(action)
+                val latency = Duration.ofNanos(measureNanoTime {
+                    runWithDiagnostics(action)
+                })
+                val remainingLatency = minimumLatency - latency
+                if (remainingLatency > Duration.ZERO) {
+                    Thread.sleep(remainingLatency.toMillis())
+                }
             } catch (e: Exception) {
                 if (!e.representsInterrupt()) {
                     logger.error("Failed to run $action, but we keep running", e)
