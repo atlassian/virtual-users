@@ -14,14 +14,16 @@ import kotlin.system.measureTimeMillis
 class ExploratoryVirtualUserTest {
 
     @Test
-    fun shouldBeSlowLikeHumans() {
+    fun shouldRespectMaxLoad() {
         val action = QuickServer()
+        val maxLoad = TemporalRate(40.0, ofMinutes(1))
         val virtualUser = ExploratoryVirtualUser(
             node = StaticApplicationNode(),
             nodeCounter = JiraNodeCounter(),
             actions = listOf(action),
             setUpAction = NoOp(),
             logInAction = NoOp(),
+            maxLoad = maxLoad,
             diagnostics = DisabledDiagnostics()
         )
         Timer(true).schedule(ofSeconds(5).toMillis()) {
@@ -32,9 +34,8 @@ class ExploratoryVirtualUserTest {
             virtualUser.applyLoad()
         })
 
-        val throughput = TemporalRate(action.requestsServed.toDouble(), totalDuration)
-        val recordHumanApm = TemporalRate(818.0, ofMinutes(1)) // https://en.wikipedia.org/wiki/Actions_per_minute
-        assertThat(throughput).isLessThan(recordHumanApm)
+        val actualLoad = TemporalRate(action.requestsServed.toDouble(), totalDuration)
+        assertThat(actualLoad).isLessThan(maxLoad)
     }
 
     private class QuickServer : Action {
