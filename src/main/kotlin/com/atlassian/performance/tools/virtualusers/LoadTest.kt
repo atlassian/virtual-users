@@ -16,6 +16,7 @@ import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.*
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
+import com.atlassian.performance.tools.virtualusers.measure.WebJiraNode
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.apache.logging.log4j.CloseableThreadContext
 import org.apache.logging.log4j.LogManager
@@ -193,7 +194,7 @@ internal class LoadTest(
     ): ExploratoryVirtualUser {
         val scenarioAdapter = ScenarioAdapter(scenario)
         return ExploratoryVirtualUser(
-            jira = jira,
+            node = WebJiraNode(jira),
             nodeCounter = nodeCounter,
             actions = scenarioAdapter.getActions(
                 jira = jira,

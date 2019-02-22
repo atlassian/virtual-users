@@ -6,13 +6,14 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 internal class JiraNodeCounter {
+
     private val counter: MutableMap<String, AtomicInteger> = ConcurrentHashMap()
 
-    fun count(nodeId: String) {
-        counter.computeIfAbsent(
-            nodeId,
-            { AtomicInteger() }
-        ).incrementAndGet()
+    fun count(node: ApplicationNode) {
+        val nodeId = node.identify()
+        counter
+            .computeIfAbsent(nodeId) { AtomicInteger() }
+            .incrementAndGet()
     }
 
     fun dump(

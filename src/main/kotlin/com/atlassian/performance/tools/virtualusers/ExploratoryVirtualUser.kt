@@ -1,12 +1,12 @@
 package com.atlassian.performance.tools.virtualusers
 
 import com.atlassian.performance.tools.concurrency.api.representsInterrupt
-import com.atlassian.performance.tools.jiraactions.api.WebJira
 import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.jvmtasks.api.Backoff
 import com.atlassian.performance.tools.jvmtasks.api.IdempotentAction
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
 import com.atlassian.performance.tools.virtualusers.collections.CircularIterator
+import com.atlassian.performance.tools.virtualusers.measure.ApplicationNode
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Wanders preset Jira pages with different proportions of each page. Their order is random.
  */
 internal class ExploratoryVirtualUser(
-    private val jira: WebJira,
+    private val node: ApplicationNode,
     private val nodeCounter: JiraNodeCounter,
     private val actions: Iterable<Action>,
     private val setUpAction: Action,
@@ -46,7 +46,6 @@ internal class ExploratoryVirtualUser(
         shutdown.set(false)
         logger.info("Applying load...")
         logIn()
-        val node = jira.getJiraNode()
         nodeCounter.count(node)
         val actionNames = actions.map { it.javaClass.simpleName }
         logger.debug("Circling through $actionNames")
