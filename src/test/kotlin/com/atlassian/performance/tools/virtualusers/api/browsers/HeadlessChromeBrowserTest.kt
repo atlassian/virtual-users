@@ -10,14 +10,4 @@ class HeadlessChromeBrowserTest {
         val zeroArgConstructor: Constructor<HeadlessChromeBrowser> = HeadlessChromeBrowser::class.java.getConstructor()
         zeroArgConstructor.newInstance()
     }
-
-    @Test
-    fun shouldStartMultipleInParallel() {
-        val browser = HeadlessChromeBrowser()
-
-        (1..20)
-            .toList()
-            .parallelStream()
-            .forEach { browser.start().use {} }
-    }
 }

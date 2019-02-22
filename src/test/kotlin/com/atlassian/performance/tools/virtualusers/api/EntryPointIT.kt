@@ -5,7 +5,7 @@ import com.atlassian.performance.tools.virtualusers.ChromeContainer
 import com.atlassian.performance.tools.virtualusers.SimpleScenario
 import org.junit.Test
 
-class EntryPointTest {
+class EntryPointIT {
 
     @Test
     fun shouldRunWithCustomScenario() {

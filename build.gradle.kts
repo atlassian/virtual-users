@@ -89,3 +89,13 @@ tasks.withType<Test> {
     testLogging.exceptionFormat = TestExceptionFormat.FULL
     maxHeapSize = "256m"
 }
+
+tasks.getByName("test", Test::class).apply {
+    exclude("**/*IT.class")
+}
+
+val testIntegration = task<Test>("testIntegration") {
+    include("**/*IT.class")
+}
+
+tasks["check"].dependsOn(testIntegration)
