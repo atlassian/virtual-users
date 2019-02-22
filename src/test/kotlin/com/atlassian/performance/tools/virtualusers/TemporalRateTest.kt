@@ -7,7 +7,7 @@ import java.time.Duration.*
 class TemporalRateTest {
 
     @Test
-    fun shouldScaleDown() {
+    fun shouldDownscaleTime() {
         val original = TemporalRate(240.0, ofMinutes(1))
 
         val scaled = original.scaleTime(ofSeconds(1))
@@ -17,7 +17,7 @@ class TemporalRateTest {
     }
 
     @Test
-    fun shouldScaleUp() {
+    fun shouldUpscaleTime() {
         val original = TemporalRate(2.0, ofMinutes(1))
 
         val scaled = original.scaleTime(ofHours(1))
@@ -27,13 +27,37 @@ class TemporalRateTest {
     }
 
     @Test
-    fun shouldScaleWithComplexTimeUnit() {
+    fun shouldScaleNonUnitTime() {
         val original = TemporalRate(100.0, ofSeconds(1))
 
         val scaled = original.scaleTime(ofSeconds(3))
 
         assertThat(scaled.change).isEqualTo(300.0)
         assertThat(scaled.time).isEqualTo(ofSeconds(3))
+    }
+
+    @Test
+    fun shouldDownscaleChange() {
+        val original = TemporalRate(4.0, ofHours(1))
+
+        val scaled = original.scaleChange(1.0)
+
+        assertThat(scaled.change).isEqualTo(1.0)
+        assertThat(scaled.time).isEqualTo(ofMinutes(15))
+    }
+
+    @Test
+    fun shouldUpscaleChange() {
+        val dishes = 13.0
+        val timeItTookMeToWashThem = ofMinutes(18)
+        val dishWashingSpeed = TemporalRate(dishes, timeItTookMeToWashThem)
+
+        val moreDishes = 100.0
+        val timeToWashMoreDishes = dishWashingSpeed.scaleChange(moreDishes).time
+
+        assertThat(timeToWashMoreDishes).isEqualTo(
+            ofHours(2) + ofMinutes(18) + ofSeconds(27) + ofNanos(692307692)
+        )
     }
 
     @Test

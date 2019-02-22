@@ -35,7 +35,8 @@ class ExploratoryVirtualUserTest {
         })
 
         val actualLoad = TemporalRate(action.requestsServed.toDouble(), totalDuration)
-        assertThat(actualLoad).isLessThan(maxLoad)
+        val hopefullyMinLoad = TemporalRate(30.0, ofMinutes(1))
+        assertThat(actualLoad).isBetween(hopefullyMinLoad, maxLoad)
     }
 
     private class QuickServer : Action {

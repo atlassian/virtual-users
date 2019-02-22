@@ -1,6 +1,7 @@
 package com.atlassian.performance.tools.virtualusers
 
 import java.time.Duration
+import kotlin.math.roundToLong
 
 /**
  * https://en.wikipedia.org/wiki/Rate_(mathematics)#Temporal_rates
@@ -29,6 +30,19 @@ class TemporalRate(
         } else {
             throw Exception("We're not able to translate different time units yet")
         }
+    }
+
+    fun scaleChange(
+        newChange: Double
+    ): TemporalRate {
+        if (change == newChange) {
+            return this
+        }
+        val factor = newChange / change
+        return TemporalRate(
+            change = newChange,
+            time = Duration.ofNanos((time.toNanos() * factor).roundToLong())
+        )
     }
 
     fun scaleTime(

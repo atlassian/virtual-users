@@ -51,7 +51,7 @@ internal class ExploratoryVirtualUser(
         nodeCounter.count(node)
         val actionNames = actions.map { it.javaClass.simpleName }
         logger.debug("Circling through $actionNames")
-        val minimumLatency = Duration.ofMillis(200) // https://en.wikipedia.org/wiki/Mental_chronometry
+        val minimumLatency = maxLoad.scaleChange(1.0).time
         for (action in CircularIterator(actions)) {
             try {
                 val latency = Duration.ofNanos(measureNanoTime {
