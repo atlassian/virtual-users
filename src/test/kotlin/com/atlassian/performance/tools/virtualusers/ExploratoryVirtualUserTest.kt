@@ -6,46 +6,104 @@ import com.atlassian.performance.tools.virtualusers.measure.ApplicationNode
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
+import java.time.Duration
 import java.time.Duration.*
 import java.util.*
 import kotlin.concurrent.schedule
+import kotlin.math.exp
 import kotlin.system.measureTimeMillis
 
 class ExploratoryVirtualUserTest {
 
     @Test
     fun shouldRespectMaxLoad() {
-        val action = QuickServer()
         val maxLoad = TemporalRate(40.0, ofMinutes(1))
-        val virtualUser = ExploratoryVirtualUser(
-            node = StaticApplicationNode(),
-            nodeCounter = JiraNodeCounter(),
-            actions = listOf(action),
-            setUpAction = NoOp(),
-            logInAction = NoOp(),
-            maxLoad = maxLoad,
-            diagnostics = DisabledDiagnostics()
-        )
+        val server = QuickServer()
+        val virtualUser = prepareVu(listOf(server), maxLoad)
+
+        val totalDuration = applyLoad(virtualUser)
+
+        val actualLoad = TemporalRate(server.requestsServed.toDouble(), totalDuration)
+        val hopefullyMinLoad = TemporalRate(30.0, ofMinutes(1))
+        assertLoadInRange(actualLoad, hopefullyMinLoad, maxLoad)
+    }
+
+    @Test
+    fun shouldBeCloseToMaxLoadDespiteSlowStart() {
+        val maxLoad = TemporalRate(80.0, ofMinutes(1))
+        val server = SlowlyWarmingServer(ofMillis(2500))
+        val virtualUser = prepareVu(listOf(server), maxLoad)
+
+        val totalDuration = applyLoad(virtualUser)
+
+        val actualLoad = TemporalRate(server.requestsServed.toDouble(), totalDuration)
+        val closeToMaxLoad = TemporalRate(70.0, ofMinutes(1))
+        assertLoadInRange(actualLoad, closeToMaxLoad, maxLoad)
+    }
+
+    private fun prepareVu(
+        actions: List<Action>,
+        maxLoad: TemporalRate
+    ): ExploratoryVirtualUser = ExploratoryVirtualUser(
+        node = StaticApplicationNode(),
+        nodeCounter = JiraNodeCounter(),
+        actions = actions,
+        setUpAction = NoOp(),
+        logInAction = NoOp(),
+        maxLoad = maxLoad,
+        diagnostics = DisabledDiagnostics()
+    )
+
+    private fun applyLoad(
+        virtualUser: ExploratoryVirtualUser
+    ): Duration {
         Timer(true).schedule(ofSeconds(5).toMillis()) {
             ExploratoryVirtualUser.shutdown.set(true)
         }
-
-        val totalDuration = ofMillis(measureTimeMillis {
+        return ofMillis(measureTimeMillis {
             virtualUser.applyLoad()
         })
+    }
 
-        val actualLoad = TemporalRate(action.requestsServed.toDouble(), totalDuration)
-        val hopefullyMinLoad = TemporalRate(30.0, ofMinutes(1))
-        assertThat(actualLoad).isBetween(hopefullyMinLoad, maxLoad)
+    private fun assertLoadInRange(
+        actualLoad: TemporalRate,
+        minLoad: TemporalRate,
+        maxLoad: TemporalRate
+    ) {
+        val commonTimeUnit = Duration.ofHours(1)
+        val readableActual = actualLoad.scaleTime(commonTimeUnit)
+        val readableMin = minLoad.scaleTime(commonTimeUnit)
+        val readableMax = maxLoad.scaleTime(commonTimeUnit)
+        assertThat(readableActual).isBetween(readableMin, readableMax)
     }
 
     private class QuickServer : Action {
 
-        var requestsServed = 0L
+        var requestsServed = 0
+            private set
 
         override fun run() {
             Thread.sleep(10)
             requestsServed++
+        }
+    }
+
+    private class SlowlyWarmingServer(
+        private val slowStart: Duration
+    ) : Action {
+
+        var requestsServed = 0
+            private set
+
+        override fun run() {
+            Thread.sleep(decayExponentially().toMillis())
+            requestsServed++
+        }
+
+        private fun decayExponentially(): Duration {
+            val decay = exp(-requestsServed.toDouble())
+            val decayedNanos = slowStart.toNanos() * decay
+            return ofNanos(decayedNanos.toLong())
         }
     }
 
