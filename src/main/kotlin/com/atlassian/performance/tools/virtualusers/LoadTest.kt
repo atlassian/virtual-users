@@ -210,6 +210,7 @@ internal class LoadTest(
                 meter = meter,
                 userMemory = userMemory
             ),
+            maxLoad = TemporalRate(1.0, Duration.ofMillis(100)),
             diagnostics = diagnostics
         )
     }

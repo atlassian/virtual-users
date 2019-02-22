@@ -24,6 +24,7 @@ internal class ExploratoryVirtualUser(
     private val actions: Iterable<Action>,
     private val setUpAction: Action,
     private val logInAction: Action,
+    private val maxLoad: TemporalRate,
     private val diagnostics: Diagnostics
 ) {
     companion object {
