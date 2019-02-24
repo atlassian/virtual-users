@@ -8,6 +8,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
 import org.junit.Test
 import java.net.URI
+import java.time.Duration
 
 class VirtualUserOptionsTest {
 
@@ -18,7 +19,15 @@ class VirtualUserOptionsTest {
             password = "secret"
         ),
         behavior = VirtualUserBehavior.Builder(JiraSoftwareScenario::class.java)
-            .load(VirtualUserLoad())
+            .load(
+                VirtualUserLoad.Builder()
+                    .virtualUsers(7)
+                    .hold(Duration.ZERO)
+                    .ramp(Duration.ofSeconds(15))
+                    .flat(Duration.ofMinutes(5))
+                    .maxOverallLoad(TemporalRate(33.6, Duration.ofSeconds(1)))
+                    .build()
+            )
             .seed(352798235)
             .diagnosticsLimit(8)
             .browser(GoogleChrome::class.java)
@@ -56,6 +65,10 @@ class VirtualUserOptionsTest {
                 "8"
             )
             .containsSequence(
+                "--virtual-users",
+                "7"
+            )
+            .containsSequence(
                 "--hold",
                 "PT0S"
             )
@@ -66,6 +79,10 @@ class VirtualUserOptionsTest {
             .containsSequence(
                 "--flat",
                 "PT5M"
+            )
+            .containsSequence(
+                "--max-overall-load",
+                "33.6/PT1S"
             )
             .containsSequence(
                 "--browser",

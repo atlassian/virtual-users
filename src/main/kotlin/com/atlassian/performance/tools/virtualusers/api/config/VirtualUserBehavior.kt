@@ -75,7 +75,7 @@ class VirtualUserBehavior
     class Builder(
         private var scenario: Class<out Scenario>
     ) {
-        private var load: VirtualUserLoad = VirtualUserLoad()
+        private var load: VirtualUserLoad = VirtualUserLoad.Builder().build()
         private var seed: Long = 12345
         private var diagnosticsLimit: Int = 16
         private var browser: Class<out Browser> = HeadlessChromeBrowser::class.java

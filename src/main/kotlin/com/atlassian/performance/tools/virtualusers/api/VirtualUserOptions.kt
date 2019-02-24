@@ -143,6 +143,7 @@ class VirtualUserOptions(
         const val holdParameter = "hold"
         const val rampParameter = "ramp"
         const val flatParameter = "flat"
+        const val maxOverallLoadParameter = "max-overall-load"
         const val scenarioParameter = "scenario"
         const val browserParameter = "browser"
         const val seedParameter = "seed"
@@ -212,6 +213,16 @@ class VirtualUserOptions(
                     .hasArg()
                     .desc("Flat load duration in ISO-8601 format")
                     .required()
+                    .build()
+            )
+            .addOption(
+                Option.builder()
+                    .longOpt(maxOverallLoadParameter)
+                    .hasArg()
+                    .desc(
+                        "Maximum action rate for each VU throughout the entire duration." +
+                            " Format: <decimal real number>/<ISO-8601 duration>"
+                    )
                     .build()
             )
             .addOption(
@@ -288,6 +299,7 @@ class VirtualUserOptions(
             holdParameter to behavior.load.hold,
             rampParameter to behavior.load.ramp,
             flatParameter to behavior.load.flat,
+            maxOverallLoadParameter to behavior.load.maxOverallLoad.let { "${it.change}/${it.time}" },
             scenarioParameter to behavior.scenario.canonicalName,
             diagnosticsLimitParameter to behavior.diagnosticsLimit,
             seedParameter to behavior.seed,
@@ -338,6 +350,10 @@ class VirtualUserOptions(
             val hold = Duration.parse(commandLine.getOptionValue(holdParameter))
             val ramp = Duration.parse(commandLine.getOptionValue(rampParameter))
             val flat = Duration.parse(commandLine.getOptionValue(flatParameter))
+            val maxOverallLoad = commandLine
+                .getOptionValue(maxOverallLoadParameter)
+                ?.let { it.split('/') }
+                ?.let { (actions, time) -> TemporalRate(actions.toDouble(), Duration.parse(time)) }
             val diagnosticsLimit = commandLine.getOptionValue(diagnosticsLimitParameter).toInt()
             val seed = commandLine.getOptionValue(seedParameter).toLong()
             val skipSetup = commandLine.hasOption(skipSetupParameter)
@@ -352,12 +368,15 @@ class VirtualUserOptions(
                     .diagnosticsLimit(diagnosticsLimit)
                     .seed(seed)
                     .browser(getBrowser(commandLine))
-                    .load(VirtualUserLoad(
-                        virtualUsers = virtualUsers,
-                        hold = hold,
-                        ramp = ramp,
-                        flat = flat
-                    ))
+                    .load(
+                        VirtualUserLoad.Builder()
+                            .virtualUsers(virtualUsers)
+                            .hold(hold)
+                            .ramp(ramp)
+                            .flat(flat)
+                            .let { if (maxOverallLoad != null) it.maxOverallLoad(maxOverallLoad) else it }
+                            .build()
+                    )
                     .skipSetup(skipSetup)
                     .build()
             )

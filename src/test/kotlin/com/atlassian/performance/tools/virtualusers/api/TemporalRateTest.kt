@@ -1,4 +1,4 @@
-package com.atlassian.performance.tools.virtualusers
+package com.atlassian.performance.tools.virtualusers.api
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -58,17 +58,6 @@ class TemporalRateTest {
         assertThat(timeToWashMoreDishes).isEqualTo(
             ofHours(2) + ofMinutes(18) + ofSeconds(27) + ofNanos(692307692)
         )
-    }
-
-    @Test
-    fun shouldAdd() {
-        val alpha = TemporalRate(3.0, ofSeconds(1))
-        val beta = TemporalRate(5.0, ofSeconds(1))
-
-        val sum = alpha + beta
-
-        assertThat(sum.change).isEqualTo(8.0)
-        assertThat(sum.time).isEqualTo(ofSeconds(1))
     }
 
     @Test

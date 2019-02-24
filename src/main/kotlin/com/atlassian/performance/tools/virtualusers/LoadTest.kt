@@ -12,6 +12,7 @@ import com.atlassian.performance.tools.jiraactions.api.memories.User
 import com.atlassian.performance.tools.jiraactions.api.memories.UserMemory
 import com.atlassian.performance.tools.jiraactions.api.memories.adaptive.AdaptiveUserMemory
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
+import com.atlassian.performance.tools.virtualusers.api.TemporalRate
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.*
@@ -38,9 +39,10 @@ import java.util.concurrent.TimeUnit
 internal class LoadTest(
     options: VirtualUserOptions
 ) {
-    private val logger: Logger = LogManager.getLogger(this::class.java)
 
+    private val logger: Logger = LogManager.getLogger(this::class.java)
     private val behavior = options.behavior
+
     private val target = options.target
     private val workspace = Paths.get("test-results")
     private val nodeCounter = JiraNodeCounter()
@@ -49,9 +51,9 @@ internal class LoadTest(
     private val diagnosisLimit = DiagnosisLimit(behavior.diagnosticsLimit)
     private val scenario = behavior.scenario.getConstructor().newInstance() as Scenario
     private val browser = behavior.browser.getConstructor().newInstance() as Browser
+    private val load = behavior.load
 
     fun run() {
-        val load = behavior.load
         logger.info("Holding for ${load.hold}.")
         Thread.sleep(load.hold.toMillis())
         workspace.toFile().ensureDirectory()
@@ -94,7 +96,6 @@ internal class LoadTest(
     }
 
     private fun applyLoad() {
-        val load = behavior.load
         val virtualUsers = load.virtualUsers
         val finish = load.ramp + load.flat
         val maxStop = Duration.ofMinutes(2)
@@ -143,7 +144,7 @@ internal class LoadTest(
         val uuid = UUID.randomUUID()
         CloseableThreadContext.push("applying load #$uuid").use {
 
-            val rampUpWait = behavior.load.rampInterval.multipliedBy(vuOrder)
+            val rampUpWait = load.rampInterval.multipliedBy(vuOrder)
             logger.info("Waiting for $rampUpWait")
             Thread.sleep(rampUpWait.toMillis())
 
@@ -193,6 +194,7 @@ internal class LoadTest(
         diagnostics: Diagnostics
     ): ExploratoryVirtualUser {
         val scenarioAdapter = ScenarioAdapter(scenario)
+        val maxOverallLoad = load.maxOverallLoad
         return ExploratoryVirtualUser(
             node = WebJiraNode(jira),
             nodeCounter = nodeCounter,
@@ -210,7 +212,7 @@ internal class LoadTest(
                 meter = meter,
                 userMemory = userMemory
             ),
-            maxLoad = TemporalRate(1.0, Duration.ofMillis(100)),
+            maxLoad = TemporalRate(maxOverallLoad.change / load.virtualUsers, maxOverallLoad.time),
             diagnostics = diagnostics
         )
     }

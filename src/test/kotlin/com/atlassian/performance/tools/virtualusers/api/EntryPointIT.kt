@@ -8,7 +8,7 @@ import org.junit.Test
 class EntryPointIT {
 
     @Test
-    fun shouldRunWithCustomScenario() {
+    fun shouldRunWith3_2_0_Args() {
         JiraCoreFormula.Builder()
             .build()
             .provision()

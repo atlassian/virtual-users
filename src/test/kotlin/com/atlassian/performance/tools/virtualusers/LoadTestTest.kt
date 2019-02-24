@@ -84,12 +84,14 @@ class LoadTestTest {
             ),
             behavior = VirtualUserBehavior.Builder(TracingScenario::class.java)
                 .browser(TestBrowser::class.java)
-                .load(VirtualUserLoad(
-                    virtualUsers = virtualUsers,
-                    hold = Duration.ZERO,
-                    ramp = Duration.ZERO,
-                    flat = Duration.ofSeconds(1)
-                ))
+                .load(
+                    VirtualUserLoad.Builder()
+                        .virtualUsers(virtualUsers)
+                        .hold(Duration.ZERO)
+                        .ramp(Duration.ZERO)
+                        .flat(Duration.ofSeconds(1))
+                        .build()
+                )
                 .skipSetup(skipSetup)
                 .build()
         )

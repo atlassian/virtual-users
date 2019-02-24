@@ -24,7 +24,10 @@ Dropping a requirement of a major version of a dependency is a new contract.
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.4.1
 
 ### Added
-- Slow down each VU to a given maximum overall load. Fix [JPERF-403].
+- Slow down each VU to a given `VirtualUserLoad.maxOverallLoad`. Fix [JPERF-403].
+
+### Deprecated
+- Deprecate `VirtualUserLoad` constructor in favor of `VirtualUserLoad.Builder`.
 
 [JPERF-403]: https://ecosystem.atlassian.net/browse/JPERF-403
 

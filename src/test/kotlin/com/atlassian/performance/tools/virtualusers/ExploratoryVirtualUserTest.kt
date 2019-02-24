@@ -1,6 +1,7 @@
 package com.atlassian.performance.tools.virtualusers
 
 import com.atlassian.performance.tools.jiraactions.api.action.Action
+import com.atlassian.performance.tools.virtualusers.api.TemporalRate
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
 import com.atlassian.performance.tools.virtualusers.measure.ApplicationNode
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter

@@ -4,6 +4,7 @@ import com.atlassian.performance.tools.concurrency.api.representsInterrupt
 import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.jvmtasks.api.Backoff
 import com.atlassian.performance.tools.jvmtasks.api.IdempotentAction
+import com.atlassian.performance.tools.virtualusers.api.TemporalRate
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
 import com.atlassian.performance.tools.virtualusers.collections.CircularIterator
 import com.atlassian.performance.tools.virtualusers.measure.ApplicationNode
