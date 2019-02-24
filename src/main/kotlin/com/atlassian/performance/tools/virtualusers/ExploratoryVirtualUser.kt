@@ -11,8 +11,8 @@ import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.time.Duration
+import java.time.Instant.now
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.system.measureNanoTime
 
 /**
  * Applies load on a Jira via page objects. Explores the instance to learn about data and choose pages to visit.
@@ -51,15 +51,17 @@ internal class ExploratoryVirtualUser(
         nodeCounter.count(node)
         val actionNames = actions.map { it.javaClass.simpleName }
         logger.debug("Circling through $actionNames")
-        val minimumLatency = maxLoad.scaleChange(1.0).time
+        var actionsPerformed = 0.0
+        val start = now()
         for (action in CircularIterator(actions)) {
             try {
-                val latency = Duration.ofNanos(measureNanoTime {
-                    runWithDiagnostics(action)
-                })
-                val remainingLatency = minimumLatency - latency
-                if (remainingLatency > Duration.ZERO) {
-                    Thread.sleep(remainingLatency.toMillis())
+                runWithDiagnostics(action)
+                actionsPerformed++
+                val expectedTimeSoFar = maxLoad.scaleChange(actionsPerformed).time
+                val actualTimeSoFar = Duration.between(start, now())
+                val extraTime = expectedTimeSoFar - actualTimeSoFar
+                if (extraTime > Duration.ZERO) {
+                    Thread.sleep(extraTime.toMillis())
                 }
             } catch (e: Exception) {
                 if (!e.representsInterrupt()) {

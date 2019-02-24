@@ -24,7 +24,7 @@ Dropping a requirement of a major version of a dependency is a new contract.
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.4.1
 
 ### Added
-- Slow down VUs to a given maximum load. Fix [JPERF-403].
+- Slow down each VU to a given maximum overall load. Fix [JPERF-403].
 
 [JPERF-403]: https://ecosystem.atlassian.net/browse/JPERF-403
 

@@ -75,6 +75,7 @@ class ExploratoryVirtualUserTest {
         val readableMin = minLoad.scaleTime(commonTimeUnit)
         val readableMax = maxLoad.scaleTime(commonTimeUnit)
         assertThat(readableActual).isBetween(readableMin, readableMax)
+        println("Actual load [$readableActual] is good, because it fits between [$readableMin] and [$readableMax]")
     }
 
     private class QuickServer : Action {

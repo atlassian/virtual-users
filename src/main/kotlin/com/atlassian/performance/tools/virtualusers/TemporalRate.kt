@@ -12,24 +12,41 @@ class TemporalRate(
 ) : Comparable<TemporalRate> {
 
     override fun compareTo(other: TemporalRate): Int {
-        val shorterTime = minOf(this.time, other.time)
+        val (normalizedThis, normalizedOther) = normalizeTimes(other)
         return compareValues(
-            this.scaleTime(shorterTime).change,
-            other.scaleTime(shorterTime).change
+            normalizedThis.change,
+            normalizedOther.change
+        )
+    }
+
+    private fun normalizeTimes(
+        other: TemporalRate
+    ): Pair<TemporalRate, TemporalRate> {
+        val shorterTime = minOf(this.time, other.time)
+        return Pair(
+            this.scaleTime(shorterTime),
+            other.scaleTime(shorterTime)
         )
     }
 
     operator fun plus(
         other: TemporalRate
     ): TemporalRate {
-        if (this.time == other.time) {
-            return TemporalRate(
-                change = this.change + other.change,
-                time = this.time
-            )
-        } else {
-            throw Exception("We're not able to translate different time units yet")
-        }
+        val (normalizedThis, normalizedOther) = normalizeTimes(other)
+        return TemporalRate(
+            normalizedThis.change + normalizedOther.change,
+            normalizedThis.time
+        )
+    }
+
+    operator fun minus(
+        other: TemporalRate
+    ): TemporalRate {
+        val (normalizedThis, normalizedOther) = normalizeTimes(other)
+        return TemporalRate(
+            normalizedThis.change - normalizedOther.change,
+            normalizedThis.time
+        )
     }
 
     fun scaleChange(
