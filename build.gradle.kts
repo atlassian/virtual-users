@@ -6,7 +6,7 @@ val kotlinVersion = "1.2.70"
 plugins {
     kotlin("jvm").version("1.2.70")
     id("com.github.johnrengelman.shadow").version("2.0.4")
-    id("com.atlassian.performance.tools.gradle-release").version("0.4.3")
+    id("com.atlassian.performance.tools.gradle-release").version("0.5.0")
     `java-library`
 }
 
@@ -59,6 +59,8 @@ dependencies {
     testCompile("junit:junit:4.12")
     testCompile("org.assertj:assertj-core:3.11.0")
     testCompile("com.atlassian.performance.tools:docker-infrastructure:0.1.0")
+    testCompile("org.testcontainers:testcontainers:1.9.1")
+    testCompile("org.testcontainers:selenium:1.9.1")
 }
 
 fun webdriver(): List<String> = listOf(
@@ -80,8 +82,8 @@ fun log4j(
     "org.apache.logging.log4j:log4j-$module:2.10.0"
 }
 
-task<Wrapper>("wrapper") {
-    gradleVersion = "4.9"
+tasks.getByName("wrapper", Wrapper::class).apply {
+    gradleVersion = "5.2.1"
     distributionType = Wrapper.DistributionType.ALL
 }
 

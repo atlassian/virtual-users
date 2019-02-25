@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/atlassian/virtual-users.svg?branch=master)](https://travis-ci.com/atlassian/virtual-users)
+
 # Virtual Users
 Virtual users simulate end users using browsers to communicate with a web application.
 They aim to be realistic, low-config and robust.
