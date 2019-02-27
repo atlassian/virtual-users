@@ -1,5 +1,6 @@
 package com.atlassian.performance.tools.virtualusers
 
+import com.atlassian.performance.tools.jiraactions.api.memories.User
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
@@ -23,12 +24,14 @@ class LoadTestTest {
      * Prevents concurrent shared global state mutations if the test methods are concurrent.
      */
     private val globalStateLock = Object()
+    private val userGenerator = HardcodedUserGenerator()
 
     @Test
     fun shouldRunLoadTestWithoutExceptions() {
         val loadTest = loadTest(
             virtualUsers = 6,
-            skipSetup = false
+            skipSetup = false,
+            createUsers = false
         )
 
         synchronized(globalStateLock) {
@@ -44,7 +47,8 @@ class LoadTestTest {
     fun shouldInstallOnlyOnce() {
         val loadTest = loadTest(
             virtualUsers = 20,
-            skipSetup = false
+            skipSetup = false,
+            createUsers = false
         )
 
         synchronized(globalStateLock) {
@@ -59,7 +63,8 @@ class LoadTestTest {
     fun shouldSkipSetup() {
         val loadTest = loadTest(
             virtualUsers = 4,
-            skipSetup = true
+            skipSetup = true,
+            createUsers = false
         )
 
         synchronized(globalStateLock) {
@@ -72,9 +77,45 @@ class LoadTestTest {
         assertThat(TracingScenario.setup).isEqualTo(false)
     }
 
+    @Test
+    fun shouldCreateFiveUsers() {
+        val loadTest = loadTest(
+            virtualUsers = 5,
+            skipSetup = true,
+            createUsers = true
+        )
+
+        synchronized(globalStateLock) {
+            TestBrowser.reset()
+            TracingScenario.reset()
+            loadTest.run()
+        }
+
+        assertThat(userGenerator.usersCreated).isEqualTo(5)
+        assertThat(TracingScenario.users.count()).isEqualTo(5)
+    }
+
+    @Test
+    fun shouldCreateTwelveUsers() {
+        val loadTest = loadTest(
+            virtualUsers = 12,
+            skipSetup = true,
+            createUsers = true
+        )
+
+        synchronized(globalStateLock) {
+            TestBrowser.reset()
+            TracingScenario.reset()
+            loadTest.run()
+        }
+
+        assertThat(userGenerator.usersCreated).isEqualTo(12)
+    }
+
     private fun loadTest(
         virtualUsers: Int,
-        skipSetup: Boolean
+        skipSetup: Boolean,
+        createUsers: Boolean
     ): LoadTest = LoadTest(
         options = VirtualUserOptions(
             target = VirtualUserTarget(
@@ -93,9 +134,21 @@ class LoadTestTest {
                         .build()
                 )
                 .skipSetup(skipSetup)
+                .createUsers(createUsers)
                 .build()
-        )
+        ),
+        userGenerator = userGenerator
     )
+
+    private class HardcodedUserGenerator : UserGenerator {
+
+        var usersCreated = 0
+
+        override fun generateUsers(userCount: Int): List<User> {
+            usersCreated += userCount
+            return (1..userCount).map { User("admin-$it", "admin") }
+        }
+    }
 
     internal class TestWebDriver : RemoteWebDriverMock(mapOf(By.id("footer-build-information") to listOf(WebElementMock("jira-node"))))
 

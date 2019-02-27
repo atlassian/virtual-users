@@ -32,6 +32,7 @@ class VirtualUserOptionsTest {
             .diagnosticsLimit(8)
             .browser(GoogleChrome::class.java)
             .skipSetup(true)
+            .createUsers(true)
             .build()
     )
 
@@ -89,6 +90,7 @@ class VirtualUserOptionsTest {
                 "com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome"
             )
             .contains("--skip-setup")
+            .contains("--create-users")
     }
 
     @Test
@@ -136,6 +138,32 @@ class VirtualUserOptionsTest {
         val options = optionsTemplate.withAllowInsecureConnections(true)
 
         assertThat(options.toCliArgs()).contains("--allow-insecure-connections")
+    }
+
+    @Test
+    fun shouldNotCreateUsers() {
+        val options = optionsTemplate.withBehavior(
+            VirtualUserBehavior.Builder(optionsTemplate.behavior)
+                .createUsers(false)
+                .build()
+        )
+
+        val parsedOptions = VirtualUserOptions.Parser().parse(options.toCliArgs())
+
+        assertThat(parsedOptions.behavior.createUsers).isFalse()
+    }
+
+    @Test
+    fun shouldCreateUsers() {
+        val options = optionsTemplate.withBehavior(
+            VirtualUserBehavior.Builder(optionsTemplate.behavior)
+                .createUsers(true)
+                .build()
+        )
+
+        val parsedOptions = VirtualUserOptions.Parser().parse(options.toCliArgs())
+
+        assertThat(parsedOptions.behavior.createUsers).isTrue()
     }
 
     private fun VirtualUserOptions.withJiraAddress(

@@ -5,10 +5,7 @@ import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeBrowser
 
-class VirtualUserBehavior
-@Deprecated(
-    message = "Use the VirtualUserBehavior.Builder instead"
-) constructor(
+class VirtualUserBehavior private constructor(
     @Deprecated(
         message = "There should be no need to display help from Java API. Read the Javadoc or sources instead."
     )
@@ -18,10 +15,10 @@ class VirtualUserBehavior
     internal val seed: Long,
     internal val diagnosticsLimit: Int,
     internal val browser: Class<out Browser>,
-    internal val skipSetup: Boolean
+    internal val skipSetup: Boolean,
+    internal val createUsers: Boolean
 ) {
 
-    @Suppress("DEPRECATION")
     @Deprecated(
         message = "Use the VirtualUserBehavior.Builder instead"
     )
@@ -31,21 +28,44 @@ class VirtualUserBehavior
         load: VirtualUserLoad,
         seed: Long,
         diagnosticsLimit: Int,
-        browser: Class<out Browser>
+        browser: Class<out Browser>,
+        skipSetup: Boolean
     ) : this(
-        skipSetup = false,
         help = help,
         scenario = scenario,
         load = load,
         seed = seed,
         diagnosticsLimit = diagnosticsLimit,
-        browser = browser
+        browser = browser,
+        skipSetup = skipSetup,
+        createUsers = false
     )
 
     @Deprecated(
         message = "Use the VirtualUserBehavior.Builder instead"
     )
     @Suppress("DEPRECATION")
+    constructor(
+        help: Boolean,
+        scenario: Class<out Scenario>,
+        load: VirtualUserLoad,
+        seed: Long,
+        diagnosticsLimit: Int,
+        browser: Class<out Browser>
+    ) : this(
+        help = help,
+        scenario = scenario,
+        load = load,
+        seed = seed,
+        diagnosticsLimit = diagnosticsLimit,
+        browser = browser,
+        skipSetup = false
+    )
+
+    @Suppress("DEPRECATION")
+    @Deprecated(
+        message = "Use the VirtualUserBehavior.Builder instead"
+    )
     constructor(
         scenario: Class<out Scenario>,
         load: VirtualUserLoad,
@@ -80,6 +100,7 @@ class VirtualUserBehavior
         private var diagnosticsLimit: Int = 16
         private var browser: Class<out Browser> = HeadlessChromeBrowser::class.java
         private var skipSetup = false
+        private var createUsers = false
 
         fun scenario(scenario: Class<out Scenario>) = apply { this.scenario = scenario }
         fun load(load: VirtualUserLoad) = apply { this.load = load }
@@ -87,6 +108,7 @@ class VirtualUserBehavior
         fun diagnosticsLimit(diagnosticsLimit: Int) = apply { this.diagnosticsLimit = diagnosticsLimit }
         fun browser(browser: Class<out Browser>) = apply { this.browser = browser }
         fun skipSetup(skipSetup: Boolean) = apply { this.skipSetup = skipSetup }
+        fun createUsers(createUsers: Boolean) = apply { this.createUsers = createUsers }
 
         constructor(
             behavior: VirtualUserBehavior
@@ -98,17 +120,19 @@ class VirtualUserBehavior
             diagnosticsLimit = behavior.diagnosticsLimit
             browser = behavior.browser
             skipSetup = behavior.skipSetup
+            createUsers = behavior.createUsers
         }
 
         @Suppress("DEPRECATION")
         fun build(): VirtualUserBehavior = VirtualUserBehavior(
+            help = false,
             scenario = scenario,
             load = load,
             seed = seed,
             diagnosticsLimit = diagnosticsLimit,
             browser = browser,
             skipSetup = skipSetup,
-            help = false
+            createUsers = createUsers
         )
     }
 }

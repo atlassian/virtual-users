@@ -150,6 +150,7 @@ class VirtualUserOptions(
         const val diagnosticsLimitParameter = "diagnostics-limit"
         const val allowInsecureConnectionsParameter = "allow-insecure-connections"
         const val skipSetupParameter = "skip-setup"
+        const val createUsersParameter = "create-users"
 
         val options: Options = Options()
             .addOption(
@@ -268,6 +269,12 @@ class VirtualUserOptions(
                     .desc("Skips the setup action")
                     .build()
             )
+            .addOption(
+                Option.builder()
+                    .longOpt(createUsersParameter)
+                    .desc("Creates users")
+                    .build()
+            )
     }
 
     @Deprecated(
@@ -287,7 +294,8 @@ class VirtualUserOptions(
         val flags: List<String> = mapOf(
             helpParameter to behavior.help,
             allowInsecureConnectionsParameter to getAllowInsecureConnections(),
-            skipSetupParameter to behavior.skipSetup
+            skipSetupParameter to behavior.skipSetup,
+            createUsersParameter to behavior.createUsers
         ).mapNotNull { (parameter, value) ->
             if (value) "--$parameter" else null
         }
@@ -357,6 +365,7 @@ class VirtualUserOptions(
             val diagnosticsLimit = commandLine.getOptionValue(diagnosticsLimitParameter).toInt()
             val seed = commandLine.getOptionValue(seedParameter).toLong()
             val skipSetup = commandLine.hasOption(skipSetupParameter)
+            val createUsers = commandLine.hasOption(createUsersParameter)
 
             return VirtualUserOptions(
                 target = VirtualUserTarget(
@@ -378,6 +387,7 @@ class VirtualUserOptions(
                             .build()
                     )
                     .skipSetup(skipSetup)
+                    .createUsers(createUsers)
                     .build()
             )
         }

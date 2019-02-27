@@ -36,12 +36,11 @@ import java.util.concurrent.TimeUnit
  * A [load test](https://en.wikipedia.org/wiki/Load_testing).
  */
 internal class LoadTest(
-    options: VirtualUserOptions
+    options: VirtualUserOptions,
+    private val userGenerator: UserGenerator
 ) {
-
     private val logger: Logger = LogManager.getLogger(this::class.java)
     private val behavior = options.behavior
-
     private val target = options.target
     private val workspace = Paths.get("test-results")
     private val nodeCounter = JiraNodeCounter()
@@ -50,6 +49,13 @@ internal class LoadTest(
     private val diagnosisLimit = DiagnosisLimit(behavior.diagnosticsLimit)
     private val scenario = behavior.scenario.getConstructor().newInstance() as Scenario
     private val browser = behavior.browser.getConstructor().newInstance() as Browser
+
+    private val systemUsers = listOf(
+        User(
+            name = target.userName,
+            password = target.password
+        )
+    )
     private val load = behavior.load
 
     fun run() {
@@ -57,7 +63,7 @@ internal class LoadTest(
         Thread.sleep(load.hold.toMillis())
         workspace.toFile().ensureDirectory()
         setUpJira()
-        applyLoad()
+        applyLoad(chooseUsers())
         val nodesDump = workspace.resolve("nodes.csv")
         nodesDump.toFile().bufferedWriter().use {
             nodeCounter.dump(it)
@@ -80,21 +86,20 @@ internal class LoadTest(
                     adminPassword = target.password
                 )
                 val userMemory = AdaptiveUserMemory(random)
-                userMemory.remember(
-                    listOf(
-                        User(
-                            name = target.userName,
-                            password = target.password
-                        )
-                    )
-                )
+                userMemory.remember(systemUsers)
                 val virtualUser = createVirtualUser(jira, meter, userMemory, diagnostics)
                 virtualUser.setUpJira()
             }
         }
     }
 
-    private fun applyLoad() {
+    private fun chooseUsers(): List<User> = if (behavior.createUsers) {
+        userGenerator.generateUsers(load.virtualUsers)
+    } else {
+        systemUsers
+    }
+
+    private fun applyLoad(users: List<User>) {
         val virtualUsers = load.virtualUsers
         val finish = load.ramp + load.flat
         val maxStop = Duration.ofMinutes(2)
@@ -127,8 +132,9 @@ internal class LoadTest(
         logger.info("Deadline for tests is $deadline.")
 
         (1..virtualUsers)
-            .mapIndexed { i: Int, _ ->
-                val task = TraceableTask { applyLoad(i.toLong()) }
+            .mapIndexed { virtualUserIndex: Int, _ ->
+                val user = users[virtualUserIndex % users.size]
+                val task = TraceableTask { applyLoad(virtualUserIndex.toLong(), user) }
                 val future = loadPool.submit(task)
                 return@mapIndexed TraceableFuture(task, future)
             }
@@ -138,7 +144,8 @@ internal class LoadTest(
     }
 
     private fun applyLoad(
-        vuOrder: Long
+        vuOrder: Long,
+        newUser: User
     ) {
         val uuid = UUID.randomUUID()
         CloseableThreadContext.push("applying load #$uuid").use {
@@ -153,13 +160,14 @@ internal class LoadTest(
                 .ensureDirectory()
                 .resolve("action-metrics.jpt")
                 .bufferedWriter()
-                .use { output -> applyLoad(output, uuid) }
+                .use { output -> applyLoad(output, uuid, newUser) }
         }
     }
 
     private fun applyLoad(
         output: Appendable,
-        uuid: UUID
+        uuid: UUID,
+        newUser: User
     ) {
         browser.start().use { closeableDriver ->
             val (driver, diagnostics) = closeableDriver.getDriver().toDiagnosableDriver()
@@ -172,8 +180,8 @@ internal class LoadTest(
             userMemory.remember(
                 listOf(
                     User(
-                        name = target.userName,
-                        password = target.password
+                        name = newUser.name,
+                        password = newUser.password
                     )
                 )
             )

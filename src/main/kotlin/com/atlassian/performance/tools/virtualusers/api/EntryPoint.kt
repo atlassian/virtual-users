@@ -1,6 +1,7 @@
 package com.atlassian.performance.tools.virtualusers.api
 
 import com.atlassian.performance.tools.virtualusers.LoadTest
+import com.atlassian.performance.tools.virtualusers.RestUserGenerator
 import com.atlassian.performance.tools.virtualusers.logs.LogConfigurationFactory
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.config.ConfigurationFactory.setConfigurationFactory
@@ -32,7 +33,7 @@ class Application {
         if (options.help) {
             options.printHelp()
         } else {
-            LoadTest(options).run()
+            LoadTest(options, RestUserGenerator(options.target)).run()
         }
     }
 }
