@@ -35,6 +35,72 @@ class VirtualUserLoad private constructor(
         maxOverallLoad = TemporalRate(10.0, Duration.ofSeconds(1))
     )
 
+    /**
+     * Slice this load into multiple smaller loads. When stacked together, the slices exactly fit the original.
+     *
+     * @param [slices] Controls the number of output slices.
+     * @return Slices, which compose back to the original load, if launched in order, in parallel and at the same time.
+     * @since 3.5.0
+     */
+    fun slice(
+        slices: Int
+    ): List<VirtualUserLoad> {
+        if (slices > virtualUsers) {
+            throw Exception("$virtualUsers virtual users are not enough to slice into $slices")
+        }
+        val vusPerSlice = virtualUsers / slices
+        val rampPerSlice = ramp.dividedBy(slices.toLong())
+        return (0L until slices).map { slice ->
+            val slicesAbove = slices - slice - 1
+            VirtualUserLoad.Builder()
+                .virtualUsers(vusPerSlice)
+                .hold(hold + rampPerSlice * slice)
+                .ramp(rampPerSlice)
+                .flat(flat + rampPerSlice * slicesAbove)
+                .maxOverallLoad(maxOverallLoad / slices)
+                .build()
+        }
+    }
+
+    private operator fun Duration.times(
+        factor: Long
+    ) = multipliedBy(factor)
+
+
+    override fun toString(): String {
+        return "VirtualUserLoad(" +
+            "virtualUsers=$virtualUsers, " +
+            "hold=$hold, " +
+            "ramp=$ramp, " +
+            "flat=$flat, " +
+            "maxOverallLoad=$maxOverallLoad" +
+            ")"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as VirtualUserLoad
+
+        if (virtualUsers != other.virtualUsers) return false
+        if (hold != other.hold) return false
+        if (ramp != other.ramp) return false
+        if (flat != other.flat) return false
+        if (maxOverallLoad != other.maxOverallLoad) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = virtualUsers
+        result = 31 * result + hold.hashCode()
+        result = 31 * result + ramp.hashCode()
+        result = 31 * result + flat.hashCode()
+        result = 31 * result + maxOverallLoad.hashCode()
+        return result
+    }
+
     class Builder {
 
         private var virtualUsers: Int = 10

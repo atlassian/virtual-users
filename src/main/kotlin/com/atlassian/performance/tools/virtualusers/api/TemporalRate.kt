@@ -41,6 +41,13 @@ class TemporalRate(
         )
     }
 
+    operator fun div(
+        divisor: Int
+    ): TemporalRate = TemporalRate(
+        change = change / divisor,
+        time = time
+    )
+
     override fun compareTo(
         other: TemporalRate
     ): Int {

@@ -12,7 +12,6 @@ import com.atlassian.performance.tools.jiraactions.api.memories.User
 import com.atlassian.performance.tools.jiraactions.api.memories.UserMemory
 import com.atlassian.performance.tools.jiraactions.api.memories.adaptive.AdaptiveUserMemory
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
-import com.atlassian.performance.tools.virtualusers.api.TemporalRate
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.*
@@ -212,7 +211,7 @@ internal class LoadTest(
                 meter = meter,
                 userMemory = userMemory
             ),
-            maxLoad = TemporalRate(maxOverallLoad.change / load.virtualUsers, maxOverallLoad.time),
+            maxLoad = maxOverallLoad / load.virtualUsers,
             diagnostics = diagnostics
         )
     }
