@@ -27,7 +27,7 @@ Dropping a requirement of a major version of a dependency is a new contract.
 - Slow down each VU to a given `VirtualUserLoad.maxOverallLoad`. Fix [JPERF-403].
 - Let `VirtualUserLoad` slice itself into multiple smaller loads.
 - Let `VirtualUserLoad` check its equivalency with another load.
-- Let `TemporalRate` divide itself.
+- Let `TemporalRate` multiply and divide itself.
 
 ### Deprecated
 - Deprecate `VirtualUserLoad` constructor in favor of `VirtualUserLoad.Builder`.

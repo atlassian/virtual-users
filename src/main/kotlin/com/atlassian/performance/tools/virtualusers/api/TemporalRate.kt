@@ -41,6 +41,13 @@ class TemporalRate(
         )
     }
 
+    operator fun times(
+        factor: Double
+    ): TemporalRate = TemporalRate(
+        change = change * factor,
+        time = time
+    )
+
     operator fun div(
         divisor: Int
     ): TemporalRate = TemporalRate(

@@ -6,6 +6,7 @@ import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
 import com.atlassian.performance.tools.virtualusers.measure.ApplicationNode
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.data.Offset.offset
 import org.junit.Test
 import java.time.Duration
 import java.time.Duration.*
@@ -22,11 +23,11 @@ class ExploratoryVirtualUserTest {
         val server = QuickServer()
         val virtualUser = prepareVu(listOf(server), maxLoad)
 
-        val totalDuration = applyLoad(virtualUser)
+        val totalDuration = applyLoad(virtualUser, ofSeconds(5))
 
         val actualLoad = TemporalRate(server.requestsServed.toDouble(), totalDuration)
-        val hopefullyMinLoad = TemporalRate(30.0, ofMinutes(1))
-        assertLoadInRange(actualLoad, hopefullyMinLoad, maxLoad)
+        val unambitiousMinLoad = maxLoad * 0.75
+        assertLoadInRange(actualLoad, unambitiousMinLoad, maxLoad)
     }
 
     @Test
@@ -35,11 +36,31 @@ class ExploratoryVirtualUserTest {
         val server = SlowlyWarmingServer(ofMillis(2500))
         val virtualUser = prepareVu(listOf(server), maxLoad)
 
-        val totalDuration = applyLoad(virtualUser)
+        val totalDuration = applyLoad(virtualUser, ofSeconds(5))
 
         val actualLoad = TemporalRate(server.requestsServed.toDouble(), totalDuration)
-        val closeToMaxLoad = TemporalRate(70.0, ofMinutes(1))
+        val closeToMaxLoad = maxLoad * 0.98
         assertLoadInRange(actualLoad, closeToMaxLoad, maxLoad)
+    }
+
+    @Test
+    fun shouldBeGoodEnoughDespiteUnevenLatencies() {
+        val server = ParetoServer(
+            eightyPercent = ofMillis(20),
+            twentyPercent = ofMillis(300)
+        )
+        val maxLoad = TemporalRate(1.0, server.expectedMeanLatency)
+        val virtualUser = prepareVu(listOf(server), maxLoad)
+
+        val totalDuration = applyLoad(virtualUser, ofSeconds(10))
+
+        val requestsServed = server.requestsServed
+        assertThat(requestsServed).isGreaterThan(100)
+        assertThat(server.eightiesServed.toDouble() / requestsServed).isCloseTo(0.80, offset(0.01))
+        assertThat(server.twentiesServed.toDouble() / requestsServed).isCloseTo(0.20, offset(0.01))
+        val actualLoad = TemporalRate(requestsServed.toDouble(), totalDuration)
+        val goodEnoughMinLoad = maxLoad * 0.90
+        assertLoadInRange(actualLoad, goodEnoughMinLoad, maxLoad)
     }
 
     private fun prepareVu(
@@ -56,9 +77,10 @@ class ExploratoryVirtualUserTest {
     )
 
     private fun applyLoad(
-        virtualUser: ExploratoryVirtualUser
+        virtualUser: ExploratoryVirtualUser,
+        duration: Duration
     ): Duration {
-        Timer(true).schedule(ofSeconds(5).toMillis()) {
+        Timer(true).schedule(duration.toMillis()) {
             ExploratoryVirtualUser.shutdown.set(true)
         }
         return ofMillis(measureTimeMillis {
@@ -107,6 +129,41 @@ class ExploratoryVirtualUserTest {
             val decayedNanos = slowStart.toNanos() * decay
             return ofNanos(decayedNanos.toLong())
         }
+    }
+
+    private class ParetoServer(
+        private val eightyPercent: Duration,
+        private val twentyPercent: Duration
+    ) : Action {
+
+        /**
+         * With sample size as small as 100 requests, the resulting distribution is quite unstable.
+         * E.g. a seed of `123123123` will generate a 79.4%/20.6% distro.
+         * E.g. a seed of `123456789` will generate a 76.2%/23,8% distro.
+         */
+        private val random = Random(123123123)
+        val expectedMeanLatency: Duration = (eightyPercent * 80 + twentyPercent * 20) / 100
+
+        var requestsServed = 0
+            private set
+        var twentiesServed = 0
+            private set
+        var eightiesServed = 0
+            private set
+
+        override fun run() {
+            if (random.nextDouble() < 0.80) {
+                Thread.sleep(eightyPercent.toMillis())
+                eightiesServed++
+            } else {
+                Thread.sleep(twentyPercent.toMillis())
+                twentiesServed++
+            }
+            requestsServed++
+        }
+
+        private operator fun Duration.times(factor: Long): Duration = multipliedBy(factor)
+        private operator fun Duration.div(divisor: Long) = dividedBy(divisor)
     }
 
     private class NoOp : Action {
