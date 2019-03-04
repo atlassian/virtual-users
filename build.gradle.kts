@@ -22,6 +22,13 @@ configurations.all {
                 "com.google.code.findbugs:jsr305" -> useVersion("1.3.9")
                 "org.jetbrains:annotations" -> useVersion("13.0")
                 "org.apache.commons:commons-compress" -> useVersion("1.9")
+                "org.testcontainers:testcontainers" -> useVersion("1.10.5")
+                "org.testcontainers:selenium" -> useVersion("1.10.5")
+                "javax.annotation:javax.annotation-api" -> useVersion("1.3.2")
+                "javax.xml.bind:jaxb-api" -> useVersion("2.3.1")
+                "org.rnorth.visible-assertions:visible-assertions" -> useVersion("2.1.2")
+                "net.java.dev.jna:jna-platform" -> useVersion("5.2.0")
+                "net.java.dev.jna:jna" -> useVersion("5.2.0")
             }
             when (requested.group) {
                 "org.jetbrains.kotlin" -> useVersion(kotlinVersion)
@@ -58,7 +65,7 @@ dependencies {
 
     testCompile("junit:junit:4.12")
     testCompile("org.assertj:assertj-core:3.11.0")
-    testCompile("com.atlassian.performance.tools:docker-infrastructure:0.1.0")
+    testCompile("com.atlassian.performance.tools:docker-infrastructure:0.1.2")
 }
 
 fun webdriver(): List<String> = listOf(

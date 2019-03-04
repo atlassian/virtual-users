@@ -1,5 +1,6 @@
 package com.atlassian.performance.tools.virtualusers.api
 
+import com.atlassian.performance.tools.dockerinfrastructure.api.jira.Jira
 import com.atlassian.performance.tools.dockerinfrastructure.api.jira.JiraCoreFormula
 import com.atlassian.performance.tools.virtualusers.ChromeContainer
 import com.atlassian.performance.tools.virtualusers.SimpleScenario
@@ -12,9 +13,9 @@ class EntryPointIT {
         JiraCoreFormula.Builder()
             .build()
             .provision()
-            .use { jira ->
+            .use { jira : Jira ->
                 com.atlassian.performance.tools.virtualusers.api.main(arrayOf(
-                    "--jira-address", jira.getDockerUri().toString(),
+                    "--jira-address", jira.getUri().toString(),
                     "--login", "admin",
                     "--password", "admin",
                     "--virtual-users", "1",
