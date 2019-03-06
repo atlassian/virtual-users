@@ -21,7 +21,10 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.5.0
+[Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.6.0
+
+## [3.6.0] - 2019-03-06
+[3.6.0]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-3.6.0%0Drelease-3.5.0
 
 ### Added
 - Support creating test users so each virtual user is logged in with a unique user. Reusing the same admin user resulted 
