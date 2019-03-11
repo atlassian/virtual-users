@@ -38,14 +38,16 @@ internal class RestUserGenerator(
             .build()
         val response = httpClient.newCall(request).execute()
 
-        if (response.code() == 201) {
-            logger.info("Created a new user $userName")
-        } else {
-            throw Exception(
-                "Failed to create a new user $userName:" +
-                    " response code ${response.code()}," +
-                    " response body ${response.body()?.string()}"
-            )
+        response.use {
+            if (response.code() == 201) {
+                logger.info("Created a new user $userName")
+            } else {
+                throw Exception(
+                    "Failed to create a new user $userName:" +
+                        " response code ${response.code()}," +
+                        " response body ${response.body()?.string()}"
+                )
+            }
         }
         return User(name = userName, password = target.password)
     }
