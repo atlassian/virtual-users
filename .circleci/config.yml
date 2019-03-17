@@ -1,0 +1,52 @@
+version: 2
+jobs:
+  build:
+    machine: true
+    working_directory: ~/repo
+    environment:
+      TERM: dumb
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v3-dependencies-{{ checksum "build.gradle.kts" }}
+            - v3-dependencies-
+      - run: ./gradlew compileTestKotlin
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: v3-dependencies-{{ checksum "build.gradle.kts" }}
+      - run:
+          command: ./gradlew build
+          no_output_timeout: 14m
+      - store_artifacts:
+          path: ./build/reports
+      - store_test_results:
+          path: ./build/test-results
+  release:
+    machine: true
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v3-dependencies-{{ checksum "build.gradle.kts" }}
+            - v3-dependencies-
+      - run: ./gradlew release -Prelease.customUsername=${github_pushback_personal_token}
+      - run: ./gradlew publish
+workflows:
+  version: 2
+  release-workflow:
+    jobs:
+      - build
+      - approve-release:
+          type: approval
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
+            tags:
+              only: /release-*-alpha/
+      - release:
+          requires:
+            - approve-release
