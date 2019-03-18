@@ -1,29 +1,27 @@
 package com.atlassian.performance.tools.virtualusers
 
 import com.atlassian.performance.tools.jiraactions.api.memories.User
-import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
+import com.atlassian.performance.tools.jvmtasks.api.TaskTimer.time
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import okhttp3.*
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-internal class RestUserGenerator(
-    private val target: VirtualUserTarget
-) : UserGenerator {
+internal class RestUserGenerator : UserGenerator {
 
     private val logger: Logger = LogManager.getLogger(this::class.java)
     private val httpClient = OkHttpClient.Builder()
         .readTimeout(90, TimeUnit.SECONDS)
         .build()
 
-    override fun generateUsers(userCount: Int): List<User> {
+    override fun generateUser(
+        options: VirtualUserOptions
+    ): User {
+        val target = options.target
         val uuid = UUID.randomUUID()
-        return (1..userCount).map { i -> createUser(i, uuid) }
-    }
-
-    private fun createUser(i: Int, uuid: UUID): User {
-        val userName = "jpt$i-$uuid"
+        val userName = "jpt-$uuid"
         val payload = """
             {
                 "name": "$userName",
@@ -39,9 +37,9 @@ internal class RestUserGenerator(
             .header("Authorization", credential)
             .post(requestBody)
             .build()
-        val response = httpClient.newCall(request).execute()
-
-        response.use {
+        time("create user via REST") {
+            httpClient.newCall(request).execute()
+        }.use { response ->
             if (response.code() == 201) {
                 logger.info("Created a new user $userName")
             } else {
