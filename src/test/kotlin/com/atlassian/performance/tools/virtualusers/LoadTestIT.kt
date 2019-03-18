@@ -89,7 +89,7 @@ class LoadTestIT {
                 .load(load)
                 .build()
         ),
-        userGenerator = RestUserGenerator(target(jira))
+        userGenerator = RestUserGenerator()
     )
 
 

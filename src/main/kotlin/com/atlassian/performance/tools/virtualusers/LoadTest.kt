@@ -15,6 +15,7 @@ import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.*
+import com.atlassian.performance.tools.virtualusers.lib.jvmtasks.ResultTimer
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import com.atlassian.performance.tools.virtualusers.measure.WebJiraNode
 import com.google.common.util.concurrent.ThreadFactoryBuilder
@@ -36,8 +37,8 @@ import java.util.concurrent.TimeUnit
  * A [load test](https://en.wikipedia.org/wiki/Load_testing).
  */
 internal class LoadTest(
-    options: VirtualUserOptions,
-    private val userGenerator: UserGenerator
+    private val options: VirtualUserOptions,
+    userGenerator: UserGenerator
 ) {
     private val logger: Logger = LogManager.getLogger(this::class.java)
     private val behavior = options.behavior
@@ -49,6 +50,11 @@ internal class LoadTest(
     private val diagnosisLimit = DiagnosisLimit(behavior.diagnosticsLimit)
     private val scenario = behavior.scenario.getConstructor().newInstance() as Scenario
     private val browser = behavior.browser.getConstructor().newInstance() as Browser
+    private val effectiveUserGenerator = if (options.behavior.createUsers) {
+        userGenerator
+    } else {
+        SuppliedUserGenerator()
+    }
 
     private val systemUsers = listOf(
         User(
@@ -63,7 +69,7 @@ internal class LoadTest(
         Thread.sleep(load.hold.toMillis())
         workspace.toFile().ensureDirectory()
         setUpJira()
-        applyLoad(chooseUsers())
+        applyLoad()
         val nodesDump = workspace.resolve("nodes.csv")
         nodesDump.toFile().bufferedWriter().use {
             nodeCounter.dump(it)
@@ -93,13 +99,7 @@ internal class LoadTest(
         }
     }
 
-    private fun chooseUsers(): List<User> = if (behavior.createUsers) {
-        userGenerator.generateUsers(load.virtualUsers)
-    } else {
-        systemUsers
-    }
-
-    private fun applyLoad(users: List<User>) {
+    private fun applyLoad() {
         val virtualUsers = load.virtualUsers
         val finish = load.ramp + load.flat
         val maxStop = Duration.ofMinutes(2)
@@ -133,8 +133,7 @@ internal class LoadTest(
 
         (1..virtualUsers)
             .mapIndexed { virtualUserIndex: Int, _ ->
-                val user = users[virtualUserIndex % users.size]
-                val task = TraceableTask { applyLoad(virtualUserIndex.toLong(), user) }
+                val task = TraceableTask { applyLoad(virtualUserIndex.toLong()) }
                 val future = loadPool.submit(task)
                 return@mapIndexed TraceableFuture(task, future)
             }
@@ -144,30 +143,35 @@ internal class LoadTest(
     }
 
     private fun applyLoad(
-        vuOrder: Long,
-        newUser: User
+        vuOrder: Long
     ) {
         val uuid = UUID.randomUUID()
         CloseableThreadContext.push("applying load #$uuid").use {
-
+            val userGeneration = ResultTimer.timeWithResult {
+                effectiveUserGenerator.generateUser(options)
+            }
             val rampUpWait = load.rampInterval.multipliedBy(vuOrder)
-            logger.info("Waiting for $rampUpWait")
-            Thread.sleep(rampUpWait.toMillis())
-
+            val remainingWait = rampUpWait - userGeneration.duration
+            if (remainingWait.isNegative) {
+                logger.warn("Ramp time prolonged by user generation by ${remainingWait.negated()}")
+            } else {
+                logger.info("Waiting for $remainingWait")
+                Thread.sleep(remainingWait.toMillis())
+            }
             workspace
                 .resolve(uuid.toString())
                 .toFile()
                 .ensureDirectory()
                 .resolve("action-metrics.jpt")
                 .bufferedWriter()
-                .use { output -> applyLoad(output, uuid, newUser) }
+                .use { output -> applyLoad(output, uuid, userGeneration.result) }
         }
     }
 
     private fun applyLoad(
         output: Appendable,
         uuid: UUID,
-        newUser: User
+        user: User
     ) {
         browser.start().use { closeableDriver ->
             val (driver, diagnostics) = closeableDriver.getDriver().toDiagnosableDriver()
@@ -178,12 +182,7 @@ internal class LoadTest(
             )
             val userMemory = AdaptiveUserMemory(random)
             userMemory.remember(
-                listOf(
-                    User(
-                        name = newUser.name,
-                        password = newUser.password
-                    )
-                )
+                listOf(user)
             )
             val meter = ActionMeter(
                 virtualUser = uuid,

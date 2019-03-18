@@ -33,7 +33,7 @@ class Application {
         if (options.help) {
             options.printHelp()
         } else {
-            LoadTest(options, RestUserGenerator(options.target)).run()
+            LoadTest(options, RestUserGenerator()).run()
         }
     }
 }

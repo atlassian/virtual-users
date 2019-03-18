@@ -91,7 +91,7 @@ class LoadTestTest {
             loadTest.run()
         }
 
-        assertThat(userGenerator.usersCreated).isEqualTo(5)
+        assertThat(userGenerator.usersCreated.get()).isEqualTo(5)
         assertThat(TracingScenario.users.count()).isEqualTo(5)
     }
 
@@ -109,7 +109,7 @@ class LoadTestTest {
             loadTest.run()
         }
 
-        assertThat(userGenerator.usersCreated).isEqualTo(12)
+        assertThat(userGenerator.usersCreated.get()).isEqualTo(12)
     }
 
     private fun loadTest(
@@ -142,11 +142,10 @@ class LoadTestTest {
 
     private class HardcodedUserGenerator : UserGenerator {
 
-        var usersCreated = 0
+        val usersCreated = AtomicInteger(0)
 
-        override fun generateUsers(userCount: Int): List<User> {
-            usersCreated += userCount
-            return (1..userCount).map { User("admin-$it", "admin") }
+        override fun generateUser(options: VirtualUserOptions): User {
+            return User("admin-${usersCreated.incrementAndGet()}", "admin")
         }
     }
 
