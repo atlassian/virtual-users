@@ -10,6 +10,10 @@ import com.atlassian.performance.tools.infrastructure.api.jira.JiraNodeConfig
 import com.atlassian.performance.tools.infrastructure.api.jvm.OracleJDK
 import com.atlassian.performance.tools.infrastructure.api.profiler.AsyncProfiler
 import com.atlassian.performance.tools.ssh.api.Ssh
+import com.atlassian.performance.tools.virtualusers.api.TemporalRate
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
+import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
 import com.atlassian.performance.tools.virtualusers.lib.docker.execAsResource
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf425WorkaroundMysqlDatabase
@@ -20,15 +24,13 @@ import com.atlassian.performance.tools.virtualusers.lib.sshubuntu.SudoSshUbuntuC
 import com.atlassian.performance.tools.virtualusers.lib.sshubuntu.SudoSshUbuntuImage
 import com.github.dockerjava.api.model.ExposedPort
 import com.github.dockerjava.core.DockerClientBuilder
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.net.URI
 import java.time.Duration
 import java.util.*
-import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 
-class RestUserGeneratorIT {
+class LoadTestIT {
 
     private val dataset: Dataset = URI("https://s3-eu-central-1.amazonaws.com/")
         .resolve("jpt-custom-datasets-storage-a008820-datasetbucket-dah44h6l1l8p/")
@@ -49,24 +51,47 @@ class RestUserGeneratorIT {
             )
         }
 
+    private val behavior = VirtualUserBehavior.Builder(TracingScenario::class.java)
+        .createUsers(true)
+        .browser(LoadTestTest.TestBrowser::class.java)
+        .skipSetup(true)
+
     @Test
     fun shouldCreateUsersInParallelDespiteBigUserBase() {
         val pool = Executors.newCachedThreadPool()
         val nodes = 6
+        val load = VirtualUserLoad.Builder()
+            .virtualUsers(75)
+            .ramp(Duration.ofSeconds(45))
+            .flat(Duration.ofMinutes(3))
+            .maxOverallLoad(TemporalRate(15.0, Duration.ofSeconds(1)))
+            .build()
+        val loadSlices = load.slice(nodes)
 
-        val newUsers = testWithJira {
-            val userGeneration = Callable {
-                RestUserGenerator(target(it)).generateUsers(12)
-            }
+        testWithJira { jira ->
             (0 until nodes)
-                .map { pool.submit(userGeneration) }
+                .map { loadSlices[it] }
+                .map { loadTest(jira, it) }
+                .map { pool.submit { it.run() } }
                 .map { it.get() }
-                .flatten()
         }
 
         pool.shutdownNow()
-        assertThat(newUsers).hasSize(72)
     }
+
+    private fun loadTest(
+        jira: URI,
+        load: VirtualUserLoad
+    ): LoadTest = LoadTest(
+        options = VirtualUserOptions(
+            target = target(jira),
+            behavior = behavior
+                .load(load)
+                .build()
+        ),
+        userGenerator = RestUserGenerator(target(jira))
+    )
+
 
     private fun <T> testWithJira(
         test: (URI) -> T
