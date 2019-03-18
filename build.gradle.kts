@@ -37,6 +37,30 @@ configurations.all {
     }
 }
 
+listOf(
+    "testCompile",
+    "testCompileClasspath",
+    "testRuntime",
+    "testRuntimeClasspath"
+)
+    .map { configurations.getByName(it) }
+    .forEach {
+        it.resolutionStrategy {
+            eachDependency {
+                when (requested.module.toString()) {
+                    "org.apache.httpcomponents:httpclient" -> useVersion("4.5.5")
+                    "org.apache.httpcomponents:httpcore" -> useVersion("4.4.6")
+                    "com.google.guava:guava" -> useVersion("23.6-jre")
+                    "org.codehaus.plexus:plexus-utils" -> useVersion("3.1.0")
+                    "org.jsoup:jsoup" -> useVersion("1.10.2")
+                    "commons-io:commons-io" -> useVersion("2.6")
+                    "org.bouncycastle:bcpkix-jdk15on" -> useVersion("1.60")
+                    "org.bouncycastle:bcprov-jdk15on" -> useVersion("1.60")
+                }
+            }
+        }
+    }
+
 tasks.getByName("jar", Jar::class).apply {
     manifest.attributes["Main-Class"] = "com.atlassian.performance.tools.virtualusers.api.EntryPointKt"
 }
@@ -66,6 +90,8 @@ dependencies {
     testCompile("junit:junit:4.12")
     testCompile("org.assertj:assertj-core:3.11.0")
     testCompile("com.atlassian.performance.tools:docker-infrastructure:0.1.2")
+    testCompile("com.github.docker-java:docker-java:3.1.1")
+    testCompile("com.atlassian.performance.tools:infrastructure:[4.0.0,5.0.0)")
 }
 
 fun webdriver(): List<String> = listOf(
