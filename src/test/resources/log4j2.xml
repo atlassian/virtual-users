@@ -11,9 +11,6 @@
     <Appenders>
         <Appender name="Console" type="Console">
             <Layout type="PatternLayout" pattern="%d{ISO8601}{UTC}Z %-5level %t %x [%logger] %msg%n"/>
-            <Filters>
-                <Filter type="ThresholdFilter" level="info"/>
-            </Filters>
         </Appender>
         <Appender type="Null" name="Nothingness"/>
     </Appenders>
