@@ -23,6 +23,9 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://bitbucket.org/atlassian/virtual-users/branches/compare/master%0Drelease-3.6.1
 
+### Fixed
+- Have more patience for user generation. Fix [JPERF-411].
+
 ## [3.6.1] - 2019-03-11
 [3.6.1]: https://bitbucket.org/atlassian/virtual-users/branches/compare/release-3.6.1%0Drelease-3.6.0
 
