@@ -6,13 +6,16 @@ import okhttp3.*
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 internal class RestUserGenerator(
     private val target: VirtualUserTarget
 ) : UserGenerator {
 
     private val logger: Logger = LogManager.getLogger(this::class.java)
-    private val httpClient = OkHttpClient()
+    private val httpClient = OkHttpClient.Builder()
+        .readTimeout(90, TimeUnit.SECONDS)
+        .build()
 
     override fun generateUsers(userCount: Int): List<User> {
         val uuid = UUID.randomUUID()
