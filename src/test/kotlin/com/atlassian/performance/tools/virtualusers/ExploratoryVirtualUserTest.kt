@@ -11,6 +11,8 @@ import org.junit.Test
 import java.time.Duration
 import java.time.Duration.*
 import java.util.*
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import kotlin.concurrent.schedule
 import kotlin.math.exp
 import kotlin.system.measureTimeMillis
@@ -44,6 +46,30 @@ class ExploratoryVirtualUserTest {
     }
 
     @Test
+    fun shouldNotRetryOnLoginAction() {
+        val server = QuickServer()
+        val logInAction = object : Action {
+            override fun run() {
+                throw Exception("Failed login attempt.")
+            }
+        }
+        val virtualUser = prepareVu(
+            actions = listOf(server),
+            maxLoad = TemporalRate(1_000_000.00, ofSeconds(1)),
+            logInAction = logInAction
+        )
+
+        val done = AutoCloseableExecutorService(Executors.newSingleThreadExecutor()).use { executorService ->
+            ExploratoryVirtualUser.shutdown.set(true)
+            val applyLoadFuture = executorService.submit { virtualUser.applyLoad() }
+            Thread.sleep(1000)
+            return@use applyLoadFuture.isDone
+        }
+
+        assertThat(done).isTrue()
+    }
+
+    @Test
     fun shouldBeGoodEnoughDespiteUnevenLatencies() {
         val server = ParetoServer(
             eightyPercent = ofMillis(20),
@@ -65,13 +91,14 @@ class ExploratoryVirtualUserTest {
 
     private fun prepareVu(
         actions: List<Action>,
-        maxLoad: TemporalRate
+        maxLoad: TemporalRate,
+        logInAction: Action = NoOp()
     ): ExploratoryVirtualUser = ExploratoryVirtualUser(
         node = StaticApplicationNode(),
         nodeCounter = JiraNodeCounter(),
         actions = actions,
         setUpAction = NoOp(),
-        logInAction = NoOp(),
+        logInAction = logInAction,
         maxLoad = maxLoad,
         diagnostics = DisabledDiagnostics()
     )
@@ -176,5 +203,12 @@ class ExploratoryVirtualUserTest {
 
     private class StaticApplicationNode : ApplicationNode {
         override fun identify(): String = "test-node"
+    }
+
+    class AutoCloseableExecutorService(executorService: ExecutorService) : ExecutorService by executorService,
+        AutoCloseable {
+        override fun close() {
+            this.shutdownNow()
+        }
     }
 }
