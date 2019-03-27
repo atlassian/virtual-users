@@ -21,7 +21,10 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.6.2...master
+[Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.6.3...master
+
+## [3.6.3] - 2019-03-27
+[3.6.3]: https://github.com/atlassian/virtual-users/compare/release-3.6.2...release-3.6.3
 
 ### Fixed
 - Remove login retry mechanism. Resolve [JPERF-432].
