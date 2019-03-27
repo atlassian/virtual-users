@@ -2,8 +2,6 @@ package com.atlassian.performance.tools.virtualusers
 
 import com.atlassian.performance.tools.concurrency.api.representsInterrupt
 import com.atlassian.performance.tools.jiraactions.api.action.Action
-import com.atlassian.performance.tools.jvmtasks.api.Backoff
-import com.atlassian.performance.tools.jvmtasks.api.IdempotentAction
 import com.atlassian.performance.tools.virtualusers.api.TemporalRate
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
 import com.atlassian.performance.tools.virtualusers.collections.CircularIterator
@@ -33,7 +31,6 @@ internal class ExploratoryVirtualUser(
     }
 
     private val logger: Logger = LogManager.getLogger(this::class.java)
-    private val loginRetryLimit: Int = 1_000_000
 
     fun setUpJira() {
         logger.info("Setting up Jira...")
@@ -87,12 +84,7 @@ internal class ExploratoryVirtualUser(
     }
 
     private fun logIn() {
-        IdempotentAction("log in") {
-            runWithDiagnostics(logInAction)
-        }.retry(
-            backoff = StaticBackoff(Duration.ofSeconds(5)),
-            maxAttempts = loginRetryLimit
-        )
+        runWithDiagnostics(logInAction)
     }
 
     private fun runWithDiagnostics(
@@ -109,10 +101,4 @@ internal class ExploratoryVirtualUser(
         }
     }
 
-}
-
-private class StaticBackoff(
-    private val backOff: Duration
-) : Backoff {
-    override fun backOff(attempt: Int): Duration = backOff
 }

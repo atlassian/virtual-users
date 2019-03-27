@@ -23,6 +23,11 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.6.2...master
 
+### Fixed
+- Remove login retry mechanism. Resolve [JPERF-432].
+
+[JPERF-432]: https://ecosystem.atlassian.net/browse/JPERF-432
+
 ## [3.6.2] - 2019-03-19
 [3.6.2]: https://github.com/atlassian/virtual-users/compare/release-3.6.1...release-3.6.2
 
