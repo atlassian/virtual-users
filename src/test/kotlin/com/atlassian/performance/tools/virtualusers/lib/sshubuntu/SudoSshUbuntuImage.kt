@@ -87,7 +87,7 @@ class SudoSshUbuntuImage(
         )
         val ssh = Ssh(sshHost)
         ssh.newConnection().use {
-            it.execute("apt-get update", Duration.ofSeconds(50))
+            it.execute("apt-get update", Duration.ofMinutes(2))
             it.execute("apt-get install sudo")
         }
         return lambda(SudoSshUbuntuContainer(ssh, ports, ip))
