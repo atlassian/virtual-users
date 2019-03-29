@@ -2,15 +2,24 @@ package com.atlassian.performance.tools.virtualusers.measure
 
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVPrinter
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
+import java.lang.Exception
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 internal class JiraNodeCounter {
 
     private val counter: MutableMap<String, AtomicInteger> = ConcurrentHashMap()
+    private val logger: Logger = LogManager.getLogger(this::class.java)
 
     fun count(node: ApplicationNode) {
-        val nodeId = node.identify()
+        val nodeId = try {
+            node.identify()
+        } catch (exception: Exception) {
+            logger.warn("Failed to identify jira node", exception)
+            "unknown"
+        }
         counter
             .computeIfAbsent(nodeId) { AtomicInteger() }
             .incrementAndGet()

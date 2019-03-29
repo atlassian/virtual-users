@@ -23,6 +23,11 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.6.3...master
 
+### Fixed 
+- Continue applying load despite failed node identification. Resolve [JPERF-440].
+
+[JPERF-440]: https://ecosystem.atlassian.net/browse/JPERF-440
+
 ## [3.6.3] - 2019-03-27
 [3.6.3]: https://github.com/atlassian/virtual-users/compare/release-3.6.2...release-3.6.3
 
