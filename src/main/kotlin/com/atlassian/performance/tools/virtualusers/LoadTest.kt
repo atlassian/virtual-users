@@ -1,6 +1,5 @@
 package com.atlassian.performance.tools.virtualusers
 
-import com.atlassian.performance.tools.concurrency.api.finishBy
 import com.atlassian.performance.tools.io.api.ensureDirectory
 import com.atlassian.performance.tools.jiraactions.api.SeededRandom
 import com.atlassian.performance.tools.jiraactions.api.WebJira
@@ -24,9 +23,7 @@ import org.openqa.selenium.WebDriver
 import org.openqa.selenium.remote.RemoteWebDriver
 import java.nio.file.Paths
 import java.time.Duration
-import java.time.Instant.now
 import java.util.*
-import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
@@ -37,8 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 internal class LoadTest(
     private val options: VirtualUserOptions,
-    userGenerator: UserGenerator,
-    private val maxStop: Duration = Duration.ofMinutes(2)
+    userGenerator: UserGenerator
 ) {
     private val logger: Logger = LogManager.getLogger(this::class.java)
     private val behavior = options.behavior
@@ -110,29 +106,16 @@ internal class LoadTest(
             LinkedBlockingQueue<Runnable>(),
             ThreadFactoryBuilder().setNameFormat("virtual-user-%d").setDaemon(true).build()
         )
-        val stopSchedule = Executors.newScheduledThreadPool(
-            1,
-            ThreadFactoryBuilder().setNameFormat("deferred-stop").setDaemon(true).build()
-        )
         val segments = (1..virtualUsers).map { segmentLoad(it) }
-        val stop = stopSchedule.schedule(
-            {
-                val active = loadPool.activeCount
-                logger.info("Stopping load")
-                loadPool.shutdownNow()
-                segments.forEach { it.close() }
-                if (active != virtualUsers) {
-                    throw Exception("Expected $virtualUsers VUs to still be active, but encountered $active")
-                }
-            },
-            finish.toMillis(),
-            TimeUnit.MILLISECONDS
-        )
-        val deadline = now() + finish + maxStop
-        logger.info("Deadline for tests is $deadline.")
         segments.forEach { loadPool.submit { applyLoad(it) } }
-        stop.finishBy(deadline, logger)
-        stopSchedule.shutdownNow()
+        Thread.sleep(finish.toMillis())
+        logger.info("Stopping load")
+        val active = loadPool.activeCount
+        segments.forEach { it.close() }
+        logger.info("Segments closed")
+        if (active != virtualUsers) {
+            throw Exception("Expected $virtualUsers VUs to still be active, but encountered $active")
+        }
     }
 
     private fun segmentLoad(

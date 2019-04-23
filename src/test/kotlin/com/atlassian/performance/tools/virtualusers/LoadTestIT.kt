@@ -197,8 +197,7 @@ class LoadTestIT {
         )
         val loadTest = LoadTest(
             options = options,
-            userGenerator = SuppliedUserGenerator(),
-            maxStop = Duration.ofSeconds(3)
+            userGenerator = SuppliedUserGenerator()
         )
 
         loadTest.run()
