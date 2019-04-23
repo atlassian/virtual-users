@@ -74,8 +74,8 @@ dependencies {
     api("com.github.stephenc.jcip:jcip-annotations:1.0-1")
 
     implementation("com.atlassian.performance.tools:jira-software-actions:[1.3.0,2.0.0)")
-    implementation("com.atlassian.performance.tools:concurrency:[1.0.0, 2.0.0)")
-    implementation("com.atlassian.performance.tools:io:[1.0.0, 2.0.0)")
+    implementation("com.atlassian.performance.tools:jvm-tasks:[1.0.0,2.0.0)")
+    implementation("com.atlassian.performance.tools:io:[1.0.0,2.0.0)")
     implementation("com.google.guava:guava:23.6-jre")
     implementation("org.glassfish:javax.json:1.1")
     implementation("org.apache.commons:commons-math3:3.6.1")
