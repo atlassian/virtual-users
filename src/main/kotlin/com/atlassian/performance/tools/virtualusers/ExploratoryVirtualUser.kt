@@ -1,6 +1,5 @@
 package com.atlassian.performance.tools.virtualusers
 
-import com.atlassian.performance.tools.concurrency.api.representsInterrupt
 import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.virtualusers.api.TemporalRate
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
@@ -26,10 +25,6 @@ internal class ExploratoryVirtualUser(
     private val maxLoad: TemporalRate,
     private val diagnostics: Diagnostics
 ) {
-    companion object {
-        val shutdown = AtomicBoolean()
-    }
-
     private val logger: Logger = LogManager.getLogger(this::class.java)
 
     fun setUpJira() {
@@ -40,10 +35,11 @@ internal class ExploratoryVirtualUser(
     }
 
     /**
-     * Repeats [actions] until the thread is interrupted.
+     * Repeats [actions] until [done] is `true`.
      */
-    fun applyLoad() {
-        shutdown.set(false)
+    fun applyLoad(
+        done: AtomicBoolean
+    ) {
         logger.info("Applying load...")
         logIn()
         nodeCounter.count(node)
@@ -52,6 +48,10 @@ internal class ExploratoryVirtualUser(
         var actionsPerformed = 0.0
         val start = now()
         for (action in CircularIterator(actions)) {
+            if (done.get()) {
+                logger.info("Done applying load")
+                break
+            }
             try {
                 runWithDiagnostics(action)
                 actionsPerformed++
@@ -62,25 +62,9 @@ internal class ExploratoryVirtualUser(
                     Thread.sleep(extraTime.toMillis())
                 }
             } catch (e: Exception) {
-                if (!e.representsInterrupt()) {
-                    logger.error("Failed to run $action, but we keep running", e)
-                }
-            }
-            if (ExploratoryVirtualUser.shutdown.get()) {
-                clearInterruptedState()
-                logger.info("Scenario finished on cue")
-                break
+                logger.error("Failed to run $action, but we keep running", e)
             }
         }
-    }
-
-    /**
-     * We use interruption to break thread's flow. At this point, we no longer care about the interrupted state.
-     * We rely on ExploratoryVirtualUser.shutdown instead. We switched to The ExploratoryVirtualUser.shutdown
-     * because interrupted state is out of our control (a 3rd party code may erase it).
-     */
-    private fun clearInterruptedState() {
-        Thread.interrupted()
     }
 
     private fun logIn() {
@@ -94,11 +78,8 @@ internal class ExploratoryVirtualUser(
             logger.trace("Running $action")
             action.run()
         } catch (e: Exception) {
-            if (e.representsInterrupt().not()) {
-                diagnostics.diagnose(e)
-            }
+            diagnostics.diagnose(e)
             throw Exception("Failed to run $action", e)
         }
     }
-
 }
