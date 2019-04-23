@@ -23,6 +23,11 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.6.4...master
 
+### Fixed
+- Terminate the main thread regardless of interruptibility of VU actions. Fix [JPERF-459].
+
+[JPERF-459]: https://ecosystem.atlassian.net/browse/JPERF-459
+
 ## [3.6.4] - 2019-04-08
 [3.6.4]: https://github.com/atlassian/virtual-users/compare/release-3.6.3...release-3.6.4
 

@@ -1,7 +1,5 @@
 package com.atlassian.performance.tools.virtualusers
 
-import com.atlassian.performance.tools.concurrency.api.TraceableFuture
-import com.atlassian.performance.tools.concurrency.api.TraceableTask
 import com.atlassian.performance.tools.concurrency.api.finishBy
 import com.atlassian.performance.tools.io.api.ensureDirectory
 import com.atlassian.performance.tools.jiraactions.api.SeededRandom
@@ -32,6 +30,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * A [load test](https://en.wikipedia.org/wiki/Load_testing).
@@ -115,12 +114,13 @@ internal class LoadTest(
             1,
             ThreadFactoryBuilder().setNameFormat("deferred-stop").setDaemon(true).build()
         )
+        val segments = (1..virtualUsers).map { segmentLoad(it) }
         val stop = stopSchedule.schedule(
             {
                 val active = loadPool.activeCount
                 logger.info("Stopping load")
                 loadPool.shutdownNow()
-                ExploratoryVirtualUser.shutdown.set(true)
+                segments.forEach { it.close() }
                 if (active != virtualUsers) {
                     throw Exception("Expected $virtualUsers VUs to still be active, but encountered $active")
                 }
@@ -130,27 +130,37 @@ internal class LoadTest(
         )
         val deadline = now() + finish + maxStop
         logger.info("Deadline for tests is $deadline.")
-
-        (1..virtualUsers)
-            .mapIndexed { virtualUserIndex: Int, _ ->
-                val task = TraceableTask { applyLoad(virtualUserIndex.toLong()) }
-                val future = loadPool.submit(task)
-                return@mapIndexed TraceableFuture(task, future)
-            }
-            .forEach { it.finishBy(deadline, logger) }
+        segments.forEach { loadPool.submit { applyLoad(it) } }
         stop.finishBy(deadline, logger)
         stopSchedule.shutdownNow()
     }
 
-    private fun applyLoad(
-        vuOrder: Long
-    ) {
+    private fun segmentLoad(
+        index: Int
+    ): LoadSegment {
         val uuid = UUID.randomUUID()
-        CloseableThreadContext.push("applying load #$uuid").use {
+        return LoadSegment(
+            driver = browser.start(),
+            output = workspace
+                .resolve(uuid.toString())
+                .toFile()
+                .ensureDirectory()
+                .resolve("action-metrics.jpt")
+                .bufferedWriter(),
+            done = AtomicBoolean(false),
+            id = uuid,
+            index = index
+        )
+    }
+
+    private fun applyLoad(
+        segment: LoadSegment
+    ) {
+        CloseableThreadContext.push("applying load #${segment.id}").use {
             val userGeneration = ResultTimer.timeWithResult {
                 effectiveUserGenerator.generateUser(options)
             }
-            val rampUpWait = load.rampInterval.multipliedBy(vuOrder)
+            val rampUpWait = load.rampInterval.multipliedBy(segment.index.toLong())
             val remainingWait = rampUpWait - userGeneration.duration
             if (remainingWait.isNegative) {
                 logger.warn("Ramp time prolonged by user generation by ${remainingWait.negated()}")
@@ -158,23 +168,7 @@ internal class LoadTest(
                 logger.info("Waiting for $remainingWait")
                 Thread.sleep(remainingWait.toMillis())
             }
-            workspace
-                .resolve(uuid.toString())
-                .toFile()
-                .ensureDirectory()
-                .resolve("action-metrics.jpt")
-                .bufferedWriter()
-                .use { output -> applyLoad(output, uuid, userGeneration.result) }
-        }
-    }
-
-    private fun applyLoad(
-        output: Appendable,
-        uuid: UUID,
-        user: User
-    ) {
-        browser.start().use { closeableDriver ->
-            val (driver, diagnostics) = closeableDriver.getDriver().toDiagnosableDriver()
+            val (driver, diagnostics) = segment.driver.getDriver().toDiagnosableDriver()
             val jira = WebJira(
                 driver = driver,
                 base = target.webApplication,
@@ -182,14 +176,14 @@ internal class LoadTest(
             )
             val userMemory = AdaptiveUserMemory(random)
             userMemory.remember(
-                listOf(user)
+                listOf(userGeneration.result)
             )
             val meter = ActionMeter(
-                virtualUser = uuid,
-                output = AppendableActionMetricOutput(output)
+                virtualUser = segment.id,
+                output = AppendableActionMetricOutput(segment.output)
             )
             val virtualUser = createVirtualUser(jira, meter, userMemory, diagnostics)
-            virtualUser.applyLoad()
+            virtualUser.applyLoad(segment.done)
         }
     }
 

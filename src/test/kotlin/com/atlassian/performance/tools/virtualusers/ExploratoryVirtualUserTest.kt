@@ -13,6 +13,7 @@ import java.time.Duration.*
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.schedule
 import kotlin.math.exp
 import kotlin.system.measureTimeMillis
@@ -60,8 +61,7 @@ class ExploratoryVirtualUserTest {
         )
 
         val done = AutoCloseableExecutorService(Executors.newSingleThreadExecutor()).use { executorService ->
-            ExploratoryVirtualUser.shutdown.set(true)
-            val applyLoadFuture = executorService.submit { virtualUser.applyLoad() }
+            val applyLoadFuture = executorService.submit { virtualUser.applyLoad(AtomicBoolean(true)) }
             Thread.sleep(1000)
             return@use applyLoadFuture.isDone
         }
@@ -107,11 +107,12 @@ class ExploratoryVirtualUserTest {
         virtualUser: ExploratoryVirtualUser,
         duration: Duration
     ): Duration {
+        val done = AtomicBoolean(false)
         Timer(true).schedule(duration.toMillis()) {
-            ExploratoryVirtualUser.shutdown.set(true)
+            done.set(true)
         }
         return ofMillis(measureTimeMillis {
-            virtualUser.applyLoad()
+            virtualUser.applyLoad(done)
         })
     }
 
