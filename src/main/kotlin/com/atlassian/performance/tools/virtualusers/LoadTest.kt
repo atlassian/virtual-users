@@ -38,7 +38,8 @@ import java.util.concurrent.TimeUnit
  */
 internal class LoadTest(
     private val options: VirtualUserOptions,
-    userGenerator: UserGenerator
+    userGenerator: UserGenerator,
+    private val maxStop: Duration = Duration.ofMinutes(2)
 ) {
     private val logger: Logger = LogManager.getLogger(this::class.java)
     private val behavior = options.behavior
@@ -102,7 +103,6 @@ internal class LoadTest(
     private fun applyLoad() {
         val virtualUsers = load.virtualUsers
         val finish = load.ramp + load.flat
-        val maxStop = Duration.ofMinutes(2)
         val loadPool = ThreadPoolExecutor(
             virtualUsers,
             virtualUsers,
