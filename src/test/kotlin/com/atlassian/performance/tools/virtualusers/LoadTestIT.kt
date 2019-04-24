@@ -35,6 +35,9 @@ import com.github.dockerjava.api.model.ExposedPort
 import com.github.dockerjava.core.DockerClientBuilder
 import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
+import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.Assert
 import org.junit.Test
 import org.openqa.selenium.remote.DesiredCapabilities
 import org.openqa.selenium.remote.RemoteWebDriver
@@ -45,6 +48,7 @@ import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.system.measureTimeMillis
 
 class LoadTestIT {
 
@@ -175,7 +179,13 @@ class LoadTestIT {
     )
 
     @Test
-    fun shouldTerminateDespiteSlowUninterruptibleNavigation() {
+    fun shouldHaveLowOverheadDespiteSlowNavigations() {
+        val load = VirtualUserLoad.Builder()
+            .virtualUsers(1)
+            .hold(Duration.ZERO)
+            .ramp(Duration.ZERO)
+            .flat(Duration.ofSeconds(21))
+            .build()
         val options = VirtualUserOptions(
             target = VirtualUserTarget(
                 webApplication = URI("http://doesnt-matter"),
@@ -186,12 +196,7 @@ class LoadTestIT {
                 .skipSetup(true)
                 .browser(SlowBrowser::class.java)
                 .load(
-                    VirtualUserLoad.Builder()
-                        .virtualUsers(1)
-                        .hold(Duration.ZERO)
-                        .ramp(Duration.ZERO)
-                        .flat(Duration.ofSeconds(21))
-                        .build()
+                    load
                 )
                 .build()
         )
@@ -200,7 +205,12 @@ class LoadTestIT {
             userGenerator = SuppliedUserGenerator()
         )
 
-        loadTest.run()
+        val totalTime = measureTimeMillis {
+            loadTest.run()
+        }.let { Duration.ofMillis(it) }
+
+        val overhead = totalTime - load.total
+        assertThat(overhead).isLessThan(Duration.ofSeconds(2))
     }
 }
 
@@ -256,7 +266,7 @@ private class MockHttpServer(private val port: Int) {
         val server = startHttpServer(executorService)
         return AutoCloseable {
             executorService.shutdownNow()
-            server.stop(2)
+            server.stop(14)
         }
     }
 
