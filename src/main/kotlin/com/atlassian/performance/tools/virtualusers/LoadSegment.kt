@@ -16,6 +16,5 @@ internal class LoadSegment(
     override fun close() {
         done.set(true)
         output.close()
-        driver.close()
     }
 }
