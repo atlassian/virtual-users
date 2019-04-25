@@ -20,5 +20,16 @@ internal class LoadSegment(
     override fun close() {
         done.set(true)
         output.close()
+        val driverClosing = Executors.newSingleThreadExecutor().submit { driver.close() }
+        try {
+            driverClosing.get(DRIVER_CLOSE_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)
+        } catch (e: Exception) {
+            LOGGER.warn("Failed to close WebDriver", e)
+        }
+    }
+
+    internal companion object {
+        private val LOGGER = LogManager.getLogger(this::class.java)
+        internal val DRIVER_CLOSE_TIMEOUT = Duration.ofSeconds(5)
     }
 }

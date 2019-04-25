@@ -38,7 +38,7 @@ class LoadTestTerminationIT {
         .build()
 
     @Test
-    fun shouldHaveLowOverheadDespiteSlowNavigations() {
+    fun shouldHaveReasonableOverheadDespiteSlowNavigations() {
         val loadTest = prepareLoadTest(SlowShutdownBrowser::class.java)
 
         val totalTime = measureTimeMillis {
@@ -46,7 +46,7 @@ class LoadTestTerminationIT {
         }.let { Duration.ofMillis(it) }
 
         val overhead = totalTime - load.total
-        assertThat(overhead).isLessThan(Duration.ofSeconds(2))
+        assertThat(overhead).isLessThan(Duration.ofSeconds(2) + LoadSegment.DRIVER_CLOSE_TIMEOUT)
     }
 
     @Test
