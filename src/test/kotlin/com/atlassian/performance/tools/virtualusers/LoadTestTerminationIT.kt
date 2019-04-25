@@ -22,7 +22,6 @@ import org.openqa.selenium.remote.RemoteWebDriver
 import java.net.InetSocketAddress
 import java.net.URI
 import java.time.Duration
-import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
@@ -182,15 +181,20 @@ private class MockHttpServer(
     }
 
     internal fun start(): AutoCloseable {
-        val executorService: ExecutorService = Executors.newCachedThreadPool()
+        val executorService: ExecutorService = Executors.newCachedThreadPool {
+            Thread(it)
+                .apply { name = "mock-http" }
+                .apply { isDaemon = true }
+        }
         val server = startHttpServer(executorService)
         return AutoCloseable {
             executorService.shutdownNow()
-            server.stop(shutdownSlowness.seconds.toInt())
+            Thread.sleep(shutdownSlowness.toMillis())
+            server.stop(0)
         }
     }
 
-    private fun startHttpServer(executor: Executor): HttpServer {
+    private fun startHttpServer(executor: ExecutorService): HttpServer {
         val httpServer = HttpServer.create(InetSocketAddress(port), 0)
         httpServer.executor = executor
 
@@ -198,7 +202,9 @@ private class MockHttpServer(
             httpServer.createContext(context).handler = handler
         }
 
-        httpServer.start()
+        executor
+            .submit { httpServer.start() }
+            .get()
         return httpServer
     }
 }
