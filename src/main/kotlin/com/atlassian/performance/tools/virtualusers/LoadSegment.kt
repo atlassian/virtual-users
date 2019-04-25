@@ -30,6 +30,6 @@ internal class LoadSegment(
 
     internal companion object {
         private val LOGGER = LogManager.getLogger(this::class.java)
-        internal val DRIVER_CLOSE_TIMEOUT = Duration.ofSeconds(5)
+        internal val DRIVER_CLOSE_TIMEOUT = Duration.ofSeconds(30)
     }
 }

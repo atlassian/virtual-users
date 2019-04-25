@@ -25,7 +25,7 @@ Dropping a requirement of a major version of a dependency is a new contract.
 
 ### Fixed
 - Terminate the main thread regardless of interruptibility of VU actions. Fix [JPERF-459].
-- Close WebDriver if it takes less than 5 seconds.
+- Close WebDriver if it takes less than 30 seconds.
 
 [JPERF-459]: https://ecosystem.atlassian.net/browse/JPERF-459
 

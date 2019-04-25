@@ -87,7 +87,7 @@ class LoadTestTerminationIT {
 private val CLOSED_BROWSERS: MutableList<Class<*>> = mutableListOf()
 
 private class SlowShutdownBrowser : SlowNavigationBrowser() {
-    override val shutdown: Duration = Duration.ofSeconds(14)
+    override val shutdown: Duration = Duration.ofSeconds(120)
 }
 
 private class FastShutdownBrowser : SlowNavigationBrowser() {
