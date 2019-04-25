@@ -31,7 +31,7 @@ import kotlin.system.measureTimeMillis
 class LoadTestTerminationIT {
 
     private val load = VirtualUserLoad.Builder()
-        .virtualUsers(1)
+        .virtualUsers(3)
         .hold(Duration.ZERO)
         .ramp(Duration.ZERO)
         .flat(Duration.ofSeconds(21))
