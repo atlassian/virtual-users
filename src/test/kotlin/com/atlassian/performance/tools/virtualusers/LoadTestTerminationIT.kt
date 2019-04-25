@@ -41,25 +41,21 @@ class LoadTestTerminationIT {
     fun shouldHaveReasonableOverheadDespiteSlowNavigations() {
         val loadTest = prepareLoadTest(SlowShutdownBrowser::class.java)
 
-        val totalTime = measureTimeMillis {
-            loadTest.run()
-        }.let { Duration.ofMillis(it) }
+        val termination = testTermination(loadTest, "shouldHaveReasonableOverheadDespiteSlowNavigations")
 
-        val overhead = totalTime - load.total
-        assertThat(overhead).isLessThan(Duration.ofSeconds(2) + LoadSegment.DRIVER_CLOSE_TIMEOUT)
+        assertThat(termination.overhead).isLessThan(Duration.ofSeconds(2) + LoadSegment.DRIVER_CLOSE_TIMEOUT)
+        assertThat(termination.blockingThreads).isEmpty()
     }
 
     @Test
     fun shouldCloseAFastBrowser() {
         val loadTest = prepareLoadTest(FastShutdownBrowser::class.java)
 
-        val totalTime = measureTimeMillis {
-            loadTest.run()
-        }.let { Duration.ofMillis(it) }
+        val termination = testTermination(loadTest, "shouldCloseAFastBrowser")
 
-        val overhead = totalTime - load.total
-        assertThat(overhead).isLessThan(Duration.ofSeconds(2))
+        assertThat(termination.overhead).isLessThan(Duration.ofSeconds(2))
         assertThat(CLOSED_BROWSERS).contains(FastShutdownBrowser::class.java)
+        assertThat(termination.blockingThreads).isEmpty()
     }
 
     private fun prepareLoadTest(
@@ -81,6 +77,36 @@ class LoadTestTerminationIT {
             options = options,
             userGenerator = SuppliedUserGenerator()
         )
+    }
+
+    private fun testTermination(
+        test: LoadTest,
+        label: String
+    ): TerminationResult {
+        val threadGroup = ThreadGroup(label)
+        val runnable = Runnable { test.run() }
+        val parentThread = Thread(threadGroup, runnable, "parent for $label")
+        parentThread.start()
+        val testDuration = measureTimeMillis { parentThread.join() }
+        return TerminationResult(
+            overhead = Duration.ofMillis(testDuration) - load.total,
+            blockingThreads = threadGroup.listBlockingThreads() - parentThread
+        )
+    }
+
+    private class TerminationResult(
+        val overhead: Duration,
+        val blockingThreads: List<Thread>
+    )
+
+    private fun ThreadGroup.listBlockingThreads(): List<Thread> {
+        return listThreads().filter { it.isDaemon.not() }
+    }
+
+    private fun ThreadGroup.listThreads(): List<Thread> {
+        val threads = Array<Thread?>(activeCount()) { null }
+        enumerate(threads)
+        return threads.toList().filterNotNull()
     }
 }
 
