@@ -23,6 +23,11 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.6.5...master
 
+### Fixed
+- Daemonize WebDriver closing threads. Progress on [JPERF-470].
+
+[JPERF-470]: https://ecosystem.atlassian.net/browse/JPERF-470
+
 ## [3.6.5] - 2019-04-25
 [3.6.5]: https://github.com/atlassian/virtual-users/compare/release-3.6.4...release-3.6.5
 

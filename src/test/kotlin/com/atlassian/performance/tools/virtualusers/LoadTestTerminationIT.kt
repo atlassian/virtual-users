@@ -96,6 +96,10 @@ class LoadTestTerminationIT {
 
     private class TerminationResult(
         val overhead: Duration,
+        /**
+         * If you want to find out who created these threads, you can debug with a breakpoint on [Thread.start]
+         * and filter e.g. by [Thread.getName].
+         */
         val blockingThreads: List<Thread>
     )
 
