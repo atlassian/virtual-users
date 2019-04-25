@@ -24,6 +24,7 @@ import org.openqa.selenium.remote.RemoteWebDriver
 import java.nio.file.Paths
 import java.time.Duration
 import java.util.*
+import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
@@ -109,13 +110,7 @@ internal class LoadTest(
         val segments = (1..virtualUsers).map { segmentLoad(it) }
         segments.forEach { loadPool.submit { applyLoad(it) } }
         Thread.sleep(finish.toMillis())
-        logger.info("Stopping load")
-        val active = loadPool.activeCount
-        segments.forEach { it.close() }
-        logger.info("Segments closed")
-        if (active != virtualUsers) {
-            throw Exception("Expected $virtualUsers VUs to still be active, but encountered $active")
-        }
+        stop(loadPool, segments)
     }
 
     private fun segmentLoad(
@@ -198,6 +193,23 @@ internal class LoadTest(
             maxLoad = maxOverallLoad / load.virtualUsers,
             diagnostics = diagnostics
         )
+    }
+
+    private fun stop(
+        loadPool: ThreadPoolExecutor,
+        segments: List<LoadSegment>
+    ) {
+        logger.info("Stopping load")
+        val active = loadPool.activeCount
+        val closePool = Executors.newCachedThreadPool()
+        segments
+            .map { closePool.submit { it.close() } }
+            .forEach { it.get() }
+        logger.info("Segments closed")
+        closePool.shutdown()
+        if (active != segments.size) {
+            throw Exception("Expected ${segments.size} VUs to still be active, but encountered $active")
+        }
     }
 
     private fun RemoteWebDriver.toDiagnosableDriver(): DiagnosableDriver {
