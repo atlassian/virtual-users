@@ -24,8 +24,8 @@ Dropping a requirement of a major version of a dependency is a new contract.
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.6.4...master
 
 ### Fixed
-- Reduce time overhead by ceasing to shut down the WebDriver. Unblock [JPERF-459].
 - Terminate the main thread regardless of interruptibility of VU actions. Fix [JPERF-459].
+- Close WebDriver if it takes less than 5 seconds.
 
 [JPERF-459]: https://ecosystem.atlassian.net/browse/JPERF-459
 
