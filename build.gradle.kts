@@ -129,6 +129,7 @@ tasks.getByName("test", Test::class).apply {
 
 val testIntegration = task<Test>("testIntegration") {
     include("**/*IT.class")
+    failFast = true
 }
 
 tasks["check"].dependsOn(testIntegration)
