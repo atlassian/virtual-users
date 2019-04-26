@@ -94,6 +94,7 @@ class LoadTestTerminationIT {
                 test.run()
             }.get()
         }
+        Thread.sleep(200) // give the threads from the [test] a chance to die
         return TerminationResult(
             overhead = Duration.ofMillis(testDuration) - load.total,
             blockingThreads = threadGroup.listBlockingThreads().filter { it.name != threadName }
