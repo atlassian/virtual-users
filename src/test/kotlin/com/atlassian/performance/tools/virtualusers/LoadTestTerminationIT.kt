@@ -13,18 +13,21 @@ import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.browsers.CloseableRemoteWebDriver
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
-import com.sun.net.httpserver.HttpHandler
-import com.sun.net.httpserver.HttpServer
+import org.apache.catalina.core.StandardServer
+import org.apache.catalina.startup.Tomcat
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.openqa.selenium.remote.DesiredCapabilities
 import org.openqa.selenium.remote.RemoteWebDriver
-import java.net.InetSocketAddress
+import java.io.File
 import java.net.URI
 import java.time.Duration
-import java.util.concurrent.ExecutorService
+import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
+import javax.servlet.http.HttpServlet
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import kotlin.system.measureTimeMillis
 
 class LoadTestTerminationIT {
@@ -42,7 +45,7 @@ class LoadTestTerminationIT {
 
         val termination = testTermination(loadTest, "shouldHaveReasonableOverheadDespiteSlowNavigations")
 
-        assertThat(termination.overhead).isLessThan(Duration.ofSeconds(2) + LoadSegment.DRIVER_CLOSE_TIMEOUT)
+        assertThat(termination.overhead).isLessThan(Duration.ofSeconds(5) + LoadSegment.DRIVER_CLOSE_TIMEOUT)
         assertThat(termination.blockingThreads).isEmpty()
     }
 
@@ -52,8 +55,8 @@ class LoadTestTerminationIT {
 
         val termination = testTermination(loadTest, "shouldCloseAFastBrowser")
 
-        assertThat(termination.overhead).isLessThan(Duration.ofSeconds(2))
         assertThat(CLOSED_BROWSERS).contains(FastShutdownBrowser::class.java)
+        assertThat(termination.overhead).isLessThan(Duration.ofSeconds(5))
         assertThat(termination.blockingThreads).isEmpty()
     }
 
@@ -83,13 +86,17 @@ class LoadTestTerminationIT {
         label: String
     ): TerminationResult {
         val threadGroup = ThreadGroup(label)
-        val runnable = Runnable { test.run() }
-        val parentThread = Thread(threadGroup, runnable, "parent for $label")
-        parentThread.start()
-        val testDuration = measureTimeMillis { parentThread.join() }
+        val threadName = "parent-for-$label"
+        val testDuration = measureTimeMillis {
+            Executors.newSingleThreadExecutor {
+                Thread(threadGroup, it, threadName)
+            }.submit {
+                test.run()
+            }.get()
+        }
         return TerminationResult(
             overhead = Duration.ofMillis(testDuration) - load.total,
-            blockingThreads = threadGroup.listBlockingThreads() - parentThread
+            blockingThreads = threadGroup.listBlockingThreads().filter { it.name != threadName }
         )
     }
 
@@ -128,36 +135,35 @@ private abstract class SlowNavigationBrowser : Browser {
     abstract val shutdown: Duration
 
     override fun start(): CloseableRemoteWebDriver {
-        val browserPort = 8500 + PORT_OFFSET.getAndIncrement()
-        val browser = MockHttpServer(browserPort, shutdown)
-        browser.register("/session", HttpHandler { http ->
-            val sessionResponse = """
-                {
-                    "value": {
-                        "sessionId": "123",
-                        "capabilities": {}
-                    }
-                }
-                """.trimIndent()
-            http.sendResponseHeaders(200, sessionResponse.length.toLong())
-            http.responseBody.bufferedWriter().use { it.write(sessionResponse) }
-            http.close()
-        })
-        browser.register("/session/123/url", HttpHandler { http ->
-            Thread.sleep(navigation.toMillis())
-            http.sendResponseHeaders(200, 0)
-            http.close()
-        })
-        val startedBrowser = browser.start()
-        val driver = RemoteWebDriver(browser.base.toURL(), DesiredCapabilities())
+        val parent = Executors.newSingleThreadExecutor {
+            Thread(it)
+                .apply { name = "parent-for-tomcat" }
+                .apply { isDaemon = true }
+        }
+        val tomcat = parent.submit(Callable { startTomcat() }).get()
+        val base = URI("http://localhost:${tomcat.connector.localPort}")
+        val driver = RemoteWebDriver(base.toURL(), DesiredCapabilities())
         val clazz = this::class.java
         return object : CloseableRemoteWebDriver(driver) {
             override fun close() {
                 super.close()
-                startedBrowser.close()
+                Thread.sleep(shutdown.toMillis())
+                tomcat.stop()
                 CLOSED_BROWSERS.add(clazz)
             }
         }
+    }
+
+    private fun startTomcat(): Tomcat {
+        val port = 8500 + PORT_OFFSET.getAndIncrement()
+        val tomcat = Tomcat().apply { setPort(port) }
+        val context = tomcat.addContext("", File(".").absolutePath)
+        Tomcat.addServlet(context, "WD", MockWebDriverServer(navigation))
+        context.addServletMappingDecoded("/*", "WD")
+        (tomcat.server as StandardServer).utilityThreadsAsDaemon = true
+        tomcat.start()
+        tomcat.connector
+        return tomcat
     }
 
     private companion object {
@@ -165,46 +171,37 @@ private abstract class SlowNavigationBrowser : Browser {
     }
 }
 
-private class MockHttpServer(
-    private val port: Int,
-    private val shutdownSlowness: Duration
-) {
-    private val handlers: MutableMap<String, HttpHandler> = mutableMapOf()
-    internal val base = URI("http://localhost:$port")
-
-    internal fun register(
-        context: String,
-        handler: HttpHandler
-    ): URI {
-        handlers[context] = handler
-        return base.resolve(context)
-    }
-
-    internal fun start(): AutoCloseable {
-        val executorService: ExecutorService = Executors.newCachedThreadPool {
-            Thread(it)
-                .apply { name = "mock-http" }
-                .apply { isDaemon = true }
+private class MockWebDriverServer(
+    private val navigation: Duration
+) : HttpServlet() {
+    override fun service(req: HttpServletRequest, resp: HttpServletResponse) {
+        when (req.pathInfo) {
+            "/session" -> {
+                resp.writer.use {
+                    it.write(
+                        """
+                        {
+                            "value": {
+                                "sessionId": "123",
+                                "capabilities": {}
+                            }
+                        }
+                        """.trimIndent()
+                    )
+                }
+            }
+            "/session/123" -> {
+            }
+            "/session/123/url" -> {
+                Thread.sleep(navigation.toMillis())
+            }
+            "/session/123/element" -> {
+                resp.writer.use {
+                    it.write("{}")
+                }
+            }
+            else -> resp.sendError(500, "Not implemented")
         }
-        val server = startHttpServer(executorService)
-        return AutoCloseable {
-            executorService.shutdownNow()
-            server.stop(shutdownSlowness.seconds.toInt())
-        }
-    }
-
-    private fun startHttpServer(executor: ExecutorService): HttpServer {
-        val httpServer = HttpServer.create(InetSocketAddress(port), 0)
-        httpServer.executor = executor
-
-        handlers.forEach { (context, handler) ->
-            httpServer.createContext(context).handler = handler
-        }
-
-        executor
-            .submit { httpServer.start() }
-            .get()
-        return httpServer
     }
 }
 

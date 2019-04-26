@@ -92,6 +92,7 @@ dependencies {
     testCompile("com.atlassian.performance.tools:docker-infrastructure:0.1.2")
     testCompile("com.github.docker-java:docker-java:3.1.1")
     testCompile("com.atlassian.performance.tools:infrastructure:[4.0.0,5.0.0)")
+    testCompile("org.apache.tomcat.embed:tomcat-embed-core:9.0.19")
 }
 
 fun webdriver(): List<String> = listOf(

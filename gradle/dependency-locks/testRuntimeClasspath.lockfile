@@ -87,6 +87,8 @@ org.apache.maven:maven-repository-metadata:3.5.2
 org.apache.maven:maven-resolver-provider:3.5.2
 org.apache.maven:maven-settings-builder:3.5.2
 org.apache.maven:maven-settings:3.5.2
+org.apache.tomcat.embed:tomcat-embed-core:9.0.19
+org.apache.tomcat:tomcat-annotations-api:9.0.19
 org.assertj:assertj-core:3.11.0
 org.bouncycastle:bcpkix-jdk15on:1.60
 org.bouncycastle:bcprov-jdk15on:1.60
