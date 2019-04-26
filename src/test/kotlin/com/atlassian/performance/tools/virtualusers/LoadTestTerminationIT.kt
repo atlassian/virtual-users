@@ -116,7 +116,7 @@ class LoadTestTerminationIT {
     private fun ThreadGroup.listThreads(): List<Thread> {
         val threads = Array<Thread?>(activeCount()) { null }
         enumerate(threads)
-        return threads.toList().filterNotNull()
+        return threads.toList().filterNotNull().filter { it.isAlive }
     }
 }
 
