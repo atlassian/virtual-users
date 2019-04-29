@@ -21,13 +21,17 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.6.5...master
+[Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.6.6...master
+
+## [3.6.6] - 2019-04-29
+[3.6.6]: https://github.com/atlassian/virtual-users/compare/release-3.6.5...release-3.6.6
 
 ### Fixed
 - Daemonize WebDriver closing threads. Fix [JPERF-470].
 - Stop checking VU activity after applying load. Resolve [JPERF-472].
 
 [JPERF-470]: https://ecosystem.atlassian.net/browse/JPERF-470
+[JPERF-472]: https://ecosystem.atlassian.net/browse/JPERF-472
 
 ## [3.6.5] - 2019-04-25
 [3.6.5]: https://github.com/atlassian/virtual-users/compare/release-3.6.4...release-3.6.5
