@@ -110,7 +110,7 @@ internal class LoadTest(
         val segments = (1..virtualUsers).map { segmentLoad(it) }
         segments.forEach { loadPool.submit { applyLoad(it) } }
         Thread.sleep(finish.toMillis())
-        close(loadPool, segments)
+        close(segments)
     }
 
     private fun segmentLoad(
@@ -196,20 +196,15 @@ internal class LoadTest(
     }
 
     private fun close(
-        loadPool: ThreadPoolExecutor,
         segments: List<LoadSegment>
     ) {
         logger.info("Closing segments")
-        val active = loadPool.activeCount
         val closePool = Executors.newCachedThreadPool { Thread(it, "close-segment") }
         segments
             .map { closePool.submit { it.close() } }
             .forEach { it.get() }
         logger.info("Segments closed")
         closePool.shutdown()
-        if (active != segments.size) {
-            throw Exception("Expected ${segments.size} VUs to still be active, but encountered $active")
-        }
     }
 
     private fun RemoteWebDriver.toDiagnosableDriver(): DiagnosableDriver {
