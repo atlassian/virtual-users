@@ -25,6 +25,7 @@ Dropping a requirement of a major version of a dependency is a new contract.
 
 ### Fixed
 - Daemonize WebDriver closing threads. Fix [JPERF-470].
+- Stop checking VU activity after applying load. Resolve [JPERF-472].
 
 [JPERF-470]: https://ecosystem.atlassian.net/browse/JPERF-470
 
