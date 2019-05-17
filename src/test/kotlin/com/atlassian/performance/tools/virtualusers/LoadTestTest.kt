@@ -15,6 +15,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.openqa.selenium.By
 import java.net.URI
+import java.nio.file.Paths
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -140,6 +141,7 @@ class LoadTestTest {
                 .skipSetup(skipSetup)
                 .createUsers(createUsers)
                 .userGenerator(HardcodedUserGenerator::class.java)
+                .results(Paths.get("build/LoadTestTest"))
                 .build()
         )
     )

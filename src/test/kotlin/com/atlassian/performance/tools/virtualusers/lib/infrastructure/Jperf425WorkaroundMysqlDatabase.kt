@@ -27,6 +27,7 @@ class Jperf425WorkaroundMysqlDatabase(
 /**
  * Copy-pasted verbatim from [infrastructure:4.11.0](https://github.com/atlassian/infrastructure/blob/release-4.11.0/src/main/kotlin/com/atlassian/performance/tools/infrastructure/Docker.kt)
  * It's here just to interject the Docker install and MySQL setup with a Docker start.
+ * It also fixes `GPG error`.
  */
 private class CopyPastedDocker {
 
@@ -50,9 +51,9 @@ private class CopyPastedDocker {
         )
         val release = ssh.execute("lsb_release -cs").output
         val repository = "deb [arch=amd64] https://download.docker.com/linux/ubuntu $release stable"
-        ssh.execute("sudo add-apt-repository \"$repository\"")
         ssh.execute("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -")
-        val version = "17.09.0~ce-0~ubuntu"
+        ssh.execute("sudo add-apt-repository \"$repository\"")
+        val version = "18.06.3~ce~3-0~ubuntu"
         ubuntu.install(
             ssh = ssh,
             packages = listOf("docker-ce=$version"),

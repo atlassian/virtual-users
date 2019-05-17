@@ -75,6 +75,12 @@ Dropping a requirement of a major version of a dependency is a new contract.
 
 [JPERF-487]: https://ecosystem.atlassian.net/browse/JPERF-487
 
+### Added
+- Expose results via `VirtualUserNodeResult`.
+- Write results to the `VirtualUserBehavior.results` path.
+
+[JPERF-483]: https://ecosystem.atlassian.net/browse/JPERF-483
+
 ## [3.6.6] - 2019-04-29
 [3.6.6]: https://github.com/atlassian/virtual-users/compare/release-3.6.5...release-3.6.6
 

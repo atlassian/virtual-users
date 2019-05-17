@@ -2,15 +2,17 @@ package com.atlassian.performance.tools.virtualusers
 
 import com.atlassian.performance.tools.concurrency.api.AbruptExecutorService
 import com.atlassian.performance.tools.concurrency.api.finishBy
-import com.atlassian.performance.tools.io.api.ensureDirectory
+import com.atlassian.performance.tools.io.api.ensureParentDirectory
 import com.atlassian.performance.tools.jiraactions.api.SeededRandom
 import com.atlassian.performance.tools.jiraactions.api.WebJira
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
 import com.atlassian.performance.tools.jiraactions.api.measure.output.AppendableActionMetricOutput
+import com.atlassian.performance.tools.jiraactions.api.measure.output.ThrowawayActionMetricOutput
 import com.atlassian.performance.tools.jiraactions.api.memories.User
 import com.atlassian.performance.tools.jiraactions.api.memories.UserMemory
 import com.atlassian.performance.tools.jiraactions.api.memories.adaptive.AdaptiveUserMemory
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserNodeResult
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.*
@@ -23,7 +25,6 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.remote.RemoteWebDriver
-import java.nio.file.Paths
 import java.time.Duration
 import java.time.Instant.now
 import java.util.*
@@ -39,7 +40,7 @@ internal class LoadTest(
     private val logger: Logger = LogManager.getLogger(this::class.java)
     private val behavior = options.behavior
     private val target = options.target
-    private val workspace = Paths.get("test-results")
+    private val nodeResult = VirtualUserNodeResult(options.behavior.results)
     private val nodeCounter = JiraNodeCounter()
     private val random = SeededRandom(behavior.seed)
     private val diagnosisPatience = DiagnosisPatience(Duration.ofSeconds(5))
@@ -56,18 +57,18 @@ internal class LoadTest(
     )
     private val load = behavior.load
 
-    fun run() {
+    fun run(): VirtualUserNodeResult {
         val users = generateUsers()
         logger.info("Holding for ${load.hold}.")
         Thread.sleep(load.hold.toMillis())
-        workspace.toFile().ensureDirectory()
         setUpJira()
         applyLoad(users)
-        val nodesDump = workspace.resolve("nodes.csv")
-        nodesDump.toFile().bufferedWriter().use {
+        val nodesDump = nodeResult.nodeDistribution.toFile()
+        nodesDump.ensureParentDirectory().bufferedWriter().use {
             nodeCounter.dump(it)
         }
         logger.debug("Dumped node's counts to $nodesDump")
+        return nodeResult
     }
 
     private fun generateUsers(): List<User> {
@@ -91,16 +92,20 @@ internal class LoadTest(
         CloseableThreadContext.push("setup").use {
             browser.start().use { closeableDriver ->
                 val (driver, diagnostics) = closeableDriver.getDriver().toDiagnosableDriver()
-                val meter = ActionMeter(virtualUser = UUID.randomUUID())
-                val jira = WebJira(
-                    driver = driver,
-                    base = target.webApplication,
-                    adminPassword = target.password
+                val throwawayMeter = ActionMeter(
+                    virtualUser = UUID.randomUUID(),
+                    output = ThrowawayActionMetricOutput()
                 )
-                val userMemory = AdaptiveUserMemory(random)
-                userMemory.remember(systemUsers)
-                val virtualUser = createVirtualUser(jira, meter, userMemory, diagnostics)
-                virtualUser.setUpJira()
+                createVirtualUser(
+                    jira = WebJira(
+                        driver = driver,
+                        base = target.webApplication,
+                        adminPassword = target.password
+                    ),
+                    meter = throwawayMeter,
+                    userMemory = AdaptiveUserMemory(random).apply { remember(systemUsers) },
+                    diagnostics = diagnostics
+                ).setUpJira()
             }
         }
     }
@@ -131,14 +136,10 @@ internal class LoadTest(
         index: Int
     ): LoadSegment {
         val uuid = UUID.randomUUID()
+        val vuResult = nodeResult.isolateVuResult(uuid)
         return LoadSegment(
             driver = browser.start(),
-            output = workspace
-                .resolve(uuid.toString())
-                .toFile()
-                .ensureDirectory()
-                .resolve("action-metrics.jpt")
-                .bufferedWriter(),
+            output = vuResult.writeScenarioMetrics(),
             done = AtomicBoolean(false),
             id = uuid,
             index = index,
@@ -154,21 +155,23 @@ internal class LoadTest(
             logger.info("Waiting for $rampUpWait")
             Thread.sleep(rampUpWait.toMillis())
             val (driver, diagnostics) = segment.driver.getDriver().toDiagnosableDriver()
-            val jira = WebJira(
-                driver = driver,
-                base = target.webApplication,
-                adminPassword = target.password
-            )
-            val userMemory = AdaptiveUserMemory(random)
-            userMemory.remember(
-                listOf(segment.user)
-            )
-            val meter = ActionMeter(
-                virtualUser = segment.id,
-                output = AppendableActionMetricOutput(segment.output)
-            )
-            val virtualUser = createVirtualUser(jira, meter, userMemory, diagnostics)
-            virtualUser.applyLoad(segment.done)
+            createVirtualUser(
+                jira = WebJira(
+                    driver = driver,
+                    base = target.webApplication,
+                    adminPassword = target.password
+                ),
+                meter = ActionMeter(
+                    virtualUser = segment.id,
+                    output = AppendableActionMetricOutput(segment.output)
+                ),
+                userMemory = AdaptiveUserMemory(random).apply {
+                    remember(
+                        listOf(segment.user)
+                    )
+                },
+                diagnostics = diagnostics
+            ).applyLoad(segment.done)
         }
     }
 

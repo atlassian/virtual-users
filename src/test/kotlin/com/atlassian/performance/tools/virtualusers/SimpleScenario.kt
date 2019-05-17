@@ -10,7 +10,10 @@ import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 class SimpleScenario : Scenario {
 
     override fun getActions(jira: WebJira, seededRandom: SeededRandom, meter: ActionMeter): List<Action> {
-        return listOf(HardcodedViewIssueAction(jira, meter))
+        return listOf(
+            HardcodedViewIssueAction(jira, meter),
+            FailingAction()
+        )
     }
 }
 
@@ -26,4 +29,11 @@ class HardcodedViewIssueAction(
             jira.goToIssue("SAM-1").waitForSummary()
         }
     }
+}
+
+class FailingAction : Action {
+    override fun run() {
+        throw Exception("deliberate fail")
+    }
+
 }
