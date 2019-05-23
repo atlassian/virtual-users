@@ -57,22 +57,27 @@ class SudoSshUbuntuImage(
         .execAsResource(docker).use { runInConnectedContainer(it, lambda) }
 
     private fun <T> runInConnectedContainer(
-        container: ConnectedContainer,
+        connected: ConnectedContainer,
         lambda: (SudoSshUbuntuContainer) -> T
     ): T = docker
-        .startContainerCmd(container.containerId)
+        .startContainerCmd(connected.containerId)
         .execAsResource(docker)
-        .use { runInStartedContainer(it, lambda) }
+        .use { started -> runInStartedContainer(started, connected, lambda) }
 
     private fun <T> runInStartedContainer(
-        container: StartedDockerContainer,
+        started: StartedDockerContainer,
+        connected: ConnectedContainer,
         lambda: (SudoSshUbuntuContainer) -> T
     ): T {
         val networkSettings = docker
-            .inspectContainerCmd(container.id)
+            .inspectContainerCmd(started.id)
             .exec()
             .networkSettings
-        val ip = networkSettings.ipAddress
+        val ip = networkSettings
+            .networks
+            .values
+            .single { it.networkID == connected.networkId }
+            .ipAddress!!
         val ports = networkSettings.ports
         val sshPort = ports
             .bindings[ExposedPort.tcp(22)]!!
