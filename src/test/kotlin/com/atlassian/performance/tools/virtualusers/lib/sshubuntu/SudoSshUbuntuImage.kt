@@ -30,11 +30,11 @@ class SudoSshUbuntuImage(
     ): T {
         docker
             .pullImageCmd("rastasheep/ubuntu-sshd")
-            .withTag("16.04")
+            .withTag("18.04")
             .exec(PullImageResultCallback())
             .awaitCompletion()
         return docker
-            .createContainerCmd("rastasheep/ubuntu-sshd:16.04")
+            .createContainerCmd("rastasheep/ubuntu-sshd:18.04")
             .withHostConfig(
                 HostConfig()
                     .withPublishAllPorts(true)

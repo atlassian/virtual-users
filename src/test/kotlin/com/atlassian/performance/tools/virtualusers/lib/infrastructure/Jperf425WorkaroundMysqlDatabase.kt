@@ -53,7 +53,7 @@ private class CopyPastedDocker {
         val repository = "deb [arch=amd64] https://download.docker.com/linux/ubuntu $release stable"
         ssh.execute("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -")
         ssh.execute("sudo add-apt-repository \"$repository\"")
-        val version = "18.06.3~ce~3-0~ubuntu"
+        val version = "17.09.0~ce-0~ubuntu"
         ubuntu.install(
             ssh = ssh,
             packages = listOf("docker-ce=$version"),

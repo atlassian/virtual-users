@@ -27,6 +27,6 @@ class SudoSshUbuntuImageIT {
                 }
             }
 
-        assertThat(osName).isEqualTo("xenial\n")
+        assertThat(osName).isEqualTo("bionic\n")
     }
 }
