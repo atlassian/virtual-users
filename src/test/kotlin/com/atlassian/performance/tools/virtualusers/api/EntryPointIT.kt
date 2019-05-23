@@ -14,6 +14,7 @@ import java.net.URI
 import java.nio.file.Paths
 import java.time.Duration
 import java.util.*
+import kotlin.streams.asSequence
 
 class EntryPointIT {
 
@@ -37,7 +38,7 @@ class EntryPointIT {
         }
 
     @Test
-    fun shouldRunWith3_2_0_Args() {
+    fun shouldRun() {
         val resultPath = Paths.get("build")
             .resolve("vu-node-result")
             .resolve(UUID.randomUUID().toString())
@@ -55,7 +56,8 @@ class EntryPointIT {
                 "--browser", ChromeContainer::class.java.name,
                 "--diagnostics-limit", "3",
                 "--seed", "-9183767962456348780",
-                "--result", resultPath.toString()
+                "--result", resultPath.toString(),
+                "--max-overall-load", "1.0/PT5S"
             ))
         }
 
@@ -66,5 +68,12 @@ class EntryPointIT {
             .streamScenarioMetrics()
             .map { it.label }
         assertThat(scenarioLabels).containsOnly("Log In", "View Issue")
+        val totalMetricsTime = vuResult
+            .streamScenarioMetrics()
+            .map { it.duration }
+            .asSequence()
+            .fold(Duration.ZERO) { a, b -> a + b }
+        val unaccountedTime = desiredTotalTime - totalMetricsTime
+        assertThat(unaccountedTime).isLessThan(Duration.ofSeconds(5))
     }
 }
