@@ -102,7 +102,8 @@ internal class LoadTest(
                         base = target.webApplication,
                         adminPassword = target.password
                     ),
-                    meter = throwawayMeter,
+                    scenarioMeter = throwawayMeter,
+                    activityMeter = throwawayMeter,
                     userMemory = AdaptiveUserMemory(random).apply { remember(systemUsers) },
                     diagnostics = diagnostics
                 ).setUpJira()
@@ -139,7 +140,8 @@ internal class LoadTest(
         val vuResult = nodeResult.isolateVuResult(uuid)
         return LoadSegment(
             driver = browser.start(),
-            output = vuResult.writeScenarioMetrics(),
+            scenarioOutput = vuResult.writeScenarioMetrics(),
+            activityOutput = vuResult.writeActivityMetrics(),
             done = AtomicBoolean(false),
             id = uuid,
             index = index,
@@ -161,9 +163,13 @@ internal class LoadTest(
                     base = target.webApplication,
                     adminPassword = target.password
                 ),
-                meter = ActionMeter(
+                scenarioMeter = ActionMeter(
                     virtualUser = segment.id,
-                    output = AppendableActionMetricOutput(segment.output)
+                    output = AppendableActionMetricOutput(segment.scenarioOutput)
+                ),
+                activityMeter = ActionMeter(
+                    virtualUser = segment.id,
+                    output = AppendableActionMetricOutput(segment.activityOutput)
                 ),
                 userMemory = AdaptiveUserMemory(random).apply {
                     remember(
@@ -177,7 +183,8 @@ internal class LoadTest(
 
     private fun createVirtualUser(
         jira: WebJira,
-        meter: ActionMeter,
+        scenarioMeter: ActionMeter,
+        activityMeter: ActionMeter,
         userMemory: UserMemory,
         diagnostics: Diagnostics
     ): ExploratoryVirtualUser {
@@ -189,19 +196,20 @@ internal class LoadTest(
             actions = scenarioAdapter.getActions(
                 jira = jira,
                 seededRandom = SeededRandom(random.random.nextLong()),
-                meter = meter
+                meter = scenarioMeter
             ),
             setUpAction = scenarioAdapter.getSetupAction(
                 jira = jira,
-                meter = meter
+                meter = scenarioMeter
             ),
             logInAction = scenarioAdapter.getLogInAction(
                 jira = jira,
-                meter = meter,
+                meter = scenarioMeter,
                 userMemory = userMemory
             ),
             maxLoad = maxOverallLoad / load.virtualUsers,
-            diagnostics = diagnostics
+            diagnostics = diagnostics,
+            activityMeter = activityMeter
         )
     }
 

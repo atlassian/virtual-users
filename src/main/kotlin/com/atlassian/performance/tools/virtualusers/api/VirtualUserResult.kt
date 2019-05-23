@@ -13,6 +13,7 @@ class VirtualUserResult internal constructor(
 ) {
     private val parser = ActionMetricsParser()
     private val scenarioMetrics = vuPath.resolve("action-metrics.jpt")
+    private val activityMetrics = vuPath.resolve("activity.jpt")
 
     fun streamScenarioMetrics(): Stream<ActionMetric> {
         return scenarioMetrics
@@ -23,10 +24,38 @@ class VirtualUserResult internal constructor(
             .asStream()
     }
 
+    fun streamActivityMetrics(): Stream<VirtualUserActivity> {
+        return activityMetrics
+            .toFile()
+            .inputStream()
+            .use { parser.parse(it) }
+            .map { inferActivity(it) }
+            .asSequence()
+            .asStream()
+    }
+
     internal fun writeScenarioMetrics(): BufferedWriter {
         return scenarioMetrics
             .toFile()
             .ensureParentDirectory()
             .bufferedWriter()
+    }
+
+    internal fun writeActivityMetrics(): BufferedWriter {
+        return activityMetrics
+            .toFile()
+            .ensureParentDirectory()
+            .bufferedWriter()
+    }
+
+    private fun inferActivity(
+        metric: ActionMetric
+    ): VirtualUserActivity {
+        return VirtualUserActivity(
+            type = ActivityType.values()
+                .find { it.actionType.label == metric.label }
+                ?: ActivityType.MYSTERY,
+            metric = metric
+        )
     }
 }

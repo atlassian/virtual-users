@@ -1,6 +1,8 @@
 package com.atlassian.performance.tools.virtualusers
 
 import com.atlassian.performance.tools.jiraactions.api.action.Action
+import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
+import com.atlassian.performance.tools.virtualusers.api.ActivityType
 import com.atlassian.performance.tools.virtualusers.api.TemporalRate
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
 import com.atlassian.performance.tools.virtualusers.collections.CircularIterator
@@ -23,7 +25,8 @@ internal class ExploratoryVirtualUser(
     private val setUpAction: Action,
     private val logInAction: Action,
     private val maxLoad: TemporalRate,
-    private val diagnostics: Diagnostics
+    private val diagnostics: Diagnostics,
+    private val activityMeter: ActionMeter
 ) {
     private val logger: Logger = LogManager.getLogger(this::class.java)
 
@@ -59,7 +62,9 @@ internal class ExploratoryVirtualUser(
                 val actualTimeSoFar = Duration.between(start, now())
                 val extraTime = expectedTimeSoFar - actualTimeSoFar
                 if (extraTime > Duration.ZERO) {
-                    Thread.sleep(extraTime.toMillis())
+                    activityMeter.measure(ActivityType.THROTTLING.actionType) {
+                        Thread.sleep(extraTime.toMillis())
+                    }
                 }
             } catch (e: Exception) {
                 logger.error("Failed to run $action, but we keep running", e)
@@ -76,9 +81,13 @@ internal class ExploratoryVirtualUser(
     ) {
         try {
             logger.trace("Running $action")
-            action.run()
+            activityMeter.measure(ActivityType.ACTING.actionType) {
+                action.run()
+            }
         } catch (e: Exception) {
-            diagnostics.diagnose(e)
+            activityMeter.measure(ActivityType.DIAGNOSING.actionType) {
+                diagnostics.diagnose(e)
+            }
             throw Exception("Failed to run $action", e)
         }
     }

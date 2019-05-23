@@ -4,9 +4,11 @@ import com.atlassian.performance.tools.infrastructure.api.database.MySqlDatabase
 import com.atlassian.performance.tools.infrastructure.api.dataset.Dataset
 import com.atlassian.performance.tools.infrastructure.api.dataset.HttpDatasetPackage
 import com.atlassian.performance.tools.infrastructure.api.jira.JiraHomePackage
+import com.atlassian.performance.tools.jiraactions.api.ActionMetric
 import com.atlassian.performance.tools.virtualusers.ChromeContainer
 import com.atlassian.performance.tools.virtualusers.DockerJira
 import com.atlassian.performance.tools.virtualusers.SimpleScenario
+import com.atlassian.performance.tools.virtualusers.api.ActivityType.*
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf425WorkaroundMysqlDatabase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -14,6 +16,7 @@ import java.net.URI
 import java.nio.file.Paths
 import java.time.Duration
 import java.util.*
+import java.util.stream.Stream
 import kotlin.streams.asSequence
 
 class EntryPointIT {
@@ -68,12 +71,31 @@ class EntryPointIT {
             .streamScenarioMetrics()
             .map { it.label }
         assertThat(scenarioLabels).containsOnly("Log In", "View Issue")
+        val activityTypes = vuResult
+            .streamActivityMetrics()
+            .map { it.type }
+        assertThat(activityTypes).contains(ACTING, THROTTLING, DIAGNOSING).doesNotContain(MYSTERY)
+        val totalActivityTime = vuResult
+            .streamActivityMetrics()
+            .map { it.metric }
+            .sumDurations()
+        val unaccountedTime = desiredTotalTime - totalActivityTime
+        assertThat(unaccountedTime).isLessThan(Duration.ofSeconds(5))
         val totalMetricsTime = vuResult
             .streamScenarioMetrics()
-            .map { it.duration }
+            .sumDurations()
+        val totalActingTime = vuResult
+            .streamActivityMetrics()
+            .filter { it.type == ACTING }
+            .map { it.metric }
+            .sumDurations()
+        val unmeasuredActingTime = totalActingTime - totalMetricsTime
+        assertThat(unmeasuredActingTime).isLessThan(Duration.ofSeconds(1))
+    }
+
+    private fun Stream<ActionMetric>.sumDurations(): Duration {
+        return map { it.duration }
             .asSequence()
             .fold(Duration.ZERO) { a, b -> a + b }
-        val unaccountedTime = desiredTotalTime - totalMetricsTime
-        assertThat(unaccountedTime).isLessThan(Duration.ofSeconds(5))
     }
 }

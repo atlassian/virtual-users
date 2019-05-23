@@ -79,6 +79,9 @@ Dropping a requirement of a major version of a dependency is a new contract.
 - Expose results via `VirtualUserNodeResult`.
 - Write results to the `VirtualUserBehavior.results` path.
 
+### Fixed
+- Account for VU throttling and diagnosis. Resolve [JPERF-483].
+
 [JPERF-483]: https://ecosystem.atlassian.net/browse/JPERF-483
 
 ## [3.6.6] - 2019-04-29
