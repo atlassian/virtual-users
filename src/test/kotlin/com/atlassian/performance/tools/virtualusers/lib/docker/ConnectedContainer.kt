@@ -6,7 +6,7 @@ import com.github.dockerjava.api.command.ConnectToNetworkCmd
 class ConnectedContainer(
     private val docker: DockerClient,
     val containerId: String,
-    private val networkId: String
+    val networkId: String
 ) : AutoCloseable {
 
     override fun close() {
