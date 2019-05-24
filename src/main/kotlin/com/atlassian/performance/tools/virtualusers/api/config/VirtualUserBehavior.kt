@@ -4,6 +4,8 @@ import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeBrowser
+import com.atlassian.performance.tools.virtualusers.logs.LogConfiguration
+import org.apache.logging.log4j.core.config.AbstractConfiguration
 
 class VirtualUserBehavior private constructor(
     @Deprecated(
@@ -16,7 +18,8 @@ class VirtualUserBehavior private constructor(
     internal val diagnosticsLimit: Int,
     internal val browser: Class<out Browser>,
     internal val skipSetup: Boolean,
-    internal val createUsers: Boolean
+    internal val createUsers: Boolean,
+    internal val logging: Class<out AbstractConfiguration>
 ) {
 
     @Deprecated(
@@ -38,7 +41,8 @@ class VirtualUserBehavior private constructor(
         diagnosticsLimit = diagnosticsLimit,
         browser = browser,
         skipSetup = skipSetup,
-        createUsers = false
+        createUsers = false,
+        logging = LogConfiguration::class.java
     )
 
     @Deprecated(
@@ -99,6 +103,7 @@ class VirtualUserBehavior private constructor(
         private var seed: Long = 12345
         private var diagnosticsLimit: Int = 16
         private var browser: Class<out Browser> = HeadlessChromeBrowser::class.java
+        private var logging: Class<out AbstractConfiguration> = LogConfiguration::class.java
         private var skipSetup = false
         private var createUsers = false
 
@@ -107,6 +112,7 @@ class VirtualUserBehavior private constructor(
         fun seed(seed: Long) = apply { this.seed = seed }
         fun diagnosticsLimit(diagnosticsLimit: Int) = apply { this.diagnosticsLimit = diagnosticsLimit }
         fun browser(browser: Class<out Browser>) = apply { this.browser = browser }
+        fun logging(logging: Class<out AbstractConfiguration>) = apply { this.logging = logging }
         fun skipSetup(skipSetup: Boolean) = apply { this.skipSetup = skipSetup }
         fun createUsers(createUsers: Boolean) = apply { this.createUsers = createUsers }
 
@@ -119,6 +125,7 @@ class VirtualUserBehavior private constructor(
             scenario = behavior.scenario
             diagnosticsLimit = behavior.diagnosticsLimit
             browser = behavior.browser
+            logging = behavior.logging
             skipSetup = behavior.skipSetup
             createUsers = behavior.createUsers
         }
@@ -131,6 +138,7 @@ class VirtualUserBehavior private constructor(
             seed = seed,
             diagnosticsLimit = diagnosticsLimit,
             browser = browser,
+            logging = logging,
             skipSetup = skipSetup,
             createUsers = createUsers
         )
