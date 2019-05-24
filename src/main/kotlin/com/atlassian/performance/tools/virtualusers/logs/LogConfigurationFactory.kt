@@ -1,13 +1,16 @@
 package com.atlassian.performance.tools.virtualusers.logs
 
 import org.apache.logging.log4j.core.LoggerContext
+import org.apache.logging.log4j.core.config.AbstractConfiguration
 import org.apache.logging.log4j.core.config.Configuration
 import org.apache.logging.log4j.core.config.ConfigurationFactory
 import org.apache.logging.log4j.core.config.ConfigurationSource
 import java.net.URI
 
 
-internal class LogConfigurationFactory : ConfigurationFactory() {
+internal class LogConfigurationFactory(
+    private val logConfig: AbstractConfiguration
+) : ConfigurationFactory() {
     override fun getConfiguration(loggerContext: LoggerContext?, name: String, configLocation: URI?): Configuration {
         return createConfiguration()
     }
@@ -24,5 +27,5 @@ internal class LogConfigurationFactory : ConfigurationFactory() {
         return arrayOf("*")
     }
 
-    private fun createConfiguration(): Configuration = LogConfiguration()
+    private fun createConfiguration(): Configuration = logConfig
 }

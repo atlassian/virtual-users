@@ -84,6 +84,7 @@ dependencies {
     implementation("org.apache.commons:commons-csv:1.3")
     implementation("commons-cli:commons-cli:1.4")
 
+    api(log4j("core"))
     log4jCore().forEach { implementation(it) }
     implementation("io.github.bonigarcia:webdrivermanager:1.7.1")
 
@@ -101,17 +102,15 @@ fun webdriver(): List<String> = listOf(
     "org.seleniumhq.selenium:$module:3.11.0"
 } + log4j("jul")
 
-fun log4jCore(): List<String> = log4j(
+fun log4jCore(): List<String> = listOf(
     "api",
-    "core",
     "slf4j-impl"
-)
+).map { log4j(it) }
 
 fun log4j(
-    vararg modules: String
-): List<String> = modules.map { module ->
-    "org.apache.logging.log4j:log4j-$module:2.10.0"
-}
+    module: String
+): String = "org.apache.logging.log4j:log4j-$module:2.10.0"
+
 
 tasks.wrapper {
     gradleVersion = "5.2.1"

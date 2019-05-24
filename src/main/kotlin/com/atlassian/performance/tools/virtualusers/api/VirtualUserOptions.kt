@@ -7,7 +7,9 @@ import com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome
 import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeBrowser
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
+import com.atlassian.performance.tools.virtualusers.logs.LogConfiguration
 import org.apache.commons.cli.*
+import org.apache.logging.log4j.core.config.AbstractConfiguration
 import java.net.URI
 import java.net.URL
 import java.time.Duration
@@ -140,6 +142,7 @@ class VirtualUserOptions(
         const val passwordParameter = "password"
 
         const val virtualUsersParameter = "virtual-users"
+        const val loggingParameter = "logging"
         const val holdParameter = "hold"
         const val rampParameter = "ramp"
         const val flatParameter = "flat"
@@ -190,6 +193,13 @@ class VirtualUserOptions(
                     .hasArg(true)
                     .desc("Number of virtual users to execute.")
                     .required()
+                    .build()
+            )
+            .addOption(
+                Option.builder()
+                    .longOpt(loggingParameter)
+                    .hasArg()
+                    .desc("Custom logging configuration")
                     .build()
             )
             .addOption(
@@ -304,6 +314,7 @@ class VirtualUserOptions(
             loginParameter to target.userName,
             passwordParameter to target.password,
             virtualUsersParameter to behavior.load.virtualUsers,
+            loggingParameter to behavior.logging.canonicalName,
             holdParameter to behavior.load.hold,
             rampParameter to behavior.load.ramp,
             flatParameter to behavior.load.flat,
@@ -377,6 +388,7 @@ class VirtualUserOptions(
                     .diagnosticsLimit(diagnosticsLimit)
                     .seed(seed)
                     .browser(getBrowser(commandLine))
+                    .logging(getLogging(commandLine))
                     .load(
                         VirtualUserLoad.Builder()
                             .virtualUsers(virtualUsers)
@@ -405,9 +417,16 @@ class VirtualUserOptions(
                 val browserClass = Class.forName(browser)
                 val browserConstructor = browserClass.getConstructor()
                 (browserConstructor.newInstance() as Browser)::class.java
-            } else {
-                GoogleChrome::class.java
-            }
+            } else GoogleChrome::class.java
+        }
+
+        private fun getLogging(commandLine: CommandLine): Class<out AbstractConfiguration> {
+            return if (commandLine.hasOption(loggingParameter)) {
+                val logging = commandLine.getOptionValue(loggingParameter)
+                val loggingClass = Class.forName(logging)
+                val loggingConstructor = loggingClass.getConstructor()
+                (loggingConstructor.newInstance() as AbstractConfiguration)::class.java
+            } else LogConfiguration::class.java
         }
     }
 }

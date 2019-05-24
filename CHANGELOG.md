@@ -23,6 +23,12 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.6.6...master
 
+### Added
+- Add custom logging configuration. Resolve [JPERF-487].
+- Add log4j-core to the API.
+
+[JPERF-487]: https://ecosystem.atlassian.net/browse/JPERF-487
+
 ## [3.6.6] - 2019-04-29
 [3.6.6]: https://github.com/atlassian/virtual-users/compare/release-3.6.5...release-3.6.6
 
