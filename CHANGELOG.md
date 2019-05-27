@@ -21,7 +21,10 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.6.6...master
+[Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.7.0...master
+
+## [3.7.0] - 2019-05-27
+[3.7.0]: https://github.com/atlassian/virtual-users/compare/release-3.6.6...release-3.7.0
 
 ### Added
 - Add custom logging configuration. Resolve [JPERF-487].
