@@ -1,4 +1,4 @@
-package com.atlassian.performance.tools.virtualusers
+package com.atlassian.performance.tools.virtualusers.api.users
 
 import com.atlassian.performance.tools.jiraactions.api.memories.User
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions

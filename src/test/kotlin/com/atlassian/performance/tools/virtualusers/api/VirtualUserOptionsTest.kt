@@ -1,9 +1,13 @@
 package com.atlassian.performance.tools.virtualusers.api
 
+import com.atlassian.performance.tools.jiraactions.api.memories.User
 import com.atlassian.performance.tools.jirasoftwareactions.api.JiraSoftwareScenario
 import com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
+import com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator
+import com.atlassian.performance.tools.virtualusers.api.users.SuppliedUserGenerator
+import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
 import org.junit.Test
@@ -90,7 +94,10 @@ class VirtualUserOptionsTest {
                 "com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome"
             )
             .contains("--skip-setup")
-            .contains("--create-users")
+            .containsSequence(
+                "--user-generator",
+                "com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator"
+            )
     }
 
     @Test
@@ -150,7 +157,7 @@ class VirtualUserOptionsTest {
 
         val parsedOptions = VirtualUserOptions.Parser().parse(options.toCliArgs())
 
-        assertThat(parsedOptions.behavior.createUsers).isFalse()
+        assertThat(parsedOptions.behavior.userGenerator.canonicalName).isEqualTo(SuppliedUserGenerator::class.java.canonicalName)
     }
 
     @Test
@@ -163,7 +170,20 @@ class VirtualUserOptionsTest {
 
         val parsedOptions = VirtualUserOptions.Parser().parse(options.toCliArgs())
 
-        assertThat(parsedOptions.behavior.createUsers).isTrue()
+        assertThat(parsedOptions.behavior.userGenerator.canonicalName).isEqualTo(RestUserGenerator::class.java.canonicalName)
+    }
+
+    @Test
+    fun shouldUseCustomUserGenerator() {
+        val options = optionsTemplate.withBehavior(
+            VirtualUserBehavior.Builder(optionsTemplate.behavior)
+                .userGenerator(CustomRestUserGenerator::class.java)
+                .build()
+        )
+
+        val parsedOptions = VirtualUserOptions.Parser().parse(options.toCliArgs())
+
+        assertThat(parsedOptions.behavior.userGenerator.canonicalName).isEqualTo(CustomRestUserGenerator::class.java.canonicalName)
     }
 
     private fun VirtualUserOptions.withJiraAddress(
@@ -190,4 +210,11 @@ class VirtualUserOptionsTest {
         allowInsecureConnections = allowInsecureConnections,
         help = help
     )
+
+    private class CustomRestUserGenerator : UserGenerator {
+        override fun generateUser(options: VirtualUserOptions): User {
+            return User("test", "test")
+        }
+
+    }
 }

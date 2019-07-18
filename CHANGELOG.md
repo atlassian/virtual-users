@@ -23,6 +23,11 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.7.0...master
 
+### Added
+- Add SPI for users generation. Resolve [JPERF-532].
+
+[JPERF-532]: https://ecosystem.atlassian.net/browse/JPERF-532
+
 ## [3.7.0] - 2019-05-27
 [3.7.0]: https://github.com/atlassian/virtual-users/compare/release-3.6.6...release-3.7.0
 

@@ -7,6 +7,9 @@ import com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome
 import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeBrowser
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
+import com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator
+import com.atlassian.performance.tools.virtualusers.api.users.SuppliedUserGenerator
+import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
 import com.atlassian.performance.tools.virtualusers.logs.LogConfiguration
 import org.apache.commons.cli.*
 import org.apache.logging.log4j.core.config.AbstractConfiguration
@@ -154,6 +157,7 @@ class VirtualUserOptions(
         const val allowInsecureConnectionsParameter = "allow-insecure-connections"
         const val skipSetupParameter = "skip-setup"
         const val createUsersParameter = "create-users"
+        const val userGeneratorParameter = "user-generator"
 
         val options: Options = Options()
             .addOption(
@@ -285,6 +289,13 @@ class VirtualUserOptions(
                     .desc("Creates users")
                     .build()
             )
+            .addOption(
+                Option.builder()
+                    .longOpt(userGeneratorParameter)
+                    .hasArg(true)
+                    .desc("Users generator class")
+                    .build()
+            )
     }
 
     @Deprecated(
@@ -304,8 +315,7 @@ class VirtualUserOptions(
         val flags: List<String> = mapOf(
             helpParameter to behavior.help,
             allowInsecureConnectionsParameter to getAllowInsecureConnections(),
-            skipSetupParameter to behavior.skipSetup,
-            createUsersParameter to behavior.createUsers
+            skipSetupParameter to behavior.skipSetup
         ).mapNotNull { (parameter, value) ->
             if (value) "--$parameter" else null
         }
@@ -322,7 +332,9 @@ class VirtualUserOptions(
             scenarioParameter to behavior.scenario.canonicalName,
             diagnosticsLimitParameter to behavior.diagnosticsLimit,
             seedParameter to behavior.seed,
-            browserParameter to behavior.browser.name
+            browserParameter to behavior.browser.name,
+            userGeneratorParameter to behavior.userGenerator.name
+
         ).flatMap { (parameter, value) ->
             listOf("--$parameter", value.toString())
         }
@@ -399,7 +411,7 @@ class VirtualUserOptions(
                             .build()
                     )
                     .skipSetup(skipSetup)
-                    .createUsers(createUsers)
+                    .userGenerator(if (createUsers) RestUserGenerator::class.java else getUserGenerator(commandLine))
                     .build()
             )
         }
@@ -427,6 +439,15 @@ class VirtualUserOptions(
                 val loggingConstructor = loggingClass.getConstructor()
                 (loggingConstructor.newInstance() as AbstractConfiguration)::class.java
             } else LogConfiguration::class.java
+        }
+
+        private fun getUserGenerator(commandLine: CommandLine): Class<out UserGenerator> {
+            return if (commandLine.hasOption(userGeneratorParameter)) {
+                val userGenerator = commandLine.getOptionValue(userGeneratorParameter)
+                val userGeneratorClass = Class.forName(userGenerator)
+                val userGeneratorConstructor = userGeneratorClass.getConstructor()
+                (userGeneratorConstructor.newInstance() as UserGenerator)::class.java
+            } else SuppliedUserGenerator::class.java
         }
     }
 }
