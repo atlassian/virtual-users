@@ -1,4 +1,4 @@
-package com.atlassian.performance.tools.virtualusers
+package com.atlassian.performance.tools.virtualusers.api.users
 
 import com.atlassian.performance.tools.jiraactions.api.memories.User
 import com.atlassian.performance.tools.jvmtasks.api.TaskTimer.time
@@ -6,15 +6,18 @@ import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import okhttp3.*
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import java.time.Duration
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-internal class RestUserGenerator : UserGenerator {
+class RestUserGenerator(readTimeout: Duration) : UserGenerator {
 
     private val logger: Logger = LogManager.getLogger(this::class.java)
     private val httpClient = OkHttpClient.Builder()
-        .readTimeout(90, TimeUnit.SECONDS)
+        .readTimeout(readTimeout.seconds, TimeUnit.SECONDS)
         .build()
+
+    constructor() : this(Duration.ofSeconds(90)) {}
 
     override fun generateUser(
         options: VirtualUserOptions
@@ -38,16 +41,22 @@ internal class RestUserGenerator : UserGenerator {
             .post(requestBody)
             .build()
         time("create user via REST") {
-            httpClient.newCall(request).execute()
+            try {
+                httpClient.newCall(request).execute()
+            } catch (e: Exception) {
+                logger.error("Could not create user $userName", e)
+                throw e
+            }
         }.use { response ->
             if (response.code() == 201) {
                 logger.info("Created a new user $userName")
             } else {
-                throw Exception(
-                    "Failed to create a new user $userName:" +
-                        " response code ${response.code()}," +
-                        " response body ${response.body()?.string()}"
-                )
+                val msg = "Failed to create a new user $userName:" +
+                    " response code ${response.code()}," +
+                    " response body ${response.body()?.string()}"
+
+                logger.error(msg)
+                throw Exception(msg)
             }
         }
         return User(name = userName, password = target.password)

@@ -4,6 +4,9 @@ import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeBrowser
+import com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator
+import com.atlassian.performance.tools.virtualusers.api.users.SuppliedUserGenerator
+import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
 import com.atlassian.performance.tools.virtualusers.logs.LogConfiguration
 import org.apache.logging.log4j.core.config.AbstractConfiguration
 
@@ -18,7 +21,7 @@ class VirtualUserBehavior private constructor(
     internal val diagnosticsLimit: Int,
     internal val browser: Class<out Browser>,
     internal val skipSetup: Boolean,
-    internal val createUsers: Boolean,
+    internal val userGenerator: Class<out UserGenerator>,
     internal val logging: Class<out AbstractConfiguration>
 ) {
 
@@ -41,7 +44,7 @@ class VirtualUserBehavior private constructor(
         diagnosticsLimit = diagnosticsLimit,
         browser = browser,
         skipSetup = skipSetup,
-        createUsers = false,
+        userGenerator = SuppliedUserGenerator::class.java,
         logging = LogConfiguration::class.java
     )
 
@@ -105,7 +108,7 @@ class VirtualUserBehavior private constructor(
         private var browser: Class<out Browser> = HeadlessChromeBrowser::class.java
         private var logging: Class<out AbstractConfiguration> = LogConfiguration::class.java
         private var skipSetup = false
-        private var createUsers = false
+        private var userGenerator: Class<out UserGenerator> = RestUserGenerator::class.java
 
         fun scenario(scenario: Class<out Scenario>) = apply { this.scenario = scenario }
         fun load(load: VirtualUserLoad) = apply { this.load = load }
@@ -114,7 +117,17 @@ class VirtualUserBehavior private constructor(
         fun browser(browser: Class<out Browser>) = apply { this.browser = browser }
         fun logging(logging: Class<out AbstractConfiguration>) = apply { this.logging = logging }
         fun skipSetup(skipSetup: Boolean) = apply { this.skipSetup = skipSetup }
-        fun createUsers(createUsers: Boolean) = apply { this.createUsers = createUsers }
+
+        @Deprecated("Use VirtualUserBehavior.Builder.userGenerator instead")
+        fun createUsers(createUsers: Boolean) = apply {
+            if(createUsers) {
+                userGenerator = RestUserGenerator::class.java
+            } else {
+                userGenerator = SuppliedUserGenerator::class.java
+            }
+        }
+
+        fun userGenerator(userGenerator: Class<out UserGenerator>) = apply { this.userGenerator = userGenerator }
 
         constructor(
             behavior: VirtualUserBehavior
@@ -127,7 +140,7 @@ class VirtualUserBehavior private constructor(
             browser = behavior.browser
             logging = behavior.logging
             skipSetup = behavior.skipSetup
-            createUsers = behavior.createUsers
+            userGenerator = behavior.userGenerator
         }
 
         @Suppress("DEPRECATION")
@@ -140,7 +153,7 @@ class VirtualUserBehavior private constructor(
             browser = browser,
             logging = logging,
             skipSetup = skipSetup,
-            createUsers = createUsers
+            userGenerator =userGenerator
         )
     }
 }

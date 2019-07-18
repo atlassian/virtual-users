@@ -12,6 +12,7 @@ import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.*
+import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
 import com.atlassian.performance.tools.virtualusers.lib.jvmtasks.ResultTimer
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import com.atlassian.performance.tools.virtualusers.measure.WebJiraNode
@@ -34,8 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * A [load test](https://en.wikipedia.org/wiki/Load_testing).
  */
 internal class LoadTest(
-    private val options: VirtualUserOptions,
-    userGenerator: UserGenerator
+    private val options: VirtualUserOptions
 ) {
     private val logger: Logger = LogManager.getLogger(this::class.java)
     private val behavior = options.behavior
@@ -47,11 +47,7 @@ internal class LoadTest(
     private val diagnosisLimit = DiagnosisLimit(behavior.diagnosticsLimit)
     private val scenario = behavior.scenario.getConstructor().newInstance() as Scenario
     private val browser = behavior.browser.getConstructor().newInstance() as Browser
-    private val effectiveUserGenerator = if (options.behavior.createUsers) {
-        userGenerator
-    } else {
-        SuppliedUserGenerator()
-    }
+    private val effectiveUserGenerator = options.behavior.userGenerator.getConstructor().newInstance() as UserGenerator
 
     private val systemUsers = listOf(
         User(

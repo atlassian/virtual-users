@@ -7,6 +7,7 @@ import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.browsers.CloseableRemoteWebDriver
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
+import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
 import com.atlassian.performance.tools.virtualusers.mock.RemoteWebDriverMock
 import com.atlassian.performance.tools.virtualusers.mock.WebElementMock
 import net.jcip.annotations.ThreadSafe
@@ -53,6 +54,7 @@ class LoadTestTest {
 
         synchronized(globalStateLock) {
             MockWebdriverRuntime.reset()
+            HardcodedUserGenerator.reset()
             loadTest.run()
         }
 
@@ -70,6 +72,7 @@ class LoadTestTest {
         synchronized(globalStateLock) {
             TestBrowser.reset()
             TracingScenario.reset()
+            HardcodedUserGenerator.reset()
             loadTest.run()
         }
 
@@ -88,10 +91,11 @@ class LoadTestTest {
         synchronized(globalStateLock) {
             TestBrowser.reset()
             TracingScenario.reset()
+            HardcodedUserGenerator.reset()
             loadTest.run()
         }
 
-        assertThat(userGenerator.usersCreated.get()).isEqualTo(5)
+        assertThat(HardcodedUserGenerator.usersCreated.get()).isEqualTo(5)
         assertThat(TracingScenario.users.count()).isEqualTo(5)
     }
 
@@ -106,10 +110,11 @@ class LoadTestTest {
         synchronized(globalStateLock) {
             TestBrowser.reset()
             TracingScenario.reset()
+            HardcodedUserGenerator.reset()
             loadTest.run()
         }
 
-        assertThat(userGenerator.usersCreated.get()).isEqualTo(12)
+        assertThat(HardcodedUserGenerator.usersCreated.get()).isEqualTo(12)
     }
 
     private fun loadTest(
@@ -135,14 +140,20 @@ class LoadTestTest {
                 )
                 .skipSetup(skipSetup)
                 .createUsers(createUsers)
+                .userGenerator(HardcodedUserGenerator::class.java)
                 .build()
-        ),
-        userGenerator = userGenerator
+        )
     )
 
     private class HardcodedUserGenerator : UserGenerator {
 
-        val usersCreated = AtomicInteger(0)
+        companion object Counter {
+            val usersCreated: AtomicInteger = AtomicInteger(0)
+
+            fun reset() {
+                usersCreated.set(0)
+            }
+        }
 
         override fun generateUser(options: VirtualUserOptions): User {
             return User("admin-${usersCreated.incrementAndGet()}", "admin")
