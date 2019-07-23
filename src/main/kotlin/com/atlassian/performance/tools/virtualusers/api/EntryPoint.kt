@@ -1,7 +1,6 @@
 package com.atlassian.performance.tools.virtualusers.api
 
 import com.atlassian.performance.tools.virtualusers.LoadTest
-import com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator
 import com.atlassian.performance.tools.virtualusers.logs.LogConfiguration
 import com.atlassian.performance.tools.virtualusers.logs.LogConfigurationFactory
 import org.apache.logging.log4j.LogManager

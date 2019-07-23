@@ -17,7 +17,7 @@ class RestUserGenerator(readTimeout: Duration) : UserGenerator {
         .readTimeout(readTimeout.seconds, TimeUnit.SECONDS)
         .build()
 
-    constructor() : this(Duration.ofSeconds(90)) {}
+    constructor() : this(Duration.ofSeconds(90))
 
     override fun generateUser(
         options: VirtualUserOptions

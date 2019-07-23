@@ -121,7 +121,7 @@ class ExploratoryVirtualUserTest {
         minLoad: TemporalRate,
         maxLoad: TemporalRate
     ) {
-        val commonTimeUnit = Duration.ofHours(1)
+        val commonTimeUnit = ofHours(1)
         val readableActual = actualLoad.scaleTime(commonTimeUnit)
         val readableMin = minLoad.scaleTime(commonTimeUnit)
         val readableMax = maxLoad.scaleTime(commonTimeUnit)
