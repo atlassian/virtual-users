@@ -23,6 +23,19 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.8.0...master
 
+### Added
+- Declare `VirtualUserBehavior.maxOverhead`. Unblock [JPERF-530].
+
+  Virtual Users have one main goal: apply realistic load.
+  But they also have to do auxiliary tasks, like spin up browsers, set up Jira, generate users, flush results to disk.
+  All of these tasks take time and can add up to a significant time overhead.
+  Until now, it was assumed it should fit under 5 minutes.
+  But custom setup actions and user generation can easily break that limit. Therefore it's now set explicitly.
+  It might be used internally to warn, fail fast or otherwise control the VUs.
+  It should be used externally to better inform expected runtime duration, to set up timeouts, progress bars, etc.
+
+[JPERF-530]: https://ecosystem.atlassian.net/browse/JPERF-530
+
 ## [3.8.0] - 2019-07-23
 [3.8.0]: https://github.com/atlassian/virtual-users/compare/release-3.7.0...release-3.8.0
 

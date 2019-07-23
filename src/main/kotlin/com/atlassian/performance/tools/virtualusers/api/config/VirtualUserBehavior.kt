@@ -9,7 +9,11 @@ import com.atlassian.performance.tools.virtualusers.api.users.SuppliedUserGenera
 import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
 import com.atlassian.performance.tools.virtualusers.logs.LogConfiguration
 import org.apache.logging.log4j.core.config.AbstractConfiguration
+import java.time.Duration
 
+/**
+ * @param [maxOverhead] Maximum time to be running, but not applying load.
+ */
 class VirtualUserBehavior private constructor(
     @Deprecated(
         message = "There should be no need to display help from Java API. Read the Javadoc or sources instead."
@@ -17,6 +21,7 @@ class VirtualUserBehavior private constructor(
     internal val help: Boolean,
     internal val scenario: Class<out Scenario>,
     val load: VirtualUserLoad,
+    val maxOverhead: Duration,
     internal val seed: Long,
     internal val diagnosticsLimit: Int,
     internal val browser: Class<out Browser>,
@@ -40,6 +45,7 @@ class VirtualUserBehavior private constructor(
         help = help,
         scenario = scenario,
         load = load,
+        maxOverhead = Duration.ofMinutes(5),
         seed = seed,
         diagnosticsLimit = diagnosticsLimit,
         browser = browser,
@@ -103,6 +109,7 @@ class VirtualUserBehavior private constructor(
         private var scenario: Class<out Scenario>
     ) {
         private var load: VirtualUserLoad = VirtualUserLoad.Builder().build()
+        private var maxOverhead: Duration = Duration.ofMinutes(5)
         private var seed: Long = 12345
         private var diagnosticsLimit: Int = 16
         private var browser: Class<out Browser> = HeadlessChromeBrowser::class.java
@@ -112,6 +119,7 @@ class VirtualUserBehavior private constructor(
 
         fun scenario(scenario: Class<out Scenario>) = apply { this.scenario = scenario }
         fun load(load: VirtualUserLoad) = apply { this.load = load }
+        fun maxOverhead(maxOverhead: Duration) = apply { this.maxOverhead = maxOverhead }
         fun seed(seed: Long) = apply { this.seed = seed }
         fun diagnosticsLimit(diagnosticsLimit: Int) = apply { this.diagnosticsLimit = diagnosticsLimit }
         fun browser(browser: Class<out Browser>) = apply { this.browser = browser }
@@ -135,6 +143,7 @@ class VirtualUserBehavior private constructor(
             scenario = behavior.scenario
         ) {
             load = behavior.load
+            maxOverhead = behavior.maxOverhead
             scenario = behavior.scenario
             diagnosticsLimit = behavior.diagnosticsLimit
             browser = behavior.browser
@@ -148,6 +157,7 @@ class VirtualUserBehavior private constructor(
             help = false,
             scenario = scenario,
             load = load,
+            maxOverhead = maxOverhead,
             seed = seed,
             diagnosticsLimit = diagnosticsLimit,
             browser = browser,
