@@ -7,8 +7,8 @@ import com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior.Builder
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
-import java.time.Duration
-import java.time.Duration.*
+import java.time.Duration.ofMinutes
+import java.time.Duration.ofSeconds
 
 class VirtualUserBehaviorTest {
 

@@ -16,7 +16,7 @@ internal class LogConfigurationFactory(
     }
 
     override fun getConfiguration(loggerContext: LoggerContext?, name: String, configLocation: URI?, loader: ClassLoader?): Configuration {
-        return getConfiguration(loggerContext, name, null);
+        return getConfiguration(loggerContext, name, null)
     }
 
     override fun getConfiguration(loggerContext: LoggerContext?, source: ConfigurationSource?): Configuration {

@@ -18,7 +18,9 @@ class HardcodedViewIssueAction(
     private val jira: WebJira,
     private val meter: ActionMeter
 ) : Action {
-    val viewIssueAction = ActionType("View Issue") { Unit }
+
+    private val viewIssueAction = ActionType("View Issue") { Unit }
+
     override fun run() {
         meter.measure(viewIssueAction) {
             jira.goToIssue("SAM-1").waitForSummary()

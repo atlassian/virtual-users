@@ -120,10 +120,10 @@ class VirtualUserBehavior private constructor(
 
         @Deprecated("Use VirtualUserBehavior.Builder.userGenerator instead")
         fun createUsers(createUsers: Boolean) = apply {
-            if(createUsers) {
-                userGenerator = RestUserGenerator::class.java
+            userGenerator = if (createUsers) {
+                RestUserGenerator::class.java
             } else {
-                userGenerator = SuppliedUserGenerator::class.java
+                SuppliedUserGenerator::class.java
             }
         }
 
@@ -153,7 +153,7 @@ class VirtualUserBehavior private constructor(
             browser = browser,
             logging = logging,
             skipSetup = skipSetup,
-            userGenerator =userGenerator
+            userGenerator = userGenerator
         )
     }
 }

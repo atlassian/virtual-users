@@ -25,7 +25,6 @@ class LoadTestTest {
      * Prevents concurrent shared global state mutations if the test methods are concurrent.
      */
     private val globalStateLock = Object()
-    private val userGenerator = HardcodedUserGenerator()
 
     @Test
     fun shouldRunLoadTestWithoutExceptions() {
