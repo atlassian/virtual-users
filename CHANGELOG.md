@@ -21,7 +21,10 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.7.0...master
+[Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.8.0...master
+
+## [3.8.0] - 2019-07-23
+[3.8.0]: https://github.com/atlassian/virtual-users/compare/release-3.7.0...release-3.8.0
 
 ### Added
 - Add SPI for users generation. Resolve [JPERF-532].
