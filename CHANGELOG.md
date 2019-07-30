@@ -21,7 +21,10 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.9.0...master
+[Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.9.1...master
+
+## [3.9.1] - 2019-07-30
+[3.9.1]: https://github.com/atlassian/virtual-users/compare/release-3.9.0...release-3.9.1
 
 ### Fixed
 - Don't create users by default. Fix [JPERF-545].
