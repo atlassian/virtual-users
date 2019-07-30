@@ -23,6 +23,9 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.9.1...master
 
+### Added
+- Add `TimeControllingUserGenerator` for synchronizing user generators across threads and nodes.
+
 ### Fixed
 - Generate users before applying load instead of during the ramp. Fix [JPERF-535].
 
