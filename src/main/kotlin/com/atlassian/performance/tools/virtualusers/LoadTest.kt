@@ -1,5 +1,7 @@
 package com.atlassian.performance.tools.virtualusers
 
+import com.atlassian.performance.tools.concurrency.api.AbruptExecutorService
+import com.atlassian.performance.tools.concurrency.api.finishBy
 import com.atlassian.performance.tools.io.api.ensureDirectory
 import com.atlassian.performance.tools.jiraactions.api.SeededRandom
 import com.atlassian.performance.tools.jiraactions.api.WebJira
@@ -13,7 +15,6 @@ import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.*
 import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
-import com.atlassian.performance.tools.virtualusers.lib.jvmtasks.ResultTimer
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import com.atlassian.performance.tools.virtualusers.measure.WebJiraNode
 import com.google.common.util.concurrent.ThreadFactoryBuilder
@@ -24,11 +25,9 @@ import org.openqa.selenium.WebDriver
 import org.openqa.selenium.remote.RemoteWebDriver
 import java.nio.file.Paths
 import java.time.Duration
+import java.time.Instant.now
 import java.util.*
-import java.util.concurrent.Executors
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -47,7 +46,7 @@ internal class LoadTest(
     private val diagnosisLimit = DiagnosisLimit(behavior.diagnosticsLimit)
     private val scenario = behavior.scenario.getConstructor().newInstance() as Scenario
     private val browser = behavior.browser.getConstructor().newInstance() as Browser
-    private val effectiveUserGenerator = options.behavior.userGenerator.getConstructor().newInstance() as UserGenerator
+    private val userGenerator = options.behavior.userGenerator.getConstructor().newInstance() as UserGenerator
 
     private val systemUsers = listOf(
         User(
@@ -58,16 +57,30 @@ internal class LoadTest(
     private val load = behavior.load
 
     fun run() {
+        val users = generateUsers()
         logger.info("Holding for ${load.hold}.")
         Thread.sleep(load.hold.toMillis())
         workspace.toFile().ensureDirectory()
         setUpJira()
-        applyLoad()
+        applyLoad(users)
         val nodesDump = workspace.resolve("nodes.csv")
         nodesDump.toFile().bufferedWriter().use {
             nodeCounter.dump(it)
         }
         logger.debug("Dumped node's counts to $nodesDump")
+    }
+
+    private fun generateUsers(): List<User> {
+        val deadline = now() + behavior.maxOverhead
+        return AbruptExecutorService(
+            Executors.newCachedThreadPool { runnable ->
+                Thread(runnable, "user-generation-${runnable.hashCode()}")
+            }
+        ).use { pool ->
+            (1..load.virtualUsers)
+                .map { pool.submit(Callable { userGenerator.generateUser(options) }) }
+                .map { it.finishBy(deadline, logger) }
+        }
     }
 
     private fun setUpJira() {
@@ -92,24 +105,29 @@ internal class LoadTest(
         }
     }
 
-    private fun applyLoad() {
-        val virtualUsers = load.virtualUsers
+    private fun applyLoad(
+        users: List<User>
+    ) {
+        val userCount = users.size
         val finish = load.ramp + load.flat
         val loadPool = ThreadPoolExecutor(
-            virtualUsers,
-            virtualUsers,
+            userCount,
+            userCount,
             0L,
             TimeUnit.MILLISECONDS,
             LinkedBlockingQueue<Runnable>(),
             ThreadFactoryBuilder().setNameFormat("virtual-user-%d").setDaemon(true).build()
         )
-        val segments = (1..virtualUsers).map { segmentLoad(it) }
+        logger.info("Segmenting load across $userCount VUs")
+        val segments = users.mapIndexed { index, user -> segmentLoad(user, index + 1) }
+        logger.info("Load segmented")
         segments.forEach { loadPool.submit { applyLoad(it) } }
         Thread.sleep(finish.toMillis())
         close(segments)
     }
 
     private fun segmentLoad(
+        user: User,
         index: Int
     ): LoadSegment {
         val uuid = UUID.randomUUID()
@@ -123,7 +141,8 @@ internal class LoadTest(
                 .bufferedWriter(),
             done = AtomicBoolean(false),
             id = uuid,
-            index = index
+            index = index,
+            user = user
         )
     }
 
@@ -131,17 +150,9 @@ internal class LoadTest(
         segment: LoadSegment
     ) {
         CloseableThreadContext.push("applying load #${segment.id}").use {
-            val userGeneration = ResultTimer.timeWithResult {
-                effectiveUserGenerator.generateUser(options)
-            }
             val rampUpWait = load.rampInterval.multipliedBy(segment.index.toLong())
-            val remainingWait = rampUpWait - userGeneration.duration
-            if (remainingWait.isNegative) {
-                logger.warn("Ramp time prolonged by user generation by ${remainingWait.negated()}")
-            } else {
-                logger.info("Waiting for $remainingWait")
-                Thread.sleep(remainingWait.toMillis())
-            }
+            logger.info("Waiting for $rampUpWait")
+            Thread.sleep(rampUpWait.toMillis())
             val (driver, diagnostics) = segment.driver.getDriver().toDiagnosableDriver()
             val jira = WebJira(
                 driver = driver,
@@ -150,7 +161,7 @@ internal class LoadTest(
             )
             val userMemory = AdaptiveUserMemory(random)
             userMemory.remember(
-                listOf(userGeneration.result)
+                listOf(segment.user)
             )
             val meter = ActionMeter(
                 virtualUser = segment.id,

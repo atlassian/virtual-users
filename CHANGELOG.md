@@ -23,6 +23,11 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.9.1...master
 
+### Fixed
+- Generate users before applying load instead of during the ramp. Fix [JPERF-535].
+
+[JPERF-535]: https://ecosystem.atlassian.net/browse/JPERF-535
+
 ## [3.9.1] - 2019-07-30
 [3.9.1]: https://github.com/atlassian/virtual-users/compare/release-3.9.0...release-3.9.1
 
