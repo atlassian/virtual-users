@@ -115,7 +115,7 @@ class VirtualUserBehavior private constructor(
         private var browser: Class<out Browser> = HeadlessChromeBrowser::class.java
         private var logging: Class<out AbstractConfiguration> = LogConfiguration::class.java
         private var skipSetup = false
-        private var userGenerator: Class<out UserGenerator> = RestUserGenerator::class.java
+        private var userGenerator: Class<out UserGenerator> = SuppliedUserGenerator::class.java
 
         fun scenario(scenario: Class<out Scenario>) = apply { this.scenario = scenario }
         fun load(load: VirtualUserLoad) = apply { this.load = load }
