@@ -21,7 +21,10 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.9.1...master
+[Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.10.0...master
+
+## [3.10.0] - 2019-08-02
+[3.10.0]: https://github.com/atlassian/virtual-users/compare/release-3.9.1...release-3.10.0
 
 ### Added
 - Add `TimeControllingUserGenerator` for synchronizing user generators across threads and nodes.
