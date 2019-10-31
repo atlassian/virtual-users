@@ -178,24 +178,23 @@ internal class LoadTest(
         userMemory: UserMemory,
         diagnostics: Diagnostics
     ): ExploratoryVirtualUser {
-        val scenarioAdapter = ScenarioAdapter(scenario)
         val maxOverallLoad = load.maxOverallLoad
         return ExploratoryVirtualUser(
             node = WebJiraNode(jira),
             nodeCounter = nodeCounter,
-            actions = scenarioAdapter.getActions(
-                jira = jira,
-                seededRandom = SeededRandom(random.random.nextLong()),
-                meter = meter
+            actions = scenario.getActions(
+                jira,
+                SeededRandom(random.random.nextLong()),
+                meter
             ),
-            setUpAction = scenarioAdapter.getSetupAction(
-                jira = jira,
-                meter = meter
+            setUpAction = scenario.getSetupAction(
+                jira,
+                meter
             ),
-            logInAction = scenarioAdapter.getLogInAction(
-                jira = jira,
-                meter = meter,
-                userMemory = userMemory
+            logInAction = scenario.getLogInAction(
+                jira,
+                meter,
+                userMemory
             ),
             maxLoad = maxOverallLoad / load.virtualUsers,
             diagnostics = diagnostics

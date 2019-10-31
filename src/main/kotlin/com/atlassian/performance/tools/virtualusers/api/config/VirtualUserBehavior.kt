@@ -1,17 +1,13 @@
 package com.atlassian.performance.tools.virtualusers.api.config
 
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
-import com.atlassian.performance.tools.virtualusers.HttpClientWebDriver
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
-import com.atlassian.performance.tools.virtualusers.api.browsers.CloseableRemoteWebDriver
 import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeBrowser
-import com.atlassian.performance.tools.virtualusers.api.scenarios.HttpClientScenario
 import com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator
 import com.atlassian.performance.tools.virtualusers.api.users.SuppliedUserGenerator
 import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
 import com.atlassian.performance.tools.virtualusers.logs.LogConfiguration
-import com.atlassian.performance.tools.virtualusers.scenarios.HttpClientScenarioAdapter
 import org.apache.logging.log4j.core.config.AbstractConfiguration
 import java.time.Duration
 
@@ -23,7 +19,7 @@ class VirtualUserBehavior private constructor(
         message = "There should be no need to display help from Java API. Read the Javadoc or sources instead."
     )
     internal val help: Boolean,
-    internal val scenario: Class<out Scenario>,
+    internal val scenario: Class<*>,
     val load: VirtualUserLoad,
     val maxOverhead: Duration,
     internal val seed: Long,
@@ -39,7 +35,7 @@ class VirtualUserBehavior private constructor(
     )
     constructor(
         help: Boolean,
-        scenario: Class<out Scenario>,
+        scenario: Class<*>,
         load: VirtualUserLoad,
         seed: Long,
         diagnosticsLimit: Int,
@@ -64,7 +60,7 @@ class VirtualUserBehavior private constructor(
     @Suppress("DEPRECATION")
     constructor(
         help: Boolean,
-        scenario: Class<out Scenario>,
+        scenario: Class<*>,
         load: VirtualUserLoad,
         seed: Long,
         diagnosticsLimit: Int,
@@ -84,7 +80,7 @@ class VirtualUserBehavior private constructor(
         message = "Use the VirtualUserBehavior.Builder instead"
     )
     constructor(
-        scenario: Class<out Scenario>,
+        scenario: Class<*>,
         load: VirtualUserLoad,
         seed: Long,
         diagnosticsLimit: Int,
@@ -109,8 +105,10 @@ class VirtualUserBehavior private constructor(
         load: VirtualUserLoad
     ): VirtualUserBehavior = Builder(this).load(load).build()
 
+    @Deprecated("TODO - can we provide more type safe builder?")
+    // TODO detect when the new scenario is used with parameters that are no longer supported in new Scenario
     class Builder(
-        private var scenario: Class<out Scenario>
+        private var scenario: Class<*>
     ) {
         private var load: VirtualUserLoad = VirtualUserLoad.Builder().build()
         private var maxOverhead: Duration = Duration.ofMinutes(5)
@@ -126,6 +124,7 @@ class VirtualUserBehavior private constructor(
         fun maxOverhead(maxOverhead: Duration) = apply { this.maxOverhead = maxOverhead }
         fun seed(seed: Long) = apply { this.seed = seed }
         fun diagnosticsLimit(diagnosticsLimit: Int) = apply { this.diagnosticsLimit = diagnosticsLimit }
+        @Deprecated("TODO -> new API doesn't use it")
         fun browser(browser: Class<out Browser>) = apply { this.browser = browser }
         fun logging(logging: Class<out AbstractConfiguration>) = apply { this.logging = logging }
         fun skipSetup(skipSetup: Boolean) = apply { this.skipSetup = skipSetup }
@@ -170,50 +169,4 @@ class VirtualUserBehavior private constructor(
             userGenerator = userGenerator
         )
     }
-
-    class HttpClientVirtualUsersBuilder(
-        private var httpClientScenario: Class<out HttpClientScenario>
-    ) {
-        private val browser: Class<out Browser> = HttpClientBrowser::class.java
-        private val skipSetup = true
-        private val userGenerator: Class<out UserGenerator> = SuppliedUserGenerator::class.java
-
-        private var load: VirtualUserLoad = VirtualUserLoad.Builder().build()
-        private var maxOverhead: Duration = Duration.ofMinutes(5)
-        private var seed: Long = 12345
-        private var logging: Class<out AbstractConfiguration> = LogConfiguration::class.java
-
-        fun load(load: VirtualUserLoad) = apply { this.load = load }
-        fun maxOverhead(maxOverhead: Duration) = apply { this.maxOverhead = maxOverhead }
-        fun seed(seed: Long) = apply { this.seed = seed }
-        fun logging(logging: Class<out AbstractConfiguration>) = apply { this.logging = logging }
-
-        @Suppress("DEPRECATION")
-        fun build(): VirtualUserBehavior = VirtualUserBehavior(
-            help = false,
-            scenario = getScenario(),
-            load = load,
-            maxOverhead = maxOverhead,
-            seed = seed,
-            diagnosticsLimit = 0,
-            browser = browser,
-            logging = logging,
-            skipSetup = skipSetup,
-            userGenerator = userGenerator
-        )
-
-        private fun getScenario(): Class<out Scenario> {
-            HttpClientScenarioAdapter.scenarioClass = httpClientScenario
-            return HttpClientScenarioAdapter::class.java
-        }
-
-        internal class HttpClientBrowser : Browser {
-            override fun start(): CloseableRemoteWebDriver {
-                return CloseableRemoteWebDriver(
-                    HttpClientWebDriver()
-                )
-            }
-        }
-    }
-
 }

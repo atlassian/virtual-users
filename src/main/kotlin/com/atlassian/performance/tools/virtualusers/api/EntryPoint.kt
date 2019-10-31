@@ -1,6 +1,7 @@
 package com.atlassian.performance.tools.virtualusers.api
 
 import com.atlassian.performance.tools.virtualusers.LoadTest
+import com.atlassian.performance.tools.virtualusers.NewLoadTest
 import com.atlassian.performance.tools.virtualusers.logs.LogConfiguration
 import com.atlassian.performance.tools.virtualusers.logs.LogConfigurationFactory
 import org.apache.logging.log4j.LogManager
@@ -41,7 +42,14 @@ class Application {
         if (options.help) {
             options.printHelp()
         } else {
-            LoadTest(options).run()
+            val scenarioPackage = options.behavior.scenario.packageName
+            if (scenarioPackage == "com.atlassian.performance.tools.virtualusers.lib.api") {
+                NewLoadTest(options).run()
+            } else if (scenarioPackage == "com.atlassian.performance.tools.jiraactions.api.scenario") {
+                LoadTest(options).run()
+            } else {
+                throw Exception("not implemented")
+            }
         }
     }
 
