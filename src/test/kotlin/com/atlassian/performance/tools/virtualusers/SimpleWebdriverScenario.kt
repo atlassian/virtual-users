@@ -10,6 +10,7 @@ import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeB
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.WebDriverDiagnostics
 import com.atlassian.performance.tools.virtualusers.lib.api.Scenario
+import java.util.concurrent.atomic.AtomicInteger
 
 // TODO show that RTE can be disabled via setup
 class SimpleWebdriverScenario(
@@ -39,7 +40,7 @@ class SimpleWebdriverScenario(
     override fun getActions(): List<Action> {
         val actions = listOf<Action>(HardcodedViewIssueAction(meter, jira))
         val diagnostics = WebDriverDiagnostics(driver.getDriver())
-        return actions.map { action -> DiagnosableAction(action, diagnostics) }
+        return actions.map { action -> DiagnosableAction(action, diagnostics, 10) }
     }
 
 
@@ -58,13 +59,24 @@ class SimpleWebdriverScenario(
 
     class DiagnosableAction( // should be available in API?
         private val action: Action,
-        private val diagnostics: WebDriverDiagnostics
+        private val diagnostics: WebDriverDiagnostics,
+        limit: Int = Int.MAX_VALUE
     ) : Action {
+        companion object {
+            private val limitCounter = AtomicInteger(Int.MAX_VALUE)
+        }
+
+        init {
+            limitCounter.compareAndSet(Int.MAX_VALUE, limit)
+        }
+
         override fun run() {
             try {
                 action.run()
             } catch (e: Exception) {
-                diagnostics.diagnose(e)
+                if (limitCounter.getAndDecrement() > 0) {
+                    diagnostics.diagnose(e)
+                }
             }
         }
     }
