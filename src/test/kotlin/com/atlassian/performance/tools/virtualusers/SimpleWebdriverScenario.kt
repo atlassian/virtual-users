@@ -8,9 +8,9 @@ import com.atlassian.performance.tools.jiraactions.api.memories.User
 import com.atlassian.performance.tools.virtualusers.api.browsers.CloseableRemoteWebDriver
 import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeBrowser
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
+import com.atlassian.performance.tools.virtualusers.api.diagnostics.WebDriverDiagnostics
 import com.atlassian.performance.tools.virtualusers.lib.api.Scenario
 
-// TODO show that diagnostics can be added via action or scenario decorator
 // TODO show that RTE can be disabled via setup
 class SimpleWebdriverScenario(
     virtualUserTarget: VirtualUserTarget,
@@ -37,7 +37,9 @@ class SimpleWebdriverScenario(
     }
 
     override fun getActions(): List<Action> {
-        return listOf<Action>(HardcodedViewIssueAction(meter, jira))
+        val actions = listOf<Action>(HardcodedViewIssueAction(meter, jira))
+        val diagnostics = WebDriverDiagnostics(driver.getDriver())
+        return actions.map { action -> DiagnosableAction(action, diagnostics) }
     }
 
 
@@ -50,6 +52,19 @@ class SimpleWebdriverScenario(
         override fun run() {
             meter.measure(viewIssueAction) {
                 jira.goToIssue("DSEI-1").waitForSummary()
+            }
+        }
+    }
+
+    class DiagnosableAction( // should be available in API?
+        private val action: Action,
+        private val diagnostics: WebDriverDiagnostics
+    ) : Action {
+        override fun run() {
+            try {
+                action.run()
+            } catch (e: Exception) {
+                diagnostics.diagnose(e)
             }
         }
     }
