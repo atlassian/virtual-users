@@ -32,7 +32,7 @@ internal class NewExploratoryVirtualUser(
         logger.info("Applying load...")
         nodeCounter.count(node)
         val actionNames = actions.map { it.javaClass.simpleName }
-        logger.debug("Circling through $actionNames")
+        logger.debug("Circling through $actionNames") // TODO Circling through [DiagnosableAction] :(
         var actionsPerformed = 0.0
         val start = now()
         for (action in CircularIterator(actions)) {
