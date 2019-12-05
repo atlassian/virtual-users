@@ -1,11 +1,14 @@
 package com.atlassian.performance.tools.virtualusers.api.users
 
 import com.atlassian.performance.tools.jiraactions.api.memories.User
+import com.atlassian.performance.tools.jvmtasks.api.ExponentialBackoff
+import com.atlassian.performance.tools.jvmtasks.api.IdempotentAction
 import com.atlassian.performance.tools.jvmtasks.api.TaskTimer.time
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import okhttp3.*
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import java.net.HttpURLConnection
 import java.time.Duration
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -40,6 +43,14 @@ class RestUserGenerator(readTimeout: Duration) : UserGenerator {
             .header("Authorization", credential)
             .post(requestBody)
             .build()
+        IdempotentAction("create user via REST") {
+            createUser(request, userName)
+        }.retry(3, ExponentialBackoff(Duration.ofSeconds(1)))
+
+        return User(name = userName, password = target.password)
+    }
+
+    private fun createUser(request: Request, userName: String) {
         time("create user via REST") {
             try {
                 httpClient.newCall(request).execute()
@@ -48,7 +59,7 @@ class RestUserGenerator(readTimeout: Duration) : UserGenerator {
                 throw e
             }
         }.use { response ->
-            if (response.code() == 201) {
+            if (response.code() == HttpURLConnection.HTTP_CREATED) {
                 logger.info("Created a new user $userName")
             } else {
                 val msg = "Failed to create a new user $userName:" +
@@ -59,6 +70,5 @@ class RestUserGenerator(readTimeout: Duration) : UserGenerator {
                 throw Exception(msg)
             }
         }
-        return User(name = userName, password = target.password)
     }
 }
