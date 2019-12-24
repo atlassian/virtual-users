@@ -1,6 +1,7 @@
 # This is a Gradle generated file for dependency locking.
 # Manual edits can break the build and are not advised.
 # This file is expected to be part of source control.
+com.atlassian.data:random-data:1.4.3
 com.atlassian.performance.tools:concurrency:1.1.0
 com.atlassian.performance.tools:io:1.1.0
 com.atlassian.performance.tools:jira-actions:3.0.0
