@@ -2,9 +2,11 @@ package com.atlassian.performance.tools.virtualusers.api.diagnostics
 
 import com.atlassian.performance.tools.io.api.ensureDirectory
 import org.apache.logging.log4j.LogManager
+import org.openqa.selenium.JavascriptExecutor
 import org.openqa.selenium.OutputType
 import org.openqa.selenium.TakesScreenshot
 import org.openqa.selenium.WebDriver
+import org.openqa.selenium.logging.LogType
 import org.openqa.selenium.remote.RemoteWebDriver
 import java.io.File
 import java.nio.file.Paths
@@ -27,19 +29,34 @@ class WebDriverDiagnostics(
     override fun diagnose(
         exception: Exception
     ) {
-        val dump = Paths.get("diagnoses")
+        val dumpDir = Paths.get("diagnoses")
             .resolve(UUID.randomUUID().toString())
             .toFile()
             .ensureDirectory()
-        logger.error("URL: ${driver.currentUrl}, ${dumpHtml(dump)}, ${saveScreenshot(dump)}", exception)
+        logger.error("URL: ${driver.currentUrl}, ${dumpHtml(dumpDir)}, ${saveScreenshot(dumpDir)}, ${dumpLogs(dumpDir)}", exception)
+    }
+
+    private fun dumpLogs(dumpDirectory: File): String {
+        val browserLogFile = File(dumpDirectory, "browser.log")
+        val browserLog = driver.manage().logs().get(LogType.BROWSER)
+            .joinToString("\n")
+        browserLogFile.bufferedWriter().use { it.write(browserLog) }
+        return "Browser log dumped at ${browserLogFile.path}"
     }
 
     private fun dumpHtml(
         dumpDirectory: File
     ): String {
         val htmlDump = File(dumpDirectory, "dump.html")
-        htmlDump.bufferedWriter().use { it.write(driver.pageSource) }
+        htmlDump.bufferedWriter().use { it.write(getPageSource(driver)) }
         return "HTML dumped at ${htmlDump.path}"
+    }
+
+    //this retrieves the actual source instead of serialized DOM coming from driver.pageSource
+    private fun getPageSource(driver: WebDriver): String {
+        val javascriptExecutor = driver as JavascriptExecutor
+        val executeScript = javascriptExecutor.executeScript("return document.documentElement.innerHTML")
+        return executeScript as String
     }
 
     private fun saveScreenshot(
