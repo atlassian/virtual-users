@@ -7,7 +7,7 @@ import com.atlassian.performance.tools.infrastructure.api.jira.JiraHomePackage
 import com.atlassian.performance.tools.infrastructure.api.jira.JiraJvmArgs
 import com.atlassian.performance.tools.infrastructure.api.jira.JiraLaunchTimeouts
 import com.atlassian.performance.tools.infrastructure.api.jira.JiraNodeConfig
-import com.atlassian.performance.tools.infrastructure.api.jvm.OracleJDK
+import com.atlassian.performance.tools.infrastructure.api.jvm.OpenJDK
 import com.atlassian.performance.tools.infrastructure.api.profiler.AsyncProfiler
 import com.atlassian.performance.tools.ssh.api.Ssh
 import com.atlassian.performance.tools.virtualusers.api.TemporalRate
@@ -16,7 +16,6 @@ import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
 import com.atlassian.performance.tools.virtualusers.lib.docker.execAsResource
-import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf423WorkaroundOracleJdk
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf424WorkaroundJswDistro
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf425WorkaroundMysqlDatabase
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.SshJiraNode
@@ -145,7 +144,7 @@ class LoadTestUserCreationIT {
             jiraHomeSource = dataset.jiraHomeSource,
             databaseIp = dbIp,
             launchTimeouts = JiraLaunchTimeouts.Builder().build(),
-            jdk = Jperf423WorkaroundOracleJdk(OracleJDK())
+            jdk = OpenJDK()
         ).start()
     }
 

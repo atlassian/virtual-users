@@ -4,6 +4,7 @@ import com.atlassian.performance.tools.infrastructure.api.Sed
 import com.atlassian.performance.tools.infrastructure.api.distribution.ProductDistribution
 import com.atlassian.performance.tools.infrastructure.api.jira.*
 import com.atlassian.performance.tools.infrastructure.api.jvm.JavaDevelopmentKit
+import com.atlassian.performance.tools.infrastructure.api.os.Ubuntu
 import com.atlassian.performance.tools.jvmtasks.api.TaskTimer.time
 import com.atlassian.performance.tools.ssh.api.Ssh
 import com.atlassian.performance.tools.ssh.api.SshConnection
@@ -40,6 +41,7 @@ class SshJiraNode(
     private fun installJira(
         ssh: SshConnection
     ): String {
+        Ubuntu().install(ssh, listOf("curl", "wget"))
         jdk.install(ssh)
         val installedProduct = jiraDistro.install(ssh, ".")
         val jiraHome = time("download Jira home") { jiraHomeSource.download(ssh) }
@@ -120,17 +122,17 @@ class SshJiraNode(
         val backoff = ofSeconds(10)
         val deadline = now() + timeout
         while (true) {
-            val currentStatus = ssh
+            val cmdResult = ssh
                 .safeExecute(
                     cmd = "curl --silent --write-out '%{http_code}' --output /dev/null -X GET $uri",
                     timeout = launchTimeouts.unresponsivenessTimeout
                 )
-                .output
-            if (currentStatus != statusQuo) {
+            val currentStatus = cmdResult.output
+            if (cmdResult.isSuccessful() && currentStatus != statusQuo) {
                 break
             }
             if (deadline < now()) {
-                throw Exception("$uri failed to get out of $statusQuo status within $timeout")
+                throw Exception("$uri failed to get out of $statusQuo status within $timeout, latest status: $currentStatus")
             }
             Thread.sleep(backoff.toMillis())
         }
