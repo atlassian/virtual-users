@@ -10,25 +10,25 @@ import com.atlassian.performance.tools.infrastructure.api.jira.JiraNodeConfig
 import com.atlassian.performance.tools.infrastructure.api.jvm.OracleJDK
 import com.atlassian.performance.tools.infrastructure.api.profiler.AsyncProfiler
 import com.atlassian.performance.tools.ssh.api.Ssh
+import com.atlassian.performance.tools.ssh.api.auth.PublicKeyAuthentication
+import com.atlassian.performance.tools.sshubuntu.api.SshHost
+import com.atlassian.performance.tools.sshubuntu.api.SshUbuntu
+import com.atlassian.performance.tools.sshubuntu.api.SshUbuntuContainer
 import com.atlassian.performance.tools.virtualusers.api.TemporalRate
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
-import com.atlassian.performance.tools.virtualusers.lib.docker.execAsResource
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf423WorkaroundOracleJdk
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf424WorkaroundJswDistro
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf425WorkaroundMysqlDatabase
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.SshJiraNode
-import com.atlassian.performance.tools.virtualusers.lib.sshubuntu.SudoSshUbuntuContainer
-import com.atlassian.performance.tools.virtualusers.lib.sshubuntu.SudoSshUbuntuImage
-import com.github.dockerjava.api.model.ExposedPort
-import com.github.dockerjava.core.DockerClientBuilder
 import org.junit.Test
+import org.testcontainers.containers.GenericContainer
 import java.net.URI
 import java.time.Duration
-import java.util.*
 import java.util.concurrent.Executors
+import java.util.function.Consumer
 
 class LoadTestUserCreationIT {
 
@@ -95,34 +95,32 @@ class LoadTestUserCreationIT {
     private fun <T> testWithJira(
         test: (URI) -> T
     ): T {
-        val docker = DockerClientBuilder.getInstance().build()
-        return docker
-            .createNetworkCmd()
-            .withName(UUID.randomUUID().toString())
-            .execAsResource(docker)
-            .use { network ->
-                val networkId = network.response.id
-                val dbImage = SudoSshUbuntuImage(docker, networkId, listOf(3306))
-                val jiraImage = SudoSshUbuntuImage(docker, networkId, listOf(8080))
-                dbImage.runInUbuntu { db ->
-                    jiraImage.runInUbuntu { jira ->
-                        test(runJiraServer(jira, db))
-                    }
-                }
+        fun exposePort(
+            port: Int
+        ) = Consumer { container: GenericContainer<*> ->
+            container.addExposedPort(port)
+        }
+
+        val dbContainer = SshUbuntuContainer(exposePort(3306))
+        val jiraContainer = SshUbuntuContainer(exposePort(8080))
+        return dbContainer.start().use { db ->
+            jiraContainer.start().use { jira ->
+                test(runJiraServer(jira, db))
             }
+        }
     }
 
     private fun runJiraServer(
-        jira: SudoSshUbuntuContainer,
-        db: SudoSshUbuntuContainer
+        jira: SshUbuntu,
+        db: SshUbuntu
     ): URI {
-        val publishedJiraPort = jira.ports.bindings[ExposedPort.tcp(8080)]!!.single().hostPortSpec.toInt()
+        val publishedJiraPort = jira.container.getMappedPort(8080)
         val jiraUri = URI("http://localhost:$publishedJiraPort/")
-        db.ssh.newConnection().use {
+        db.ssh.becomeUsable().newConnection().use {
             dataset.database.setup(it)
             dataset.database.start(jiraUri, it)
         }
-        startJiraNode(jira.ssh, db.peerIp)
+        startJiraNode(jira.ssh.becomeUsable(), db.container.getContainerIpAddress())
         return jiraUri
     }
 
@@ -156,4 +154,18 @@ class LoadTestUserCreationIT {
         userName = "admin",
         password = "admin"
     )
+
+    private fun SshHost.becomeUsable(): Ssh {
+        return Ssh(com.atlassian.performance.tools.ssh.api.SshHost(
+            ipAddress = ipAddress,
+            userName = userName,
+            authentication = PublicKeyAuthentication(privateKey),
+            port = port
+        )).also { ssh ->
+            ssh.newConnection().use { shell ->
+                shell.execute("apt-get update", Duration.ofMinutes(2))
+                shell.execute("apt-get install sudo")
+            }
+        }
+    }
 }

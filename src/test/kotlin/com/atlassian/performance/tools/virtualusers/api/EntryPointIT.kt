@@ -4,12 +4,10 @@ import com.atlassian.performance.tools.dockerinfrastructure.api.jira.Jira
 import com.atlassian.performance.tools.dockerinfrastructure.api.jira.JiraCoreFormula
 import com.atlassian.performance.tools.virtualusers.ChromeContainer
 import com.atlassian.performance.tools.virtualusers.SimpleScenario
-import org.junit.Ignore
 import org.junit.Test
 
 class EntryPointIT {
 
-    @Ignore("https://github.com/testcontainers/testcontainers-java/issues/1113")
     @Test
     fun shouldRunWith3_2_0_Args() {
         JiraCoreFormula.Builder()
