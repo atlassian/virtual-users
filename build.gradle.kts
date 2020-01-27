@@ -2,6 +2,8 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val kotlinVersion = "1.2.70"
+val seleniumVersion = "3.141.59"
+val guavaVersion = "25.0-jre"
 
 plugins {
     kotlin("jvm").version("1.2.70")
@@ -29,9 +31,11 @@ configurations.all {
                 "org.rnorth.visible-assertions:visible-assertions" -> useVersion("2.1.2")
                 "net.java.dev.jna:jna-platform" -> useVersion("5.2.0")
                 "net.java.dev.jna:jna" -> useVersion("5.2.0")
+                "com.google.guava:guava" -> useVersion(guavaVersion)
             }
             when (requested.group) {
                 "org.jetbrains.kotlin" -> useVersion(kotlinVersion)
+                "org.seleniumhq.selenium" -> useVersion(seleniumVersion)
             }
         }
     }
@@ -50,7 +54,6 @@ listOf(
                 when (requested.module.toString()) {
                     "org.apache.httpcomponents:httpclient" -> useVersion("4.5.5")
                     "org.apache.httpcomponents:httpcore" -> useVersion("4.4.6")
-                    "com.google.guava:guava" -> useVersion("23.6-jre")
                     "org.codehaus.plexus:plexus-utils" -> useVersion("3.1.0")
                     "org.jsoup:jsoup" -> useVersion("1.10.2")
                     "commons-io:commons-io" -> useVersion("2.6")
@@ -78,7 +81,7 @@ dependencies {
     implementation("com.atlassian.performance.tools:jvm-tasks:[1.0.0,2.0.0)")
     implementation("com.atlassian.performance.tools:io:[1.0.0,2.0.0)")
     implementation("com.atlassian.performance.tools:concurrency:[1.1.0,2.0.0)")
-    implementation("com.google.guava:guava:23.6-jre")
+    implementation("com.google.guava:guava:$guavaVersion")
     implementation("org.glassfish:javax.json:1.1")
     implementation("org.apache.commons:commons-math3:3.6.1")
     webdriver().forEach { implementation(it) }
@@ -101,7 +104,7 @@ fun webdriver(): List<String> = listOf(
     "selenium-support",
     "selenium-chrome-driver"
 ).map { module ->
-    "org.seleniumhq.selenium:$module:3.11.0"
+    "org.seleniumhq.selenium:$module:$seleniumVersion"
 } + log4j("jul")
 
 fun log4jCore(): List<String> = listOf(
