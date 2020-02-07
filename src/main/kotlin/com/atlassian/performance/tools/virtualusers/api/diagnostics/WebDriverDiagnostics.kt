@@ -47,16 +47,21 @@ class WebDriverDiagnostics(
     private fun dumpHtml(
         dumpDirectory: File
     ): String {
-        val htmlDump = File(dumpDirectory, "dump.html")
-        htmlDump.bufferedWriter().use { it.write(getPageSource(driver)) }
-        return "HTML dumped at ${htmlDump.path}"
+        val pageSource = getPageSource(driver)
+        return if (pageSource!=null) {
+            val htmlDumpFile = File(dumpDirectory, "dump.html")
+            htmlDumpFile.bufferedWriter().use { it.write(pageSource) }
+            "HTML dumped at ${htmlDumpFile.path}"
+        } else {
+            "The page had no HTML."
+        }
     }
 
     //this retrieves the actual source instead of serialized DOM coming from driver.pageSource
-    private fun getPageSource(driver: WebDriver): String {
+    private fun getPageSource(driver: WebDriver): String? {
         val javascriptExecutor = driver as JavascriptExecutor
-        val executeScript = javascriptExecutor.executeScript("return document.documentElement.innerHTML")
-        return executeScript as String
+        val html = javascriptExecutor.executeScript("return document.documentElement && (document.documentElement.outerHTML || document.documentElement.innerHTML)")
+        return html as String?
     }
 
     private fun saveScreenshot(
