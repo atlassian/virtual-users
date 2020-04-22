@@ -23,12 +23,12 @@ class ExploratoryVirtualUserTest {
     @Test
     fun shouldRespectMaxLoad() {
         val maxLoad = TemporalRate(40.0, ofMinutes(1))
-        val server = QuickServer()
+        val server = UnreliableServer(QuickServer())
         val virtualUser = prepareVu(listOf(server), maxLoad)
 
         val totalDuration = applyLoad(virtualUser, ofSeconds(5))
 
-        val actualLoad = TemporalRate(server.requestsServed.toDouble(), totalDuration)
+        val actualLoad = TemporalRate(server.getRequestsServed().toDouble(), totalDuration)
         val unambitiousMinLoad = maxLoad * 0.75
         assertLoadInRange(actualLoad, unambitiousMinLoad, maxLoad)
     }
@@ -41,7 +41,7 @@ class ExploratoryVirtualUserTest {
 
         val totalDuration = applyLoad(virtualUser, ofSeconds(5))
 
-        val actualLoad = TemporalRate(server.requestsServed.toDouble(), totalDuration)
+        val actualLoad = TemporalRate(server.getRequestsServed().toDouble(), totalDuration)
         val closeToMaxLoad = maxLoad * 0.98
         assertLoadInRange(actualLoad, closeToMaxLoad, maxLoad)
     }
@@ -129,10 +129,29 @@ class ExploratoryVirtualUserTest {
         println("Actual load [$readableActual] is good, because it fits between [$readableMin] and [$readableMax]")
     }
 
-    private class QuickServer : Action {
+    private class UnreliableServer(private val server: Server) : Server {
+        private var requestsServed = 0
 
-        var requestsServed = 0
-            private set
+        override fun getRequestsServed(): Int {
+            return requestsServed
+        }
+
+        override fun run() {
+            requestsServed++
+            if (requestsServed.rem(2) == 0) {
+                throw Exception()
+            } else {
+                server.run()
+            }
+        }
+    }
+
+    private class QuickServer : Server {
+        private var requestsServed = 0
+
+        override fun getRequestsServed(): Int {
+            return requestsServed
+        }
 
         override fun run() {
             Thread.sleep(10)
@@ -142,10 +161,12 @@ class ExploratoryVirtualUserTest {
 
     private class SlowlyWarmingServer(
         private val slowStart: Duration
-    ) : Action {
+    ) : Server {
+        private var requestsServed = 0
 
-        var requestsServed = 0
-            private set
+        override fun getRequestsServed(): Int {
+            return requestsServed
+        }
 
         override fun run() {
             Thread.sleep(decayExponentially().toMillis())
@@ -157,6 +178,10 @@ class ExploratoryVirtualUserTest {
             val decayedNanos = slowStart.toNanos() * decay
             return ofNanos(decayedNanos.toLong())
         }
+    }
+
+    private interface Server : Action {
+        fun getRequestsServed(): Int
     }
 
     private class ParetoServer(
