@@ -23,6 +23,9 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.11.0...master
 
+### Fixed
+- Respect max load for failing actions.
+
 ## [3.11.0] - 2020-03-04
 [3.11.0]: https://github.com/atlassian/virtual-users/compare/release-3.10.0...release-3.11.0
 

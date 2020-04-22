@@ -54,6 +54,9 @@ internal class ExploratoryVirtualUser(
             }
             try {
                 runWithDiagnostics(action)
+            } catch (e: Exception) {
+                logger.error("Failed to run $action, but we keep running", e)
+            } finally {
                 actionsPerformed++
                 val expectedTimeSoFar = maxLoad.scaleChange(actionsPerformed).time
                 val actualTimeSoFar = Duration.between(start, now())
@@ -61,8 +64,6 @@ internal class ExploratoryVirtualUser(
                 if (extraTime > Duration.ZERO) {
                     Thread.sleep(extraTime.toMillis())
                 }
-            } catch (e: Exception) {
-                logger.error("Failed to run $action, but we keep running", e)
             }
         }
     }
