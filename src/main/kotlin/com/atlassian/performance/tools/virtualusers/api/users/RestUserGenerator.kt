@@ -14,6 +14,11 @@ import java.net.HttpURLConnection
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
+/**
+ * Generates Jira users via its REST API.
+ * Since 3.11.0, generates realistic user names.
+ * @since 3.6.0
+ */
 class RestUserGenerator(readTimeout: Duration) : UserGenerator {
     private val nameGenerator = UserNameGenerator()
 
