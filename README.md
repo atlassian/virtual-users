@@ -18,7 +18,7 @@ They aim to be realistic, low-config and robust.
 ## Requirements
 
 - network access to the target Jira instance
-- [Google Chrome](https://www.google.com/chrome/) 69-71
+- [Google Chrome](https://www.google.com/chrome/) 69-80
 - [JDK](http://openjdk.java.net/) 8 - 11
 
 ## Reporting issues
