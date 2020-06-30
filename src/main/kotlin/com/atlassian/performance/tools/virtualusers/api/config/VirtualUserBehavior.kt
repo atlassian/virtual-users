@@ -19,7 +19,7 @@ class VirtualUserBehavior private constructor(
         message = "There should be no need to display help from Java API. Read the Javadoc or sources instead."
     )
     internal val help: Boolean,
-    internal val scenario: Class<out Scenario>,
+    internal val scenario: Class<*>,
     val load: VirtualUserLoad,
     val maxOverhead: Duration,
     internal val seed: Long,
@@ -35,7 +35,7 @@ class VirtualUserBehavior private constructor(
     )
     constructor(
         help: Boolean,
-        scenario: Class<out Scenario>,
+        scenario: Class<*>,
         load: VirtualUserLoad,
         seed: Long,
         diagnosticsLimit: Int,
@@ -60,7 +60,7 @@ class VirtualUserBehavior private constructor(
     @Suppress("DEPRECATION")
     constructor(
         help: Boolean,
-        scenario: Class<out Scenario>,
+        scenario: Class<*>,
         load: VirtualUserLoad,
         seed: Long,
         diagnosticsLimit: Int,
@@ -80,7 +80,7 @@ class VirtualUserBehavior private constructor(
         message = "Use the VirtualUserBehavior.Builder instead"
     )
     constructor(
-        scenario: Class<out Scenario>,
+        scenario: Class<*>,
         load: VirtualUserLoad,
         seed: Long,
         diagnosticsLimit: Int,
@@ -105,8 +105,10 @@ class VirtualUserBehavior private constructor(
         load: VirtualUserLoad
     ): VirtualUserBehavior = Builder(this).load(load).build()
 
+    @Deprecated("TODO - can we provide more type safe builder?")
+    // TODO detect when the new scenario is used with parameters that are no longer supported in new Scenario
     class Builder(
-        private var scenario: Class<out Scenario>
+        private var scenario: Class<*>
     ) {
         private var load: VirtualUserLoad = VirtualUserLoad.Builder().build()
         private var maxOverhead: Duration = Duration.ofMinutes(5)
@@ -122,6 +124,7 @@ class VirtualUserBehavior private constructor(
         fun maxOverhead(maxOverhead: Duration) = apply { this.maxOverhead = maxOverhead }
         fun seed(seed: Long) = apply { this.seed = seed }
         fun diagnosticsLimit(diagnosticsLimit: Int) = apply { this.diagnosticsLimit = diagnosticsLimit }
+        @Deprecated("TODO -> new API doesn't use it")
         fun browser(browser: Class<out Browser>) = apply { this.browser = browser }
         fun logging(logging: Class<out AbstractConfiguration>) = apply { this.logging = logging }
         fun skipSetup(skipSetup: Boolean) = apply { this.skipSetup = skipSetup }

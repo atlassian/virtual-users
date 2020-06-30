@@ -49,7 +49,7 @@ class VirtualUserOptions(
         get() = behavior.load
 
     @Deprecated(deprecatedGetterMessage)
-    val scenario: Class<out Scenario>
+    val scenario: Class<*>
         get() = behavior.scenario
 
     @Deprecated(deprecatedGetterMessage)
@@ -78,7 +78,7 @@ class VirtualUserOptions(
         adminLogin: String = "admin",
         adminPassword: String = "admin",
         virtualUserLoad: VirtualUserLoad = VirtualUserLoad(),
-        scenario: Class<out Scenario> = JiraSoftwareScenario::class.java,
+        scenario: Class<*> = JiraSoftwareScenario::class.java,
         seed: Long = Random().nextLong(),
         diagnosticsLimit: Int = 64,
         allowInsecureConnections: Boolean = false
@@ -106,7 +106,7 @@ class VirtualUserOptions(
         adminLogin: String,
         adminPassword: String,
         virtualUserLoad: VirtualUserLoad,
-        scenario: Class<out Scenario>,
+        scenario: Class<*>,
         seed: Long,
         diagnosticsLimit: Int,
         browser: Class<out Browser>
@@ -416,11 +416,9 @@ class VirtualUserOptions(
             )
         }
 
-        private fun getScenario(commandLine: CommandLine): Class<out Scenario> {
+        private fun getScenario(commandLine: CommandLine): Class<*> {
             val scenario = commandLine.getOptionValue(scenarioParameter)
-            val scenarioClass = Class.forName(scenario)
-            val scenarioConstructor = scenarioClass.getConstructor()
-            return (scenarioConstructor.newInstance() as Scenario)::class.java
+            return Class.forName(scenario)
         }
 
         private fun getBrowser(commandLine: CommandLine): Class<out Browser> {

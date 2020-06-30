@@ -38,6 +38,9 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ### Fixed
 - Harden HTML page source dump generation.
 
+### Added
+- Support HttpClient based scenarios.
+
 ## [3.10.0] - 2019-08-02
 [3.10.0]: https://github.com/atlassian/virtual-users/compare/release-3.9.1...release-3.10.0
 
