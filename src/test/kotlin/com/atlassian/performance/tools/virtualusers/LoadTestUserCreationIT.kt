@@ -63,8 +63,8 @@ class LoadTestUserCreationIT {
         val load = VirtualUserLoad.Builder()
             .virtualUsers(75)
             .ramp(Duration.ofSeconds(45))
-            .flat(Duration.ofMinutes(3))
-            .maxOverallLoad(TemporalRate(15.0, Duration.ofSeconds(1)))
+            .flat(Duration.ofSeconds(2))
+            .maxOverallLoad(TemporalRate(1.0, Duration.ofSeconds(1)))
             .build()
         val loadSlices = load.slice(nodes)
 
