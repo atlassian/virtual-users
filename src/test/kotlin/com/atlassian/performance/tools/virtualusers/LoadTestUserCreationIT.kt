@@ -23,6 +23,7 @@ import com.atlassian.performance.tools.virtualusers.lib.sshubuntu.SudoSshUbuntuC
 import com.atlassian.performance.tools.virtualusers.lib.sshubuntu.SudoSshUbuntuImage
 import com.github.dockerjava.api.model.ExposedPort
 import com.github.dockerjava.core.DockerClientImpl
+import com.github.dockerjava.okhttp.OkHttpDockerCmdExecFactory
 import org.junit.Test
 import java.net.URI
 import java.time.Duration
@@ -94,7 +95,7 @@ class LoadTestUserCreationIT {
     private fun <T> testWithJira(
         test: (URI) -> T
     ): T {
-        val docker = DockerClientImpl.getInstance()
+        val docker = DockerClientImpl.getInstance().withDockerCmdExecFactory(OkHttpDockerCmdExecFactory())
         return docker
             .createNetworkCmd()
             .withName(UUID.randomUUID().toString())
