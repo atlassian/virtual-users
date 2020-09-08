@@ -8,9 +8,9 @@ import com.atlassian.performance.tools.virtualusers.lib.docker.CreatedContainer
 import com.atlassian.performance.tools.virtualusers.lib.docker.StartedDockerContainer
 import com.atlassian.performance.tools.virtualusers.lib.docker.execAsResource
 import com.github.dockerjava.api.DockerClient
+import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.model.ExposedPort
 import com.github.dockerjava.api.model.HostConfig
-import com.github.dockerjava.core.command.PullImageResultCallback
 import java.time.Duration
 
 /**
