@@ -9,7 +9,6 @@ import org.junit.Test
 
 class EntryPointIT {
 
-    @Ignore("https://github.com/testcontainers/testcontainers-java/issues/1113")
     @Test
     fun shouldRunWith3_2_0_Args() {
         JiraCoreFormula.Builder()

@@ -4,10 +4,11 @@ import com.atlassian.performance.tools.dockerinfrastructure.api.browser.Dockeris
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.browsers.CloseableRemoteWebDriver
 import net.jcip.annotations.NotThreadSafe
+import java.nio.file.Paths
 
 @NotThreadSafe
 internal class ChromeContainer : Browser {
-    private val dockerisedChrome = DockerisedChrome()
+    private val dockerisedChrome = DockerisedChrome(Paths.get("build").resolve("recordings"))
     override fun start(): CloseableRemoteWebDriver {
         val browser = dockerisedChrome.start()
         return object : CloseableRemoteWebDriver(browser.driver) {
