@@ -106,7 +106,7 @@ dependencies {
      */
     testCompile("org.testcontainers:testcontainers:1.14.3")
     testCompile("com.github.docker-java:docker-java-api:3.2.5")
-    testCompile("com.atlassian.performance.tools:infrastructure:[4.0.0,5.0.0)")
+    testCompile("com.atlassian.performance.tools:infrastructure:[4.0.0,4.15.0]")
 }
 
 fun webdriver(): List<String> = listOf(
