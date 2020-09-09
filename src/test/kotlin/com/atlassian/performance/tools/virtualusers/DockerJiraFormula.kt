@@ -1,6 +1,7 @@
 package com.atlassian.performance.tools.virtualusers
 
 import com.atlassian.performance.tools.infrastructure.api.dataset.Dataset
+import com.atlassian.performance.tools.infrastructure.api.distribution.ProductDistribution
 import com.atlassian.performance.tools.infrastructure.api.jira.JiraJvmArgs
 import com.atlassian.performance.tools.infrastructure.api.jira.JiraLaunchTimeouts
 import com.atlassian.performance.tools.infrastructure.api.jira.JiraNodeConfig
@@ -9,7 +10,6 @@ import com.atlassian.performance.tools.infrastructure.api.profiler.AsyncProfiler
 import com.atlassian.performance.tools.ssh.api.Ssh
 import com.atlassian.performance.tools.virtualusers.lib.docker.execAsResource
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf423WorkaroundOracleJdk
-import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf424WorkaroundJswDistro
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.SshJiraNode
 import com.atlassian.performance.tools.virtualusers.lib.sshubuntu.SudoSshUbuntuContainer
 import com.atlassian.performance.tools.virtualusers.lib.sshubuntu.SudoSshUbuntuImage
@@ -20,6 +20,7 @@ import java.net.URI
 import java.time.Duration
 
 class DockerJiraFormula(
+    private val distro: ProductDistribution,
     private val dataset: Dataset
 ) {
 
@@ -67,7 +68,7 @@ class DockerJiraFormula(
     ) {
         SshJiraNode(
             sshHost = jiraSsh,
-            jiraDistro = Jperf424WorkaroundJswDistro("7.2.0"),
+            jiraDistro = distro,
             config = JiraNodeConfig.Builder()
                 .jvmArgs(JiraJvmArgs(xmx = "2g")) // make sure your Docker Engine has more memory than that
                 .profiler(AsyncProfiler())

@@ -7,6 +7,7 @@ import com.atlassian.performance.tools.infrastructure.api.jira.JiraHomePackage
 import com.atlassian.performance.tools.virtualusers.ChromeContainer
 import com.atlassian.performance.tools.virtualusers.DockerJiraFormula
 import com.atlassian.performance.tools.virtualusers.SimpleScenario
+import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf424WorkaroundJswDistro
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf425WorkaroundMysqlDatabase
 import org.junit.Test
 import java.net.URI
@@ -32,10 +33,11 @@ class EntryPointIT {
                 ))
             )
         }
+    private val jiraFormula = DockerJiraFormula(Jperf424WorkaroundJswDistro("7.2.0"), smallDataset)
 
     @Test
     fun shouldRunWith3_2_0_Args() {
-        DockerJiraFormula(smallDataset).runWithJira { jira ->
+        jiraFormula.runWithJira { jira ->
             com.atlassian.performance.tools.virtualusers.api.main(arrayOf(
                 "--jira-address", jira.peerAddress.toString(),
                 "--login", "admin",
