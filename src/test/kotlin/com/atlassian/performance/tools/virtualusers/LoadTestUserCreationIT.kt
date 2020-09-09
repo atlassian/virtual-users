@@ -9,6 +9,7 @@ import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
+import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf424WorkaroundJswDistro
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf425WorkaroundMysqlDatabase
 import org.junit.Test
 import java.net.URI
@@ -35,6 +36,7 @@ class LoadTestUserCreationIT {
                 label = "100k users"
             )
         }
+    private val jiraFormula = DockerJiraFormula(Jperf424WorkaroundJswDistro("7.13.0"), dataset)
 
     private val behavior = VirtualUserBehavior.Builder(TracingScenario::class.java)
         .createUsers(true)
@@ -53,7 +55,7 @@ class LoadTestUserCreationIT {
             .build()
         val loadSlices = load.slice(nodes)
 
-        DockerJiraFormula(dataset).runWithJira { jira ->
+        jiraFormula.runWithJira { jira ->
             (0 until nodes)
                 .map { loadSlices[it] }
                 .map { loadTest(jira, it) }
