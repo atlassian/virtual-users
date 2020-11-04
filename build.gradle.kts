@@ -8,7 +8,7 @@ val guavaVersion = "25.0-jre"
 plugins {
     kotlin("jvm").version("1.2.70")
     id("com.github.johnrengelman.shadow").version("2.0.4")
-    id("com.atlassian.performance.tools.gradle-release").version("0.5.0")
+    id("com.atlassian.performance.tools.gradle-release").version("0.7.1")
     `java-library`
 }
 
