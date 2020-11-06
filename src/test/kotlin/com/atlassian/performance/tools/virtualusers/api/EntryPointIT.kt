@@ -67,7 +67,7 @@ class EntryPointIT {
         val metrics = vuResult.streamMetrics().toList()
         assertThat(metrics)
             .extracting<String> { it.label }
-            .containsOnly("Log In", "View Issue")
+            .containsOnly("Log In", "See System Info")
         val ok = Condition<ActionMetric>(Predicate { it.result == ActionResult.OK }, "OK")
         assertThat(metrics).haveAtLeast(2, ok)
     }
