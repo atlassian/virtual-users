@@ -24,10 +24,10 @@ class VirtualUserNodeResult(
     }
 
     internal fun isolateVuResult(
-        vu: UUID
+        vu: String
     ): VirtualUserResult {
         return vuResults
-            .resolve(vu.toString())
+            .resolve(vu)
             .let { VirtualUserResult(it) }
     }
 }
