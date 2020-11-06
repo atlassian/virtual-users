@@ -16,7 +16,7 @@ class Jperf424WorkaroundJswDistro(
         val archiveName = "atlassian-jira-software-$version.tar.gz"
         val jiraArchiveUri = URI("https://product-downloads.atlassian.com/software/jira/downloads/$archiveName")
         ssh.execute("mkdir -p $destination")
-        ssh.execute("wget -q $jiraArchiveUri -O $destination/$archiveName", Duration.ofMinutes(2))
+        ssh.execute("wget -q $jiraArchiveUri -O $destination/$archiveName", Duration.ofMinutes(4))
         ssh.execute("tar -xzf $destination/$archiveName --directory $destination", Duration.ofMinutes(1))
         return "$destination/atlassian-jira-software-$version-standalone"
     }
