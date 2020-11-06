@@ -28,8 +28,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.apache.logging.log4j.CloseableThreadContext
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.openqa.selenium.WebDriver
 import org.openqa.selenium.remote.RemoteWebDriver
+import java.nio.file.Path
 import java.time.Duration
 import java.time.Instant.now
 import java.util.UUID
@@ -100,8 +100,9 @@ internal class LoadTest(
         }
         CloseableThreadContext.push("setup").use {
             browser.start().use { closeableDriver ->
-                val (driver, diagnostics) = closeableDriver.getDriver().toDiagnosableDriver()
+                val driver = closeableDriver.getDriver()
                 val throwawayMeter = ActionMeter.Builder(ThrowawayActionMetricOutput()).build()
+                val vuResult = nodeResult.isolateVuResult("setup")
                 createVirtualUser(
                     jira = WebJira(
                         driver = driver,
@@ -111,7 +112,7 @@ internal class LoadTest(
                     scenarioMeter = throwawayMeter,
                     activityMeter = throwawayMeter,
                     userMemory = AdaptiveUserMemory(random).apply { remember(systemUsers) },
-                    diagnostics = diagnostics
+                    diagnostics = driver.getDiagnostics(vuResult.getDiagnoses())
                 ).setUpJira()
             }
         }
@@ -143,9 +144,11 @@ internal class LoadTest(
         index: Int
     ): LoadSegment {
         val uuid = UUID.randomUUID()
-        val vuResult = nodeResult.isolateVuResult(uuid)
+        val vuResult = nodeResult.isolateVuResult(uuid.toString())
+        val driver = browser.start()
         return LoadSegment(
-            driver = browser.start(),
+            driver = driver,
+            diagnostics = driver.getDriver().getDiagnostics(vuResult.getDiagnoses()),
             scenarioOutput = vuResult.writeScenarioMetrics(),
             activityOutput = vuResult.writeActivityMetrics(),
             done = AtomicBoolean(false),
@@ -162,10 +165,9 @@ internal class LoadTest(
             val rampUpWait = load.rampInterval.multipliedBy(segment.index.toLong())
             logger.info("Waiting for $rampUpWait")
             Thread.sleep(rampUpWait.toMillis())
-            val (driver, diagnostics) = segment.driver.getDriver().toDiagnosableDriver()
             createVirtualUser(
                 jira = WebJira(
-                    driver = driver,
+                    driver = segment.driver.getDriver(),
                     base = target.webApplication,
                     adminPassword = target.password
                 ),
@@ -180,7 +182,7 @@ internal class LoadTest(
                         listOf(segment.user)
                     )
                 },
-                diagnostics = diagnostics
+                diagnostics = segment.diagnostics
             ).applyLoad(segment.done)
         }
     }
@@ -229,21 +231,13 @@ internal class LoadTest(
         closePool.shutdown()
     }
 
-    private fun RemoteWebDriver.toDiagnosableDriver(): DiagnosableDriver {
-        return DiagnosableDriver(
-            this,
-            LimitedDiagnostics(
-                ImpatientDiagnostics(
-                    WebDriverDiagnostics(this),
-                    diagnosisPatience
-                ),
-                diagnosisLimit
-            )
+    private fun RemoteWebDriver.getDiagnostics(diagnoses: Path): Diagnostics {
+        return LimitedDiagnostics(
+            ImpatientDiagnostics(
+                WebDriverDiagnostics(this, this, diagnoses),
+                diagnosisPatience
+            ),
+            diagnosisLimit
         )
     }
-
-    internal data class DiagnosableDriver(
-        val driver: WebDriver,
-        val diagnostics: Diagnostics
-    )
 }

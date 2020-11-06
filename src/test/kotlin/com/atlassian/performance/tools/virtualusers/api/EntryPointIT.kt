@@ -84,7 +84,6 @@ class EntryPointIT {
         val unaccountedTime = desiredTotalTime - totalActivityTime
         assertThat(unaccountedTime).isLessThan(Duration.ofSeconds(5))
         val totalMetricsTime = vuResult
-
             .streamScenarioMetrics()
             .sumDurations()
         val totalActingTime = vuResult

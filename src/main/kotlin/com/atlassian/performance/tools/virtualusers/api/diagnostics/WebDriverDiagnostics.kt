@@ -9,13 +9,28 @@ import org.openqa.selenium.WebDriver
 import org.openqa.selenium.logging.LogType
 import org.openqa.selenium.remote.RemoteWebDriver
 import java.io.File
+import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
+import java.util.UUID
+import java.util.concurrent.atomic.AtomicLong
 
+/**
+ * @constructor @since 3.12.0
+ */
 class WebDriverDiagnostics(
     private val driver: WebDriver,
-    private val display: TakesScreenshot
+    private val display: TakesScreenshot,
+    private val dump: Path
 ) : Diagnostics {
+
+    constructor(
+        driver: WebDriver,
+        display: TakesScreenshot
+    ) : this(
+        driver,
+        display,
+        Paths.get("diagnoses")
+    )
 
     constructor(
         driver: RemoteWebDriver
@@ -25,12 +40,13 @@ class WebDriverDiagnostics(
     )
 
     private val logger = LogManager.getLogger(this::class.java)
+    private val counter: AtomicLong = AtomicLong(0)
 
     override fun diagnose(
         exception: Exception
     ) {
-        val dumpDir = Paths.get("diagnoses")
-            .resolve(UUID.randomUUID().toString())
+        val dumpDir = dump
+            .resolve(counter.incrementAndGet().toString())
             .toFile()
             .ensureDirectory()
         logger.error("URL: ${driver.currentUrl}, ${dumpHtml(dumpDir)}, ${saveScreenshot(dumpDir)}, ${dumpLogs(dumpDir)}", exception)
@@ -48,7 +64,7 @@ class WebDriverDiagnostics(
         dumpDirectory: File
     ): String {
         val pageSource = getPageSource(driver)
-        return if (pageSource!=null) {
+        return if (pageSource != null) {
             val htmlDumpFile = File(dumpDirectory, "dump.html")
             htmlDumpFile.bufferedWriter().use { it.write(pageSource) }
             "HTML dumped at ${htmlDumpFile.path}"

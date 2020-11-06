@@ -2,6 +2,7 @@ package com.atlassian.performance.tools.virtualusers
 
 import com.atlassian.performance.tools.jiraactions.api.memories.User
 import com.atlassian.performance.tools.virtualusers.api.browsers.CloseableRemoteWebDriver
+import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
 import org.apache.logging.log4j.LogManager
 import java.io.BufferedWriter
 import java.time.Duration
@@ -14,6 +15,7 @@ internal class LoadSegment(
     val driver: CloseableRemoteWebDriver,
     val scenarioOutput: BufferedWriter,
     val activityOutput: BufferedWriter,
+    val diagnostics: Diagnostics,
     val user: User,
     val done: AtomicBoolean,
     val id: UUID,

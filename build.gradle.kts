@@ -1,5 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val kotlinVersion = "1.2.70"
 val seleniumVersion = "3.141.59"
@@ -10,6 +11,12 @@ plugins {
     id("com.github.johnrengelman.shadow").version("2.0.4")
     id("com.atlassian.performance.tools.gradle-release").version("0.7.1")
     `java-library`
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
 
 configurations.all {
