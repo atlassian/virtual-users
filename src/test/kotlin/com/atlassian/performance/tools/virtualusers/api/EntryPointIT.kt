@@ -71,7 +71,7 @@ class EntryPointIT {
         val scenarioLabels = vuResult
             .streamScenarioMetrics()
             .map { it.label }
-        assertThat(scenarioLabels).containsOnly("Log In", "View Issue")
+        assertThat(scenarioLabels).containsOnly("Log In", "See System Info")
         val activityLabels = vuResult
             .streamActivityMetrics()
             .map { it.label }
