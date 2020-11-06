@@ -16,7 +16,8 @@ class VirtualUserResult internal constructor(
     vuPath: Path
 ) {
     private val parser = ActionMetricsParser()
-    private val metrics = vuPath.resolve("action-metrics.jpt")
+    private val scenarioMetrics = vuPath.resolve("action-metrics.jpt")
+    private val activityMetrics = vuPath.resolve("activity.jpt")
 
     /**
      * Each VU executes a scenario. Scenario contains actions. Each action can emit multiple metrics.
@@ -27,7 +28,19 @@ class VirtualUserResult internal constructor(
      *
      * @since 3.12.0
      */
-    fun streamMetrics(): Stream<ActionMetric> {
+    fun streamScenarioMetrics(): Stream<ActionMetric> = stream(scenarioMetrics)
+
+    /**
+     * Each VU has performs one activity at a time, e.g scenario actions, diagnosing, throttling.
+     * They should not overlap on a timeline.
+     *
+     * @since 3.12.0
+     */
+    fun streamActivityMetrics(): Stream<VirtualUserActivity> = stream(activityMetrics).map { inferActivity(it) }
+
+    private fun stream(
+        metrics: Path
+    ): Stream<ActionMetric> {
         val stream = metrics
             .toFile()
             .inputStream()
@@ -36,10 +49,25 @@ class VirtualUserResult internal constructor(
             .onClose { stream.close() }
     }
 
-    internal fun writeScenarioMetrics(): BufferedWriter {
-        return metrics
-            .toFile()
-            .ensureParentDirectory()
-            .bufferedWriter()
+    internal fun writeScenarioMetrics(): BufferedWriter = write(scenarioMetrics)
+
+    internal fun writeActivityMetrics(): BufferedWriter = write(activityMetrics)
+
+    private fun write(
+        metrics: Path
+    ): BufferedWriter = metrics
+        .toFile()
+        .ensureParentDirectory()
+        .bufferedWriter()
+
+    private fun inferActivity(
+        metric: ActionMetric
+    ): VirtualUserActivity {
+        return VirtualUserActivity(
+            type = ActivityType.values()
+                .find { it.actionType.label == metric.label }
+                ?: ActivityType.MYSTERY,
+            metric = metric
+        )
     }
 }

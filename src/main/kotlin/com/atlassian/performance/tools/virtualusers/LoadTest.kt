@@ -15,7 +15,12 @@ import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserNodeResult
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
-import com.atlassian.performance.tools.virtualusers.api.diagnostics.*
+import com.atlassian.performance.tools.virtualusers.api.diagnostics.DiagnosisLimit
+import com.atlassian.performance.tools.virtualusers.api.diagnostics.DiagnosisPatience
+import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
+import com.atlassian.performance.tools.virtualusers.api.diagnostics.ImpatientDiagnostics
+import com.atlassian.performance.tools.virtualusers.api.diagnostics.LimitedDiagnostics
+import com.atlassian.performance.tools.virtualusers.api.diagnostics.WebDriverDiagnostics
 import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import com.atlassian.performance.tools.virtualusers.measure.WebJiraNode
@@ -27,8 +32,12 @@ import org.openqa.selenium.WebDriver
 import org.openqa.selenium.remote.RemoteWebDriver
 import java.time.Duration
 import java.time.Instant.now
-import java.util.*
-import java.util.concurrent.*
+import java.util.UUID
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -99,7 +108,8 @@ internal class LoadTest(
                         base = target.webApplication,
                         adminPassword = target.password
                     ),
-                    meter = throwawayMeter,
+                    scenarioMeter = throwawayMeter,
+                    activityMeter = throwawayMeter,
                     userMemory = AdaptiveUserMemory(random).apply { remember(systemUsers) },
                     diagnostics = diagnostics
                 ).setUpJira()
@@ -136,7 +146,8 @@ internal class LoadTest(
         val vuResult = nodeResult.isolateVuResult(uuid)
         return LoadSegment(
             driver = browser.start(),
-            output = vuResult.writeScenarioMetrics(),
+            scenarioOutput = vuResult.writeScenarioMetrics(),
+            activityOutput = vuResult.writeActivityMetrics(),
             done = AtomicBoolean(false),
             id = uuid,
             index = index,
@@ -158,7 +169,10 @@ internal class LoadTest(
                     base = target.webApplication,
                     adminPassword = target.password
                 ),
-                meter = ActionMeter.Builder(AppendableActionMetricOutput(segment.output))
+                scenarioMeter = ActionMeter.Builder(AppendableActionMetricOutput(segment.scenarioOutput))
+                    .virtualUser(segment.id)
+                    .build(),
+                activityMeter = ActionMeter.Builder(AppendableActionMetricOutput(segment.activityOutput))
                     .virtualUser(segment.id)
                     .build(),
                 userMemory = AdaptiveUserMemory(random).apply {
@@ -173,7 +187,8 @@ internal class LoadTest(
 
     private fun createVirtualUser(
         jira: WebJira,
-        meter: ActionMeter,
+        scenarioMeter: ActionMeter,
+        activityMeter: ActionMeter,
         userMemory: UserMemory,
         diagnostics: Diagnostics
     ): ExploratoryVirtualUser {
@@ -185,19 +200,20 @@ internal class LoadTest(
             actions = scenarioAdapter.getActions(
                 jira = jira,
                 seededRandom = SeededRandom(random.random.nextLong()),
-                meter = meter
+                meter = scenarioMeter
             ),
             setUpAction = scenarioAdapter.getSetupAction(
                 jira = jira,
-                meter = meter
+                meter = scenarioMeter
             ),
             logInAction = scenarioAdapter.getLogInAction(
                 jira = jira,
-                meter = meter,
+                meter = scenarioMeter,
                 userMemory = userMemory
             ),
             maxLoad = maxOverallLoad / load.virtualUsers,
-            diagnostics = diagnostics
+            diagnostics = diagnostics,
+            activityMeter = activityMeter
         )
     }
 

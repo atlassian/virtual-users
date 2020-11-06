@@ -27,6 +27,11 @@ Dropping a requirement of a major version of a dependency is a new contract.
 - Add `VirtualUserNodeResult` and `VirtualUserResult` to formalize the filesystem result format.
 - Write results to the `VirtualUserBehavior.results` path.
 
+### Fixed
+- Account for VU throttling and diagnosis. Resolve [JPERF-483].
+
+[JPERF-483]: https://ecosystem.atlassian.net/browse/JPERF-483
+
 ## [3.11.1] - 2020-04-22
 [3.11.1]: https://github.com/atlassian/virtual-users/compare/release-3.11.0...release-3.11.1
 

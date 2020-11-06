@@ -1,6 +1,8 @@
 package com.atlassian.performance.tools.virtualusers
 
 import com.atlassian.performance.tools.jiraactions.api.action.Action
+import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
+import com.atlassian.performance.tools.jiraactions.api.measure.output.ThrowawayActionMetricOutput
 import com.atlassian.performance.tools.virtualusers.api.TemporalRate
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
 import com.atlassian.performance.tools.virtualusers.measure.ApplicationNode
@@ -8,6 +10,7 @@ import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.Offset.offset
 import org.junit.Test
+import java.time.Clock
 import java.time.Duration
 import java.time.Duration.*
 import java.util.*
@@ -100,7 +103,8 @@ class ExploratoryVirtualUserTest {
         setUpAction = NoOp(),
         logInAction = logInAction,
         maxLoad = maxLoad,
-        diagnostics = DisabledDiagnostics()
+        diagnostics = DisabledDiagnostics(),
+        activityMeter = ActionMeter(UUID.randomUUID(), ThrowawayActionMetricOutput(), Clock.systemUTC())
     )
 
     private fun applyLoad(
