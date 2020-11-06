@@ -2,6 +2,7 @@ package com.atlassian.performance.tools.virtualusers.api.config
 
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserNodeResult
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeBrowser
 import com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator
@@ -9,6 +10,8 @@ import com.atlassian.performance.tools.virtualusers.api.users.SuppliedUserGenera
 import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
 import com.atlassian.performance.tools.virtualusers.logs.LogConfiguration
 import org.apache.logging.log4j.core.config.AbstractConfiguration
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.time.Duration
 
 /**
@@ -19,6 +22,7 @@ class VirtualUserBehavior private constructor(
         message = "There should be no need to display help from Java API. Read the Javadoc or sources instead."
     )
     internal val help: Boolean,
+    internal val results: Path,
     internal val scenario: Class<out Scenario>,
     val load: VirtualUserLoad,
     val maxOverhead: Duration,
@@ -43,6 +47,7 @@ class VirtualUserBehavior private constructor(
         skipSetup: Boolean
     ) : this(
         help = help,
+        results = Paths.get("."),
         scenario = scenario,
         load = load,
         maxOverhead = Duration.ofMinutes(5),
@@ -108,6 +113,7 @@ class VirtualUserBehavior private constructor(
     class Builder(
         private var scenario: Class<out Scenario>
     ) {
+        private var results: Path = Paths.get(".")
         private var load: VirtualUserLoad = VirtualUserLoad.Builder().build()
         private var maxOverhead: Duration = Duration.ofMinutes(5)
         private var seed: Long = 12345
@@ -116,6 +122,12 @@ class VirtualUserBehavior private constructor(
         private var logging: Class<out AbstractConfiguration> = LogConfiguration::class.java
         private var skipSetup = false
         private var userGenerator: Class<out UserGenerator> = SuppliedUserGenerator::class.java
+
+        /**
+         * Points to a [VirtualUserNodeResult].
+         * @since 3.12.0
+         */
+        fun results(results: Path) = apply { this.results = results }
 
         fun scenario(scenario: Class<out Scenario>) = apply { this.scenario = scenario }
         fun load(load: VirtualUserLoad) = apply { this.load = load }
@@ -155,6 +167,7 @@ class VirtualUserBehavior private constructor(
         @Suppress("DEPRECATION")
         fun build(): VirtualUserBehavior = VirtualUserBehavior(
             help = false,
+            results = results,
             scenario = scenario,
             load = load,
             maxOverhead = maxOverhead,
