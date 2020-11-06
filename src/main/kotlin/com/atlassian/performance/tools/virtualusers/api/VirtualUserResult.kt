@@ -9,6 +9,7 @@ import java.util.stream.Stream
 
 /**
  * Points to results produced by a single virtual user.
+ * Might contain no metrics.
  *
  * @since 3.12.0
  */
@@ -17,6 +18,7 @@ class VirtualUserResult internal constructor(
 ) {
     private val parser = ActionMetricsParser()
     private val metrics = vuPath.resolve("action-metrics.jpt")
+    private val diagnoses = vuPath.resolve("diagnoses")
 
     /**
      * Each VU executes a scenario. Scenario contains actions. Each action can emit multiple metrics.
@@ -28,9 +30,11 @@ class VirtualUserResult internal constructor(
      * @since 3.12.0
      */
     fun streamMetrics(): Stream<ActionMetric> {
-        val stream = metrics
-            .toFile()
-            .inputStream()
+        val file = metrics.toFile()
+        if (file.exists().not()) {
+            return Stream.empty()
+        }
+        val stream = file.inputStream()
         return parser
             .stream(stream)
             .onClose { stream.close() }
@@ -42,4 +46,12 @@ class VirtualUserResult internal constructor(
             .ensureParentDirectory()
             .bufferedWriter()
     }
+
+    /**
+     * Points to the directory with diagnoses. The directory might not exist.
+     * If it exists, it contains all diagnoses made by the virtual user.
+     *
+     * @since 3.12.0
+     */
+    fun getDiagnoses(): Path = diagnoses
 }
