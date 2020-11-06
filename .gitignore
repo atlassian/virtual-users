@@ -1,7 +1,4 @@
 .gradle
 build
-test-results
 diagnoses
-nodes.csv
 virtual-users.log
-
