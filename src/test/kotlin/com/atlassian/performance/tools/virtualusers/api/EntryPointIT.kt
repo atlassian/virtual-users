@@ -14,6 +14,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.net.URI
 import java.time.Duration
+import kotlin.streams.asSequence
 
 class EntryPointIT {
 
@@ -38,7 +39,7 @@ class EntryPointIT {
     private val jiraFormula = DockerJiraFormula(Jperf424WorkaroundJswDistro("7.2.0"), smallDataset)
 
     @Test
-    fun shouldRunWith3_2_0_Args() {
+    fun shouldRun() {
         val resultPath = TestVuNode.isolateTestNode(javaClass)
         val desiredTotalTime = Duration.ofMinutes(2)
         jiraFormula.runWithJira { jira ->
@@ -54,7 +55,8 @@ class EntryPointIT {
                 "--browser", ChromeContainer::class.java.name,
                 "--diagnostics-limit", "3",
                 "--seed", "-9183767962456348780",
-                "--results", resultPath.toString()
+                "--results", resultPath.toString(),
+                "--max-overall-load", "1.0/PT5S"
             ))
         }
         val vuResult = VirtualUserNodeResult(resultPath)
@@ -64,5 +66,12 @@ class EntryPointIT {
             .streamMetrics()
             .map { it.label }
         assertThat(scenarioLabels).containsOnly("Log In", "View Issue")
+        val totalMetricsTime = vuResult
+            .streamMetrics()
+            .map { it.duration }
+            .asSequence()
+            .fold(Duration.ZERO) { a, b -> a + b }
+        val unaccountedTime = desiredTotalTime - totalMetricsTime
+        assertThat(unaccountedTime).isLessThan(Duration.ofSeconds(5))
     }
 }
