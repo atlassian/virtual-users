@@ -70,6 +70,7 @@ class LoadTestTerminationIT {
                 .skipSetup(true)
                 .browser(browser)
                 .load(load)
+                .results(TestVuNode.isolateTestNode(javaClass))
                 .build()
         )
         return LoadTest(

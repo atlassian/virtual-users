@@ -13,6 +13,7 @@ import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf424W
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf425WorkaroundMysqlDatabase
 import org.junit.Test
 import java.net.URI
+import java.nio.file.Paths
 import java.time.Duration
 import java.util.concurrent.Executors
 
@@ -42,6 +43,7 @@ class LoadTestUserCreationIT {
         .createUsers(true)
         .browser(LoadTestTest.TestBrowser::class.java)
         .skipSetup(true)
+        .results(TestVuNode.isolateTestNode(javaClass))
 
     @Test
     fun shouldCreateUsersInParallelDespiteBigUserBase() {

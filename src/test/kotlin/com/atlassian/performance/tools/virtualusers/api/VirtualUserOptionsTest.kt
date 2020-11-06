@@ -98,6 +98,10 @@ class VirtualUserOptionsTest {
                 "--user-generator",
                 "com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator"
             )
+            .containsSequence(
+                "--results",
+                "."
+            )
     }
 
     @Test

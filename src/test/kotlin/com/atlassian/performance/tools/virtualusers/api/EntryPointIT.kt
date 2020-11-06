@@ -7,8 +7,10 @@ import com.atlassian.performance.tools.infrastructure.api.jira.JiraHomePackage
 import com.atlassian.performance.tools.virtualusers.ChromeContainer
 import com.atlassian.performance.tools.virtualusers.DockerJiraFormula
 import com.atlassian.performance.tools.virtualusers.SimpleScenario
+import com.atlassian.performance.tools.virtualusers.TestVuNode
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf424WorkaroundJswDistro
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf425WorkaroundMysqlDatabase
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.net.URI
 import java.time.Duration
@@ -37,6 +39,8 @@ class EntryPointIT {
 
     @Test
     fun shouldRunWith3_2_0_Args() {
+        val resultPath = TestVuNode.isolateTestNode(javaClass)
+        val desiredTotalTime = Duration.ofMinutes(2)
         jiraFormula.runWithJira { jira ->
             com.atlassian.performance.tools.virtualusers.api.main(arrayOf(
                 "--jira-address", jira.peerAddress.toString(),
@@ -45,12 +49,20 @@ class EntryPointIT {
                 "--virtual-users", "1",
                 "--hold", "PT0S",
                 "--ramp", "PT0S",
-                "--flat", "PT2M",
+                "--flat", desiredTotalTime.toString(),
                 "--scenario", SimpleScenario::class.java.name,
                 "--browser", ChromeContainer::class.java.name,
-                "--diagnostics-limit", "64",
-                "--seed", "-9183767962456348780"
+                "--diagnostics-limit", "3",
+                "--seed", "-9183767962456348780",
+                "--results", resultPath.toString()
             ))
         }
+        val vuResult = VirtualUserNodeResult(resultPath)
+            .listResults()
+            .last()
+        val scenarioLabels = vuResult
+            .streamMetrics()
+            .map { it.label }
+        assertThat(scenarioLabels).containsOnly("Log In", "View Issue")
     }
 }

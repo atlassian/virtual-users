@@ -15,6 +15,8 @@ import org.apache.commons.cli.*
 import org.apache.logging.log4j.core.config.AbstractConfiguration
 import java.net.URI
 import java.net.URL
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.time.Duration
 import java.util.*
 
@@ -140,6 +142,7 @@ class VirtualUserOptions(
 
     companion object {
         const val helpParameter = "help"
+        const val resultsParameter = "results"
         const val jiraAddressParameter = "jira-address"
         const val loginParameter = "login"
         const val passwordParameter = "password"
@@ -164,6 +167,14 @@ class VirtualUserOptions(
                 Option.builder("h")
                     .longOpt(helpParameter)
                     .desc("This help")
+                    .build()
+            )
+            .addOption(
+                Option.builder()
+                    .longOpt(resultsParameter)
+                    .hasArg()
+                    .argName("results")
+                    .desc("Path to the target results directory")
                     .build()
             )
             .addOption(
@@ -320,6 +331,7 @@ class VirtualUserOptions(
             if (value) "--$parameter" else null
         }
         val parameters: List<String> = mapOf(
+            resultsParameter to behavior.results,
             jiraAddressParameter to normalizedJiraAddress,
             loginParameter to target.userName,
             passwordParameter to target.password,
@@ -374,6 +386,7 @@ class VirtualUserOptions(
         fun parse(args: Array<String>): VirtualUserOptions {
             val parser: CommandLineParser = DefaultParser()
             val commandLine = parser.parse(options, args)
+            val results: Path? = Paths.get(commandLine.getOptionValue(resultsParameter))
             val jiraAddress = URI(commandLine.getOptionValue(jiraAddressParameter))
             val adminLogin = commandLine.getOptionValue(loginParameter)
             val adminPassword = commandLine.getOptionValue(passwordParameter)
@@ -397,6 +410,7 @@ class VirtualUserOptions(
                     password = adminPassword
                 ),
                 behavior = VirtualUserBehavior.Builder(getScenario(commandLine))
+                    .let { if (results != null) it.results(results) else it }
                     .diagnosticsLimit(diagnosticsLimit)
                     .seed(seed)
                     .browser(getBrowser(commandLine))
