@@ -9,10 +9,10 @@ import com.atlassian.performance.tools.virtualusers.ChromeContainer
 import com.atlassian.performance.tools.virtualusers.DockerJiraFormula
 import com.atlassian.performance.tools.virtualusers.SimpleScenario
 import com.atlassian.performance.tools.virtualusers.TestVuNode
-import com.atlassian.performance.tools.virtualusers.api.ActivityType.ACTING
-import com.atlassian.performance.tools.virtualusers.api.ActivityType.DIAGNOSING
-import com.atlassian.performance.tools.virtualusers.api.ActivityType.MYSTERY
-import com.atlassian.performance.tools.virtualusers.api.ActivityType.THROTTLING
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserActivity.ACTING
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserActivity.DIAGNOSING
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserActivity.MYSTERY
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserActivity.THROTTLING
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf424WorkaroundJswDistro
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf425WorkaroundMysqlDatabase
 import org.assertj.core.api.Assertions.assertThat
@@ -72,13 +72,14 @@ class EntryPointIT {
             .streamScenarioMetrics()
             .map { it.label }
         assertThat(scenarioLabels).containsOnly("Log In", "View Issue")
-        val activityTypes = vuResult
+        val activityLabels = vuResult
             .streamActivityMetrics()
-            .map { it.type }
-        assertThat(activityTypes).contains(ACTING, THROTTLING, DIAGNOSING).doesNotContain(MYSTERY)
+            .map { it.label }
+        assertThat(activityLabels)
+            .containsOnly(ACTING.label, THROTTLING.label, DIAGNOSING.label)
+            .doesNotContain(MYSTERY.label)
         val totalActivityTime = vuResult
             .streamActivityMetrics()
-            .map { it.metric }
             .sumDurations()
         val unaccountedTime = desiredTotalTime - totalActivityTime
         assertThat(unaccountedTime).isLessThan(Duration.ofSeconds(5))
@@ -88,8 +89,7 @@ class EntryPointIT {
             .sumDurations()
         val totalActingTime = vuResult
             .streamActivityMetrics()
-            .filter { it.type == ACTING }
-            .map { it.metric }
+            .filter { it.label == ACTING.label }
             .sumDurations()
         val unmeasuredActingTime = totalActingTime - totalMetricsTime
         assertThat(unmeasuredActingTime).isLessThan(Duration.ofSeconds(1))

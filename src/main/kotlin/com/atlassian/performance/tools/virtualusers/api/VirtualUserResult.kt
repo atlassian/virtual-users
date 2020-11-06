@@ -36,7 +36,7 @@ class VirtualUserResult internal constructor(
      *
      * @since 3.12.0
      */
-    fun streamActivityMetrics(): Stream<VirtualUserActivity> = stream(activityMetrics).map { inferActivity(it) }
+    fun streamActivityMetrics(): Stream<ActionMetric> = stream(activityMetrics)
 
     private fun stream(
         metrics: Path
@@ -59,15 +59,4 @@ class VirtualUserResult internal constructor(
         .toFile()
         .ensureParentDirectory()
         .bufferedWriter()
-
-    private fun inferActivity(
-        metric: ActionMetric
-    ): VirtualUserActivity {
-        return VirtualUserActivity(
-            type = ActivityType.values()
-                .find { it.actionType.label == metric.label }
-                ?: ActivityType.MYSTERY,
-            metric = metric
-        )
-    }
 }
