@@ -24,8 +24,8 @@ configurations.all {
                 "com.google.code.findbugs:jsr305" -> useVersion("1.3.9")
                 "org.jetbrains:annotations" -> useVersion("13.0")
                 "org.apache.commons:commons-compress" -> useVersion("1.9")
-                "org.testcontainers:testcontainers" -> useVersion("1.14.3")
-                "org.testcontainers:selenium" -> useVersion("1.14.3")
+                "org.testcontainers:testcontainers" -> useVersion("1.15.0")
+                "org.testcontainers:selenium" -> useVersion("1.15.0")
                 "javax.annotation:javax.annotation-api" -> useVersion("1.3.2")
                 "javax.xml.bind:jaxb-api" -> useVersion("2.3.1")
                 "org.rnorth.visible-assertions:visible-assertions" -> useVersion("2.1.2")
@@ -104,7 +104,7 @@ dependencies {
      * - we stop using testcontainers in docker-infrastructure
      * - we stop using docker-infrastructure
      */
-    testCompile("org.testcontainers:testcontainers:1.14.3")
+    testCompile("org.testcontainers:testcontainers:1.15.0")
     testCompile("com.github.docker-java:docker-java-api:3.2.5")
     testCompile("com.atlassian.performance.tools:infrastructure:[4.0.0,4.15.0]")
 }
