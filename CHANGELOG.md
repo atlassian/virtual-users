@@ -23,6 +23,11 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.12.0...master
 
+### Added
+- Time VU tasks like throttling and diagnosis. Expose `VirtualUserResult.streamTasks`. Resolve [JPERF-483].
+
+[JPERF-483]: https://ecosystem.atlassian.net/browse/JPERF-483
+
 ## [3.12.0] - 2020-11-12
 [3.12.0]: https://github.com/atlassian/virtual-users/compare/release-3.11.1...release-3.12.0
 

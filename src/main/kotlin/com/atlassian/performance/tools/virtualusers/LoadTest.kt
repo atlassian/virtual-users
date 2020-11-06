@@ -109,7 +109,8 @@ internal class LoadTest(
                         base = target.webApplication,
                         adminPassword = target.password
                     ),
-                    meter = throwawayMeter,
+                    actionMeter = throwawayMeter,
+                    taskMeter = throwawayMeter,
                     userMemory = AdaptiveUserMemory(random).apply { remember(systemUsers) },
                     diagnostics = driver.getDiagnostics(vuResult.getDiagnoses())
                 ).setUpJira()
@@ -151,7 +152,8 @@ internal class LoadTest(
         return LoadSegment(
             driver = driver,
             diagnostics = driver.getDriver().getDiagnostics(vuResult.getDiagnoses()),
-            output = vuResult.writeMetrics(),
+            actionOutput = vuResult.writeActionMetrics(),
+            taskOutput = vuResult.writeTaskMetrics(),
             done = AtomicBoolean(false),
             id = uuid,
             index = index,
@@ -172,7 +174,10 @@ internal class LoadTest(
                     base = target.webApplication,
                     adminPassword = target.password
                 ),
-                meter = ActionMeter.Builder(AppendableActionMetricOutput(segment.output))
+                actionMeter = ActionMeter.Builder(AppendableActionMetricOutput(segment.actionOutput))
+                    .virtualUser(segment.id)
+                    .build(),
+                taskMeter = ActionMeter.Builder(AppendableActionMetricOutput(segment.taskOutput))
                     .virtualUser(segment.id)
                     .build(),
                 userMemory = AdaptiveUserMemory(random).apply {
@@ -187,7 +192,8 @@ internal class LoadTest(
 
     private fun createVirtualUser(
         jira: WebJira,
-        meter: ActionMeter,
+        actionMeter: ActionMeter,
+        taskMeter: ActionMeter,
         userMemory: UserMemory,
         diagnostics: Diagnostics
     ): ExploratoryVirtualUser {
@@ -199,19 +205,20 @@ internal class LoadTest(
             actions = scenarioAdapter.getActions(
                 jira = jira,
                 seededRandom = SeededRandom(random.random.nextLong()),
-                meter = meter
+                meter = actionMeter
             ),
             setUpAction = scenarioAdapter.getSetupAction(
                 jira = jira,
-                meter = meter
+                meter = actionMeter
             ),
             logInAction = scenarioAdapter.getLogInAction(
                 jira = jira,
-                meter = meter,
+                meter = actionMeter,
                 userMemory = userMemory
             ),
             maxLoad = maxOverallLoad / load.virtualUsers,
-            diagnostics = diagnostics
+            diagnostics = diagnostics,
+            taskMeter = taskMeter
         )
     }
 

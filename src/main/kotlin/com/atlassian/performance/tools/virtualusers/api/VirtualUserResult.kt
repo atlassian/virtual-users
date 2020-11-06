@@ -17,7 +17,8 @@ class VirtualUserResult internal constructor(
     vuPath: Path
 ) {
     private val parser = ActionMetricsParser()
-    private val metrics = vuPath.resolve("action-metrics.jpt")
+    private val actionMetrics = vuPath.resolve("action-metrics.jpt")
+    private val taskMetrics = vuPath.resolve("tasks.jpt")
     private val diagnoses = vuPath.resolve("diagnoses")
 
     /**
@@ -29,7 +30,19 @@ class VirtualUserResult internal constructor(
      *
      * @since 3.12.0
      */
-    fun streamMetrics(): Stream<ActionMetric> {
+    fun streamMetrics(): Stream<ActionMetric> = stream(actionMetrics)
+
+    /**
+     * Each VU has performs one task at a time, e.g scenario actions, diagnosing, throttling.
+     * They should not overlap on a timeline.
+     *
+     * @since 3.13.0
+     */
+    fun streamTasks(): Stream<VirtualUserTask> = stream(taskMetrics).map { inferTask(it) }
+
+    private fun stream(
+        metrics: Path
+    ): Stream<ActionMetric> {
         val file = metrics.toFile()
         if (file.exists().not()) {
             return Stream.empty()
@@ -40,12 +53,26 @@ class VirtualUserResult internal constructor(
             .onClose { stream.close() }
     }
 
-    internal fun writeMetrics(): BufferedWriter {
-        return metrics
-            .toFile()
-            .ensureParentDirectory()
-            .bufferedWriter()
-    }
+    internal fun writeActionMetrics(): BufferedWriter = write(actionMetrics)
+
+    internal fun writeTaskMetrics(): BufferedWriter = write(taskMetrics)
+
+    private fun write(
+        metrics: Path
+    ): BufferedWriter = metrics
+        .toFile()
+        .ensureParentDirectory()
+        .bufferedWriter()
+
+    private fun inferTask(
+        metric: ActionMetric
+    ): VirtualUserTask = VirtualUserTask(
+        type = TaskType.values()
+            .find { it.actionType.label == metric.label }
+            ?: TaskType.MYSTERY,
+        metric = metric
+    )
+
 
     /**
      * Points to the directory with diagnoses. The directory might not exist.
