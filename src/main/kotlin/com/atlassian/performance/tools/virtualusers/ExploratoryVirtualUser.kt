@@ -1,6 +1,10 @@
 package com.atlassian.performance.tools.virtualusers
 
 import com.atlassian.performance.tools.jiraactions.api.action.Action
+import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
+import com.atlassian.performance.tools.virtualusers.api.TaskType.ACTING
+import com.atlassian.performance.tools.virtualusers.api.TaskType.DIAGNOSING
+import com.atlassian.performance.tools.virtualusers.api.TaskType.THROTTLING
 import com.atlassian.performance.tools.virtualusers.api.TemporalRate
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
 import com.atlassian.performance.tools.virtualusers.collections.CircularIterator
@@ -23,7 +27,8 @@ internal class ExploratoryVirtualUser(
     private val setUpAction: Action,
     private val logInAction: Action,
     private val maxLoad: TemporalRate,
-    private val diagnostics: Diagnostics
+    private val diagnostics: Diagnostics,
+    private val taskMeter: ActionMeter
 ) {
     private val logger: Logger = LogManager.getLogger(this::class.java)
 
@@ -62,7 +67,9 @@ internal class ExploratoryVirtualUser(
                 val actualTimeSoFar = Duration.between(start, now())
                 val extraTime = expectedTimeSoFar - actualTimeSoFar
                 if (extraTime > Duration.ZERO) {
-                    Thread.sleep(extraTime.toMillis())
+                    taskMeter.measure(THROTTLING.actionType) {
+                        Thread.sleep(extraTime.toMillis())
+                    }
                 }
             }
         }
@@ -77,9 +84,13 @@ internal class ExploratoryVirtualUser(
     ) {
         try {
             logger.trace("Running $action")
-            action.run()
+            taskMeter.measure(ACTING.actionType) {
+                action.run()
+            }
         } catch (e: Exception) {
-            diagnostics.diagnose(e)
+            taskMeter.measure(DIAGNOSING.actionType) {
+                diagnostics.diagnose(e)
+            }
             throw Exception("Failed to run $action", e)
         }
     }

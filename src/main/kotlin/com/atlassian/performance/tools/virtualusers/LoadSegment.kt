@@ -13,7 +13,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 internal class LoadSegment(
     val driver: CloseableRemoteWebDriver,
-    val output: BufferedWriter,
+    val actionOutput: BufferedWriter,
+    val taskOutput: BufferedWriter,
     val diagnostics: Diagnostics,
     val user: User,
     val done: AtomicBoolean,
@@ -23,7 +24,8 @@ internal class LoadSegment(
 
     override fun close() {
         done.set(true)
-        output.close()
+        actionOutput.close()
+        taskOutput.close()
         val executor = Executors.newSingleThreadExecutor {
             Thread(it)
                 .apply { name = "close-driver" }
