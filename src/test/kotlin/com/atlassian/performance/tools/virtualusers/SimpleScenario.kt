@@ -10,20 +10,20 @@ import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 class SimpleScenario : Scenario {
 
     override fun getActions(jira: WebJira, seededRandom: SeededRandom, meter: ActionMeter): List<Action> {
-        return listOf(HardcodedViewIssueAction(jira, meter))
+        return listOf(SeeSystemInfo(jira, meter))
     }
 }
 
-class HardcodedViewIssueAction(
+class SeeSystemInfo(
     private val jira: WebJira,
     private val meter: ActionMeter
 ) : Action {
 
-    private val viewIssueAction = ActionType("View Issue") { Unit }
+    private val systemInfo = ActionType("See System Info") { }
 
     override fun run() {
-        meter.measure(viewIssueAction) {
-            jira.goToIssue("SAM-1").waitForSummary()
+        meter.measure(systemInfo) {
+            jira.goToSystemInfo()
         }
     }
 }
