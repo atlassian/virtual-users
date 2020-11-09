@@ -1,16 +1,20 @@
 package com.atlassian.performance.tools.virtualusers.lib.sshubuntu
 
 import com.atlassian.performance.tools.virtualusers.lib.docker.execAsResource
+import com.github.dockerjava.core.DefaultDockerClientConfig
+import com.github.dockerjava.core.DockerClientImpl
+import com.github.dockerjava.zerodep.ZerodepDockerHttpClient
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
-import org.testcontainers.DockerClientFactory
 import java.util.UUID
 
 class SudoSshUbuntuImageIT {
 
     @Test
     fun shouldStartUbuntu() {
-        val docker = DockerClientFactory.instance().client()
+        val dockerConfig = DefaultDockerClientConfig.createDefaultConfigBuilder().build()
+        val dockerHttp = ZerodepDockerHttpClient.Builder().dockerHost(dockerConfig.dockerHost).build()
+        val docker = DockerClientImpl.getInstance(dockerConfig, dockerHttp)
         val osName = docker
             .createNetworkCmd()
             .withName(UUID.randomUUID().toString())

@@ -14,7 +14,9 @@ import com.atlassian.performance.tools.virtualusers.lib.infrastructure.SshJiraNo
 import com.atlassian.performance.tools.virtualusers.lib.sshubuntu.SudoSshUbuntuContainer
 import com.atlassian.performance.tools.virtualusers.lib.sshubuntu.SudoSshUbuntuImage
 import com.github.dockerjava.api.model.ExposedPort
-import org.testcontainers.DockerClientFactory
+import com.github.dockerjava.core.DefaultDockerClientConfig
+import com.github.dockerjava.core.DockerClientImpl
+import com.github.dockerjava.zerodep.ZerodepDockerHttpClient
 import java.net.URI
 import java.time.Duration
 
@@ -26,7 +28,9 @@ class DockerJiraFormula(
     fun <T> runWithJira(
         lambda: (DockerJira) -> T
     ): T {
-        val docker = DockerClientFactory.instance().client()
+        val dockerConfig = DefaultDockerClientConfig.createDefaultConfigBuilder().build()
+        val dockerHttp = ZerodepDockerHttpClient.Builder().dockerHost(dockerConfig.dockerHost).build()
+        val docker = DockerClientImpl.getInstance(dockerConfig, dockerHttp)
         return docker
             .createNetworkCmd()
             .withName("shared-network") // copy of com.atlassian.performance.tools.dockerinfrastructure.network.SharedNetwork.DEFAULT_NETWORK_NAME

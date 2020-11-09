@@ -12,7 +12,10 @@ com.atlassian.performance.tools:jvm-tasks:1.1.0
 com.atlassian.performance.tools:ssh:2.3.1
 com.atlassian.performance:selenium-js:1.0.1
 com.fasterxml.jackson.core:jackson-annotations:2.10.3
+com.fasterxml.jackson.core:jackson-core:2.10.3
+com.fasterxml.jackson.core:jackson-databind:2.10.3
 com.github.docker-java:docker-java-api:3.2.5
+com.github.docker-java:docker-java-core:3.2.5
 com.github.docker-java:docker-java-transport-zerodep:3.2.5
 com.github.docker-java:docker-java-transport:3.2.5
 com.github.stephenc.jcip:jcip-annotations:1.0-1
@@ -29,6 +32,7 @@ com.typesafe:config:1.2.1
 commons-cli:commons-cli:1.4
 commons-codec:commons-codec:1.10
 commons-io:commons-io:2.6
+commons-lang:commons-lang:2.6
 commons-logging:commons-logging:1.2
 io.github.bonigarcia:webdrivermanager:1.7.1
 junit:junit:4.12
@@ -60,11 +64,8 @@ org.jetbrains.kotlin:kotlin-stdlib:1.2.70
 org.jetbrains:annotations:13.0
 org.jsoup:jsoup:1.10.2
 org.rauschig:jarchivelib:0.7.1
-org.rnorth.duct-tape:duct-tape:1.0.8
-org.rnorth.visible-assertions:visible-assertions:2.1.2
 org.seleniumhq.selenium:selenium-api:3.141.59
 org.seleniumhq.selenium:selenium-chrome-driver:3.141.59
 org.seleniumhq.selenium:selenium-remote-driver:3.141.59
 org.seleniumhq.selenium:selenium-support:3.141.59
 org.slf4j:slf4j-api:1.8.0-alpha2
-org.testcontainers:testcontainers:1.15.0

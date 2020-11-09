@@ -35,7 +35,6 @@ configurations.all {
                 "org.testcontainers:selenium" -> useVersion("1.15.0")
                 "javax.annotation:javax.annotation-api" -> useVersion("1.3.2")
                 "javax.xml.bind:jaxb-api" -> useVersion("2.3.1")
-                "org.rnorth.visible-assertions:visible-assertions" -> useVersion("2.1.2")
                 "net.java.dev.jna:jna-platform" -> useVersion("5.2.0")
                 "net.java.dev.jna:jna" -> useVersion("5.2.0")
                 "com.google.guava:guava" -> useVersion(guavaVersion)
@@ -103,16 +102,9 @@ dependencies {
     testCompile("junit:junit:4.12")
     testCompile("org.assertj:assertj-core:3.11.0")
     testCompile("com.atlassian.performance.tools:docker-infrastructure:0.3.3")
-    /*
-     * Transitively pulls in their shaded `DockerClientImpl`.
-     * Gotta hack it this way until any of the following happens:
-     * - they stop shading docker-java-core
-     * - they shade docker-java-core properly
-     * - we stop using testcontainers in docker-infrastructure
-     * - we stop using docker-infrastructure
-     */
-    testCompile("org.testcontainers:testcontainers:1.15.0")
-    testCompile("com.github.docker-java:docker-java-api:3.2.5")
+    listOf("docker-java-api", "docker-java-core", "docker-java-transport-zerodep").forEach { artifact ->
+        testCompile("com.github.docker-java:$artifact:3.2.5")
+    }
     testCompile("com.atlassian.performance.tools:infrastructure:[4.0.0,4.15.0]")
 }
 
