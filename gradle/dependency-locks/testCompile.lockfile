@@ -12,7 +12,10 @@ com.atlassian.performance.tools:jvm-tasks:1.1.0
 com.atlassian.performance.tools:ssh:2.3.1
 com.atlassian.performance:selenium-js:1.0.1
 com.fasterxml.jackson.core:jackson-annotations:2.10.3
+com.fasterxml.jackson.core:jackson-core:2.10.3
+com.fasterxml.jackson.core:jackson-databind:2.10.3
 com.github.docker-java:docker-java-api:3.2.5
+com.github.docker-java:docker-java-core:3.2.5
 com.github.docker-java:docker-java-transport-zerodep:3.2.5
 com.github.docker-java:docker-java-transport:3.2.5
 com.github.stephenc.jcip:jcip-annotations:1.0-1
@@ -29,6 +32,7 @@ com.typesafe:config:1.2.1
 commons-cli:commons-cli:1.4
 commons-codec:commons-codec:1.10
 commons-io:commons-io:2.6
+commons-lang:commons-lang:2.6
 commons-logging:commons-logging:1.2
 io.github.bonigarcia:webdrivermanager:1.7.1
 javax.inject:javax.inject:1
