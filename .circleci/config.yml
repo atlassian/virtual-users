@@ -25,6 +25,8 @@ jobs:
           path: ./build/test-results
       - store_artifacts:
           path: ./build/vu-nodes
+      - store_artifacts:
+          path: ./virtual-users.log
   release:
     machine: true
     steps:
