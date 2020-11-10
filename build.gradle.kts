@@ -125,8 +125,8 @@ fun log4j(
 
 
 tasks.wrapper {
-    gradleVersion = "5.2.1"
-    distributionType = Wrapper.DistributionType.ALL
+    gradleVersion = "5.3"
+    distributionType = Wrapper.DistributionType.BIN
 }
 
 tasks.withType<Test> {
