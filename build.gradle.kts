@@ -2,12 +2,11 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val kotlinVersion = "1.2.70"
 val seleniumVersion = "3.141.59"
 val guavaVersion = "25.0-jre"
 
 plugins {
-    kotlin("jvm").version("1.2.70")
+    kotlin("jvm").version("1.4.10")
     id("com.github.johnrengelman.shadow").version("2.0.4")
     id("com.atlassian.performance.tools.gradle-release").version("0.7.1")
     `java-library`
@@ -40,7 +39,7 @@ configurations.all {
                 "com.google.guava:guava" -> useVersion(guavaVersion)
             }
             when (requested.group) {
-                "org.jetbrains.kotlin" -> useVersion(kotlinVersion)
+                "org.jetbrains.kotlin" -> useVersion("1.2.70")
                 "org.seleniumhq.selenium" -> useVersion(seleniumVersion)
             }
         }
@@ -91,7 +90,7 @@ dependencies {
     implementation("org.glassfish:javax.json:1.1")
     implementation("org.apache.commons:commons-math3:3.6.1")
     webdriver().forEach { implementation(it) }
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.2.70")
     implementation("org.apache.commons:commons-csv:1.3")
     implementation("commons-cli:commons-cli:1.4")
 
