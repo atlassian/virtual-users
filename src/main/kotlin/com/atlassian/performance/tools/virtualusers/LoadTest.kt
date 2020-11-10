@@ -24,7 +24,6 @@ import com.atlassian.performance.tools.virtualusers.api.diagnostics.WebDriverDia
 import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
 import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import com.atlassian.performance.tools.virtualusers.measure.WebJiraNode
-import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.apache.logging.log4j.CloseableThreadContext
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -39,6 +38,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * A [load test](https://en.wikipedia.org/wiki/Load_testing).
@@ -122,14 +122,17 @@ internal class LoadTest(
     ) {
         val userCount = users.size
         val finish = load.ramp + load.flat
+        val threadCount = AtomicInteger(0)
         val loadPool = ThreadPoolExecutor(
             userCount,
             userCount,
             0L,
             TimeUnit.MILLISECONDS,
-            LinkedBlockingQueue<Runnable>(),
-            ThreadFactoryBuilder().setNameFormat("virtual-user-%d").setDaemon(true).build()
-        )
+            LinkedBlockingQueue<Runnable>()
+        ) { runnable ->
+            val name = "virtual-user-%d".format(threadCount.incrementAndGet())
+            return@ThreadPoolExecutor Thread(runnable, name).apply { isDaemon = true }
+        }
         logger.info("Segmenting load across $userCount VUs")
         val segments = users.mapIndexed { index, user -> segmentLoad(user, index + 1) }
         logger.info("Load segmented")
