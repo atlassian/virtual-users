@@ -16,6 +16,7 @@ import java.time.Duration
 
 class VirtualUserOptionsTest {
 
+    @Suppress("DEPRECATION") // test public API (even if deprecated)
     private val optionsTemplate = VirtualUserOptions(
         target = VirtualUserTarget(
             webApplication = URI("http://localhost/jira/"),
@@ -153,6 +154,7 @@ class VirtualUserOptionsTest {
 
     @Test
     fun shouldNotCreateUsers() {
+        @Suppress("DEPRECATION") // test public API (even if deprecated)
         val options = optionsTemplate.withBehavior(
             VirtualUserBehavior.Builder(optionsTemplate.behavior)
                 .createUsers(false)
@@ -166,6 +168,7 @@ class VirtualUserOptionsTest {
 
     @Test
     fun shouldCreateUsers() {
+        @Suppress("DEPRECATION") // test public API (even if deprecated)
         val options = optionsTemplate.withBehavior(
             VirtualUserBehavior.Builder(optionsTemplate.behavior)
                 .createUsers(true)
