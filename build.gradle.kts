@@ -101,14 +101,13 @@ dependencies {
     api(log4j("core"))
     log4jCore().forEach { implementation(it) }
     implementation("io.github.bonigarcia:webdrivermanager:1.7.1")
-
-    testCompile("junit:junit:4.12")
-    testCompile("org.assertj:assertj-core:3.11.0")
-    testCompile("com.atlassian.performance.tools:docker-infrastructure:0.3.3")
+    testImplementation("junit:junit:4.12")
+    testImplementation("org.assertj:assertj-core:3.11.0")
+    testImplementation("com.atlassian.performance.tools:docker-infrastructure:0.3.3")
     listOf("docker-java-api", "docker-java-core", "docker-java-transport-zerodep").forEach { artifact ->
-        testCompile("com.github.docker-java:$artifact:3.2.5")
+        testImplementation("com.github.docker-java:$artifact:3.2.5")
     }
-    testCompile("com.atlassian.performance.tools:infrastructure:[4.0.0,4.15.0]")
+    testImplementation("com.atlassian.performance.tools:infrastructure:[4.0.0,4.15.0]")
 }
 
 fun webdriver(): List<String> = listOf(
