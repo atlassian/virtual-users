@@ -18,7 +18,10 @@ import kotlin.concurrent.schedule
 import kotlin.math.exp
 import kotlin.system.measureTimeMillis
 
-class ExploratoryVirtualUserTest {
+/**
+ * Tests integration of [ExploratoryVirtualUser.maxLoad] and [Action]s with various [Thread.sleep] timings.
+ */
+class ExploratoryVirtualUserLoadIT {
 
     @Test
     fun shouldRespectMaxLoad() {
