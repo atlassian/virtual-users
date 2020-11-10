@@ -19,6 +19,9 @@ tasks.withType<KotlinCompile> {
 }
 
 configurations.all {
+    if (name.startsWith("kotlinCompiler")) {
+        return@all
+    }
     resolutionStrategy {
         activateDependencyLocking()
         failOnVersionConflict()
