@@ -45,22 +45,10 @@ configurations.all {
                 "org.seleniumhq.selenium" -> useVersion(seleniumVersion)
             }
         }
-    }
-}
-
-listOf(
-    "testCompile",
-    "testCompileClasspath",
-    "testRuntime",
-    "testRuntimeClasspath"
-)
-    .map { configurations.getByName(it) }
-    .forEach {
-        it.resolutionStrategy {
+        if (name.startsWith("test")) {
             eachDependency {
                 when (requested.module.toString()) {
                     "org.apache.httpcomponents:httpclient" -> useVersion("4.5.5")
-                    "org.apache.httpcomponents:httpcore" -> useVersion("4.4.6")
                     "org.codehaus.plexus:plexus-utils" -> useVersion("3.1.0")
                     "org.jsoup:jsoup" -> useVersion("1.10.2")
                     "commons-io:commons-io" -> useVersion("2.6")
@@ -71,6 +59,7 @@ listOf(
             }
         }
     }
+}
 
 tasks.getByName("jar", Jar::class).apply {
     manifest.attributes["Main-Class"] = "com.atlassian.performance.tools.virtualusers.api.EntryPointKt"
