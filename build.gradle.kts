@@ -3,7 +3,6 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val seleniumVersion = "3.141.59"
-val guavaVersion = "25.0-jre"
 
 plugins {
     kotlin("jvm").version("1.4.10")
@@ -40,7 +39,6 @@ configurations.all {
                 "javax.xml.bind:jaxb-api" -> useVersion("2.3.1")
                 "net.java.dev.jna:jna-platform" -> useVersion("5.2.0")
                 "net.java.dev.jna:jna" -> useVersion("5.2.0")
-                "com.google.guava:guava" -> useVersion(guavaVersion)
             }
             when (requested.group) {
                 "org.jetbrains.kotlin" -> useVersion("1.2.70")
@@ -68,6 +66,7 @@ listOf(
                     "commons-io:commons-io" -> useVersion("2.6")
                     "org.bouncycastle:bcpkix-jdk15on" -> useVersion("1.60")
                     "org.bouncycastle:bcprov-jdk15on" -> useVersion("1.60")
+                    "com.google.guava:guava" -> useVersion("25.0-jre")
                 }
             }
         }
@@ -90,7 +89,6 @@ dependencies {
     implementation("com.atlassian.performance.tools:jvm-tasks:[1.0.0,2.0.0)")
     implementation("com.atlassian.performance.tools:io:[1.0.0,2.0.0)")
     implementation("com.atlassian.performance.tools:concurrency:[1.1.0,2.0.0)")
-    implementation("com.google.guava:guava:$guavaVersion")
     implementation("org.glassfish:javax.json:1.1")
     implementation("org.apache.commons:commons-math3:3.6.1")
     webdriver().forEach { implementation(it) }
