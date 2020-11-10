@@ -94,7 +94,7 @@ dependencies {
     implementation("org.glassfish:javax.json:1.1")
     implementation("org.apache.commons:commons-math3:3.6.1")
     webdriver().forEach { implementation(it) }
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.2.70")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:[1.2.70, 1.3.0)")
     implementation("org.apache.commons:commons-csv:1.3")
     implementation("commons-cli:commons-cli:1.4")
 
