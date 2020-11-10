@@ -15,7 +15,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.openqa.selenium.By
 import java.net.URI
-import java.nio.file.Paths
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -31,8 +30,7 @@ class LoadTestTest {
     fun shouldRunLoadTestWithoutExceptions() {
         val loadTest = loadTest(
             virtualUsers = 6,
-            skipSetup = false,
-            createUsers = false
+            skipSetup = false
         )
 
         synchronized(globalStateLock) {
@@ -48,8 +46,7 @@ class LoadTestTest {
     fun shouldInstallOnlyOnce() {
         val loadTest = loadTest(
             virtualUsers = 20,
-            skipSetup = false,
-            createUsers = false
+            skipSetup = false
         )
 
         synchronized(globalStateLock) {
@@ -65,8 +62,7 @@ class LoadTestTest {
     fun shouldSkipSetup() {
         val loadTest = loadTest(
             virtualUsers = 4,
-            skipSetup = true,
-            createUsers = false
+            skipSetup = true
         )
 
         synchronized(globalStateLock) {
@@ -84,8 +80,7 @@ class LoadTestTest {
     fun shouldCreateFiveUsers() {
         val loadTest = loadTest(
             virtualUsers = 5,
-            skipSetup = true,
-            createUsers = true
+            skipSetup = true
         )
 
         synchronized(globalStateLock) {
@@ -103,8 +98,7 @@ class LoadTestTest {
     fun shouldCreateTwelveUsers() {
         val loadTest = loadTest(
             virtualUsers = 12,
-            skipSetup = true,
-            createUsers = true
+            skipSetup = true
         )
 
         synchronized(globalStateLock) {
@@ -119,8 +113,7 @@ class LoadTestTest {
 
     private fun loadTest(
         virtualUsers: Int,
-        skipSetup: Boolean,
-        createUsers: Boolean
+        skipSetup: Boolean
     ): LoadTest = LoadTest(
         options = VirtualUserOptions(
             target = VirtualUserTarget(
@@ -139,7 +132,6 @@ class LoadTestTest {
                         .build()
                 )
                 .skipSetup(skipSetup)
-                .createUsers(createUsers)
                 .userGenerator(HardcodedUserGenerator::class.java)
                 .results(TestVuNode.isolateTestNode(javaClass))
                 .build()

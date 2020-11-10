@@ -9,14 +9,17 @@ import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
+import com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf424WorkaroundJswDistro
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf425WorkaroundMysqlDatabase
 import org.junit.Test
 import java.net.URI
-import java.nio.file.Paths
 import java.time.Duration
 import java.util.concurrent.Executors
 
+/**
+ * Tests integration of [LoadTest] + [RestUserGenerator].
+ */
 class LoadTestUserCreationIT {
 
     private val dataset: Dataset = URI("https://s3-eu-central-1.amazonaws.com/")
@@ -39,12 +42,6 @@ class LoadTestUserCreationIT {
         }
     private val jiraFormula = DockerJiraFormula(Jperf424WorkaroundJswDistro("7.13.0"), dataset)
 
-    private val behavior = VirtualUserBehavior.Builder(TracingScenario::class.java)
-        .createUsers(true)
-        .browser(LoadTestTest.TestBrowser::class.java)
-        .skipSetup(true)
-        .results(TestVuNode.isolateTestNode(javaClass))
-
     @Test
     fun shouldCreateUsersInParallelDespiteBigUserBase() {
         val pool = Executors.newCachedThreadPool()
@@ -60,7 +57,7 @@ class LoadTestUserCreationIT {
         jiraFormula.runWithJira { jira ->
             (0 until nodes)
                 .map { loadSlices[it] }
-                .map { loadTest(jira, it) }
+                .map { loadTest(jira, it, RestUserGenerator::class.java) }
                 .map { pool.submit { it.run() } }
                 .map { it.get() }
         }
@@ -70,7 +67,8 @@ class LoadTestUserCreationIT {
 
     private fun loadTest(
         jira: DockerJira,
-        load: VirtualUserLoad
+        load: VirtualUserLoad,
+        userGenerator: Class<RestUserGenerator>
     ): LoadTest = LoadTest(
         options = VirtualUserOptions(
             target = VirtualUserTarget(
@@ -78,7 +76,11 @@ class LoadTestUserCreationIT {
                 userName = "admin",
                 password = "admin"
             ),
-            behavior = behavior
+            behavior = VirtualUserBehavior.Builder(TracingScenario::class.java)
+                .userGenerator(userGenerator)
+                .browser(LoadTestTest.TestBrowser::class.java)
+                .skipSetup(true)
+                .results(TestVuNode.isolateTestNode(javaClass))
                 .load(load)
                 .build()
         )

@@ -3,6 +3,7 @@ package com.atlassian.performance.tools.virtualusers
 import com.atlassian.performance.tools.jiraactions.api.SeededRandom
 import com.atlassian.performance.tools.jiraactions.api.WebJira
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
+import com.atlassian.performance.tools.jiraactions.api.measure.output.ThrowawayActionMetricOutput
 import com.atlassian.performance.tools.jiraactions.api.memories.adaptive.AdaptiveUserMemory
 import com.atlassian.performance.tools.jirasoftwareactions.api.JiraSoftwareScenario
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.DriverMock
@@ -18,9 +19,7 @@ class ScenarioAdapterTest {
             base = URI("http://localhost"),
             adminPassword = "admin"
     )
-    private val meter = ActionMeter(
-            virtualUser = UUID.randomUUID()
-    )
+    private val meter = ActionMeter.Builder(ThrowawayActionMetricOutput()).build()
     private val userMemory = AdaptiveUserMemory(SeededRandom())
 
     @Test
