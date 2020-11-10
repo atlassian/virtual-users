@@ -129,7 +129,7 @@ fun log4j(
 
 
 tasks.wrapper {
-    gradleVersion = "5.3"
+    gradleVersion = "6.7"
     distributionType = Wrapper.DistributionType.BIN
 }
 
