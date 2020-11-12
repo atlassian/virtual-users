@@ -26,6 +26,9 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ### Added
 - Time VU tasks like throttling and diagnosis. Expose `VirtualUserResult.streamTasks`. Resolve [JPERF-483].
 
+### Deprecated
+- Deprecate `VirtualUserResult.streamMetrics` in favor of `streamActions` to avoid confusion with `streamTasks`.
+
 [JPERF-483]: https://ecosystem.atlassian.net/browse/JPERF-483
 
 ## [3.12.0] - 2020-11-12

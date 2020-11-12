@@ -30,7 +30,19 @@ class VirtualUserResult internal constructor(
      *
      * @since 3.12.0
      */
-    fun streamMetrics(): Stream<ActionMetric> = stream(actionMetrics)
+    @Deprecated("Use more specific name: streamActions", replaceWith = ReplaceWith("streamActions()"))
+    fun streamMetrics(): Stream<ActionMetric> = streamActions()
+
+    /**
+     * Each VU executes a scenario. Scenario contains actions. Each action can emit multiple metrics.
+     * This streams these scenario metrics emitted by this VU.
+     * A metric can be surrounded by another one:
+     * e.g. a `SEND_MAIL` metric can contain `LOAD_EDITOR`, `FILL_FORM`, `COMPOSE_MAIL` and `SEND` metrics.
+     * There can be time gaps between metrics, e.g. when the action does some processing or VU is diagnosing/throttling.
+     *
+     * @since 3.13.0
+     */
+    fun streamActions(): Stream<ActionMetric> = stream(actionMetrics)
 
     /**
      * Each VU has performs one task at a time, e.g scenario actions, diagnosing, throttling.
