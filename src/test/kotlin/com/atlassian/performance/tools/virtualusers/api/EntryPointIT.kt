@@ -4,6 +4,8 @@ import com.atlassian.performance.tools.infrastructure.api.database.MySqlDatabase
 import com.atlassian.performance.tools.infrastructure.api.dataset.Dataset
 import com.atlassian.performance.tools.infrastructure.api.dataset.HttpDatasetPackage
 import com.atlassian.performance.tools.infrastructure.api.jira.JiraHomePackage
+import com.atlassian.performance.tools.jiraactions.api.ActionMetric
+import com.atlassian.performance.tools.jiraactions.api.ActionResult
 import com.atlassian.performance.tools.virtualusers.ChromeContainer
 import com.atlassian.performance.tools.virtualusers.DockerJiraFormula
 import com.atlassian.performance.tools.virtualusers.SimpleScenario
@@ -11,9 +13,12 @@ import com.atlassian.performance.tools.virtualusers.TestVuNode
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf424WorkaroundJswDistro
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf425WorkaroundMysqlDatabase
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Condition
 import org.junit.Test
 import java.net.URI
 import java.time.Duration
+import java.util.function.Predicate
+import kotlin.streams.toList
 
 class EntryPointIT {
 
@@ -59,9 +64,11 @@ class EntryPointIT {
         val vuResult = VirtualUserNodeResult(resultPath)
             .listResults()
             .last()
-        val labels = vuResult
-            .streamMetrics()
-            .map { it.label }
-        assertThat(labels).containsOnly("Log In", "View Issue")
+        val metrics = vuResult.streamMetrics().toList()
+        assertThat(metrics)
+            .extracting<String> { it.label }
+            .containsOnly("Log In", "View Issue")
+        val ok = Condition<ActionMetric>(Predicate { it.result == ActionResult.OK }, "OK")
+        assertThat(metrics).haveAtLeast(2, ok)
     }
 }
