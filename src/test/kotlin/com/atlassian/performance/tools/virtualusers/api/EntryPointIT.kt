@@ -10,10 +10,10 @@ import com.atlassian.performance.tools.virtualusers.ChromeContainer
 import com.atlassian.performance.tools.virtualusers.DockerJiraFormula
 import com.atlassian.performance.tools.virtualusers.SimpleScenario
 import com.atlassian.performance.tools.virtualusers.TestVuNode
-import com.atlassian.performance.tools.virtualusers.api.TaskType.ACTING
-import com.atlassian.performance.tools.virtualusers.api.TaskType.DIAGNOSING
-import com.atlassian.performance.tools.virtualusers.api.TaskType.MYSTERY
-import com.atlassian.performance.tools.virtualusers.api.TaskType.THROTTLING
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.ACTING
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.DIAGNOSING
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.MYSTERY
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.THROTTLING
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf424WorkaroundJswDistro
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf425WorkaroundMysqlDatabase
 import org.assertj.core.api.Assertions.assertThat
@@ -54,10 +54,12 @@ class EntryPointIT {
 
         val tasks = result.streamTasks().toList()
         val actions = result.streamActions().toList()
-        val unaccountedTime = desiredTotalTime - tasks.map { it.metric }.sumDurations()
+        val unaccountedTime = desiredTotalTime - tasks.sumDurations()
         assertThat(actions.map { it.label }).containsOnly("Log In", "See System Info")
         assertThat(actions).haveAtLeast(2, isOk())
-        assertThat(tasks.map { it.type }).contains(ACTING, THROTTLING, DIAGNOSING).doesNotContain(MYSTERY)
+        assertThat(tasks.map { it.label })
+            .contains(ACTING.label, THROTTLING.label, DIAGNOSING.label)
+            .doesNotContain(MYSTERY.label)
         assertThat(unaccountedTime).isLessThan(Duration.ofSeconds(5))
     }
 
