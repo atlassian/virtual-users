@@ -9,13 +9,13 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v3-dependencies-{{ checksum "build.gradle.kts" }}
-            - v3-dependencies-
+            - v4-dependencies-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle/*" }}
+            - v4-dependencies-
       - run: ./gradlew compileTestKotlin
       - save_cache:
           paths:
             - ~/.gradle
-          key: v3-dependencies-{{ checksum "build.gradle.kts" }}
+          key: v4-dependencies-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle/*" }}
       - run:
           command: ./gradlew build
           no_output_timeout: 30m
@@ -33,8 +33,8 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v3-dependencies-{{ checksum "build.gradle.kts" }}
-            - v3-dependencies-
+            - v4-dependencies-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle/*" }}
+            - v4-dependencies-
       - run: ./gradlew release
       - run: ./gradlew publish
 workflows:
