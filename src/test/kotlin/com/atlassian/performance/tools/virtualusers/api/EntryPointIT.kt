@@ -53,7 +53,7 @@ class EntryPointIT {
         val result = runMain(desiredTotalTime)
 
         val tasks = result.streamTasks().toList()
-        val actions = result.streamMetrics().toList()
+        val actions = result.streamActions().toList()
         val unaccountedTime = desiredTotalTime - tasks.map { it.metric }.sumDurations()
         assertThat(actions.map { it.label }).containsOnly("Log In", "See System Info")
         assertThat(actions).haveAtLeast(2, isOk())
