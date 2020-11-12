@@ -44,14 +44,18 @@ class EntryPointIT {
 
     @Test
     fun shouldProduceMetrics() {
-        val result = runMain()
+        val desiredTotalTime = Duration.ofMinutes(2)
+
+        val result = runMain(desiredTotalTime)
 
         val actions = result.streamMetrics().toList()
+        val unaccountedTime = desiredTotalTime - actions.sumDurations()
         assertThat(actions.map { it.label }).containsOnly("Log In", "See System Info")
         assertThat(actions).haveAtLeast(2, isOk())
+        assertThat(unaccountedTime).isLessThan(Duration.ofSeconds(5))
     }
 
-    private fun runMain(): VirtualUserResult {
+    private fun runMain(desiredTotalTime: Duration): VirtualUserResult {
         val resultPath = TestVuNode.isolateTestNode(javaClass)
         jiraFormula.runWithJira { jira ->
             main(arrayOf(
@@ -61,7 +65,7 @@ class EntryPointIT {
                 "--virtual-users", "1",
                 "--hold", "PT0S",
                 "--ramp", "PT0S",
-                "--flat", "PT2M",
+                "--flat", desiredTotalTime.toString(),
                 "--scenario", SimpleScenario::class.java.name,
                 "--browser", ChromeContainer::class.java.name,
                 "--results", resultPath.toString(),
@@ -75,4 +79,8 @@ class EntryPointIT {
     }
 
     private fun isOk() = Condition<ActionMetric>(Predicate { it.result == ActionResult.OK }, "OK")
+
+    private fun List<ActionMetric>.sumDurations(): Duration {
+        return map { it.duration }.fold(Duration.ZERO) { a, b -> a + b }
+    }
 }
