@@ -2,7 +2,11 @@ package com.atlassian.performance.tools.virtualusers.lib.infrastructure
 
 import com.atlassian.performance.tools.infrastructure.api.Sed
 import com.atlassian.performance.tools.infrastructure.api.distribution.ProductDistribution
-import com.atlassian.performance.tools.infrastructure.api.jira.*
+import com.atlassian.performance.tools.infrastructure.api.jira.JiraGcLog
+import com.atlassian.performance.tools.infrastructure.api.jira.JiraHomeSource
+import com.atlassian.performance.tools.infrastructure.api.jira.JiraLaunchTimeouts
+import com.atlassian.performance.tools.infrastructure.api.jira.JiraNodeConfig
+import com.atlassian.performance.tools.infrastructure.api.jira.SetenvSh
 import com.atlassian.performance.tools.infrastructure.api.jvm.JavaDevelopmentKit
 import com.atlassian.performance.tools.infrastructure.api.os.Ubuntu
 import com.atlassian.performance.tools.jvmtasks.api.TaskTimer.time
@@ -54,9 +58,10 @@ class SshJiraNode(
         )
         ssh.execute("echo jira.home=`realpath $jiraHome` > $installedProduct/atlassian-jira/WEB-INF/classes/jira-application.properties")
         ssh.execute("echo jira.autoexport=false > $jiraHome/jira-config.properties")
-        ssh.execute("wget -q https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.40.tar.gz")
-        ssh.execute("tar -xzf mysql-connector-java-5.1.40.tar.gz")
-        ssh.execute("cp mysql-connector-java-5.1.40/mysql-connector-java-5.1.40-bin.jar $installedProduct/lib")
+        val connector = "mysql-connector-java-5.1.40"
+        ssh.execute("curl --location --remote-name --silent https://dev.mysql.com/get/Downloads/Connector-J/$connector.tar.gz")
+        ssh.execute("tar -xzf $connector.tar.gz")
+        ssh.execute("cp $connector/$connector-bin.jar $installedProduct/lib")
         return installedProduct
     }
 
