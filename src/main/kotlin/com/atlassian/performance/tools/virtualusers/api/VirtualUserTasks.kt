@@ -1,42 +1,35 @@
 package com.atlassian.performance.tools.virtualusers.api
 
-import com.atlassian.performance.tools.jiraactions.api.ActionMetric
 import com.atlassian.performance.tools.jiraactions.api.ActionType
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 
 /**
  * @since 3.13.0
  */
-class VirtualUserTask internal constructor(
-    val type: TaskType,
-    val metric: ActionMetric
-)
-
-/**
- * @since 3.13.0
- */
-enum class TaskType(
-    internal val actionType: ActionType<*>
-) {
+object VirtualUserTasks {
     /**
      * VU was performing actions. This is the main purpose of VUs.
      */
-    ACTING(ActionType<Unit>("VU Act") {}),
+    @JvmField
+    val ACTING = ActionType("VU Act") {}
 
     /**
      * VU was diagnosing errors. VUs should do that a little to help understand problems, but this shouldn't dominate.
      * Control it with [VirtualUserBehavior.diagnosticsLimit].
      */
-    DIAGNOSING(ActionType<Unit>("VU Diagnose") {}),
+    @JvmField
+    val DIAGNOSING = ActionType("VU Diagnose") {}
 
     /**
      * VU was throttling to respect [VirtualUserLoad.maxOverallLoad].
      */
-    THROTTLING(ActionType<Unit>("VU Throttle") {}),
+    @JvmField
+    val THROTTLING = ActionType("VU Throttle") {}
 
     /**
      * VU was performing unknown tasks. This overhead should be close to zero.
      * It can be inferred from a full timeline minus all other tasks.
      */
-    MYSTERY(ActionType<Unit>("VU Mystery") {})
+    @JvmField
+    val MYSTERY = ActionType("VU Mystery") {}
 }

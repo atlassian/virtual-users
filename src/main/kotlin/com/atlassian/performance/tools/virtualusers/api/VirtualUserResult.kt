@@ -50,7 +50,7 @@ class VirtualUserResult internal constructor(
      *
      * @since 3.13.0
      */
-    fun streamTasks(): Stream<VirtualUserTask> = stream(taskMetrics).map { inferTask(it) }
+    fun streamTasks(): Stream<ActionMetric> = stream(taskMetrics)
 
     private fun stream(
         metrics: Path
@@ -75,16 +75,6 @@ class VirtualUserResult internal constructor(
         .toFile()
         .ensureParentDirectory()
         .bufferedWriter()
-
-    private fun inferTask(
-        metric: ActionMetric
-    ): VirtualUserTask = VirtualUserTask(
-        type = TaskType.values()
-            .find { it.actionType.label == metric.label }
-            ?: TaskType.MYSTERY,
-        metric = metric
-    )
-
 
     /**
      * Points to the directory with diagnoses. The directory might not exist.
