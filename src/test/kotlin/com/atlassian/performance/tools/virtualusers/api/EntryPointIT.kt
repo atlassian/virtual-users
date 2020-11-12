@@ -43,10 +43,18 @@ class EntryPointIT {
     private val jiraFormula = DockerJiraFormula(Jperf424WorkaroundJswDistro("7.2.0"), smallDataset)
 
     @Test
-    fun shouldRunWith3_2_0_Args() {
+    fun shouldProduceMetrics() {
+        val result = runMain()
+
+        val actions = result.streamMetrics().toList()
+        assertThat(actions.map { it.label }).containsOnly("Log In", "See System Info")
+        assertThat(actions).haveAtLeast(2, isOk())
+    }
+
+    private fun runMain(): VirtualUserResult {
         val resultPath = TestVuNode.isolateTestNode(javaClass)
         jiraFormula.runWithJira { jira ->
-            com.atlassian.performance.tools.virtualusers.api.main(arrayOf(
+            main(arrayOf(
                 "--jira-address", jira.peerAddress.toString(),
                 "--login", "admin",
                 "--password", "admin",
@@ -61,14 +69,10 @@ class EntryPointIT {
                 "--seed", "-9183767962456348780"
             ))
         }
-        val vuResult = VirtualUserNodeResult(resultPath)
+        return VirtualUserNodeResult(resultPath)
             .listResults()
             .last()
-        val metrics = vuResult.streamMetrics().toList()
-        assertThat(metrics)
-            .extracting<String> { it.label }
-            .containsOnly("Log In", "See System Info")
-        val ok = Condition<ActionMetric>(Predicate { it.result == ActionResult.OK }, "OK")
-        assertThat(metrics).haveAtLeast(2, ok)
     }
+
+    private fun isOk() = Condition<ActionMetric>(Predicate { it.result == ActionResult.OK }, "OK")
 }
