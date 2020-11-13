@@ -10,7 +10,7 @@ import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 class SimpleScenario : Scenario {
 
     override fun getActions(jira: WebJira, seededRandom: SeededRandom, meter: ActionMeter): List<Action> {
-        return listOf(SeeSystemInfo(jira, meter))
+        return listOf(SeeSystemInfo(jira, meter), FailingAction())
     }
 }
 
@@ -26,4 +26,8 @@ class SeeSystemInfo(
             jira.goToSystemInfo()
         }
     }
+}
+
+class FailingAction : Action {
+    override fun run() = throw Exception("deliberate fail")
 }
