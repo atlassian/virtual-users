@@ -66,10 +66,11 @@ class EntryPointIT {
                 "--hold", "PT0S",
                 "--ramp", "PT0S",
                 "--flat", desiredTotalTime.toString(),
+                "--max-overall-load", "1.0/PT5S",
                 "--scenario", SimpleScenario::class.java.name,
                 "--browser", ChromeContainer::class.java.name,
                 "--results", resultPath.toString(),
-                "--diagnostics-limit", "64",
+                "--diagnostics-limit", "3",
                 "--seed", "-9183767962456348780"
             ))
         }
