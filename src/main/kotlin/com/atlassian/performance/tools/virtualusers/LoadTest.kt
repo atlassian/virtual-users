@@ -6,12 +6,14 @@ import com.atlassian.performance.tools.io.api.ensureParentDirectory
 import com.atlassian.performance.tools.jiraactions.api.SeededRandom
 import com.atlassian.performance.tools.jiraactions.api.WebJira
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
+import com.atlassian.performance.tools.jiraactions.api.measure.DrillDownHook
 import com.atlassian.performance.tools.jiraactions.api.measure.output.AppendableActionMetricOutput
 import com.atlassian.performance.tools.jiraactions.api.measure.output.ThrowawayActionMetricOutput
 import com.atlassian.performance.tools.jiraactions.api.memories.User
 import com.atlassian.performance.tools.jiraactions.api.memories.UserMemory
 import com.atlassian.performance.tools.jiraactions.api.memories.adaptive.AdaptiveUserMemory
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
+import com.atlassian.performance.tools.jiraactions.api.w3c.JavascriptW3cPerformanceTimeline
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserNodeResult
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
@@ -167,6 +169,7 @@ internal class LoadTest(
         CloseableThreadContext.push("applying load #${segment.id}").use {
             val rampUpWait = load.rampInterval.multipliedBy(segment.index.toLong())
             logger.info("Waiting for $rampUpWait")
+            logger.info("I WILL MEASURE JS METRICS")
             Thread.sleep(rampUpWait.toMillis())
             createVirtualUser(
                 jira = WebJira(
@@ -176,6 +179,7 @@ internal class LoadTest(
                 ),
                 actionMeter = ActionMeter.Builder(AppendableActionMetricOutput(segment.actionOutput))
                     .virtualUser(segment.id)
+                    .appendPostMetricHook(DrillDownHook(JavascriptW3cPerformanceTimeline(segment.driver.getDriver())))
                     .build(),
                 taskMeter = ActionMeter.Builder(AppendableActionMetricOutput(segment.taskOutput))
                     .virtualUser(segment.id)

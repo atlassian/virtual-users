@@ -4,6 +4,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val seleniumVersion = "3.141.59"
 
+repositories {
+    mavenLocal()
+}
+
 plugins {
     kotlin("jvm").version("1.4.10")
     id("com.github.johnrengelman.shadow").version("2.0.4")
