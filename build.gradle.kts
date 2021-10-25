@@ -27,7 +27,7 @@ configurations.all {
         failOnVersionConflict()
         eachDependency {
             when (requested.module.toString()) {
-                "commons-codec:commons-codec" -> useVersion("1.10")
+                "commons-codec:commons-codec" -> useVersion("1.11")
                 "com.google.code.gson:gson" -> useVersion("2.8.2")
                 "org.slf4j:slf4j-api" -> useVersion("1.8.0-alpha2")
                 "com.google.code.findbugs:jsr305" -> useVersion("1.3.9")
@@ -48,7 +48,7 @@ configurations.all {
         if (name.startsWith("test")) {
             eachDependency {
                 when (requested.module.toString()) {
-                    "org.apache.httpcomponents:httpclient" -> useVersion("4.5.5")
+                    "org.apache.httpcomponents:httpclient" -> useVersion("4.5.13")
                     "org.codehaus.plexus:plexus-utils" -> useVersion("3.1.0")
                     "org.jsoup:jsoup" -> useVersion("1.10.2")
                     "commons-io:commons-io" -> useVersion("2.6")

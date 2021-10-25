@@ -23,6 +23,9 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.13.0...master
 
+### Fixed
+- Make the module's dependencies compatible with recent versions of aws-resources (1.7.x). Unblock [JPERF-730].
+
 ## [3.13.0] - 2020-11-17
 [3.13.0]: https://github.com/atlassian/virtual-users/compare/release-3.12.0...release-3.13.0
 
