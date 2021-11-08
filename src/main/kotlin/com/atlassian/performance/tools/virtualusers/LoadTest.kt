@@ -137,7 +137,16 @@ internal class LoadTest(
         logger.info("Segmenting load across $userCount VUs")
         val segments = users.mapIndexed { index, user -> segmentLoad(user, index + 1) }
         logger.info("Load segmented")
-        segments.forEach { loadPool.submit { applyLoad(it) } }
+        segments.forEach {
+            loadPool.submit {
+                try {
+                    applyLoad(it)
+                } catch (e: Exception) {
+                    logger.error("Failed to apply load", e)
+                    throw e
+                }
+            }
+        }
         Thread.sleep(finish.toMillis())
         close(segments)
     }
