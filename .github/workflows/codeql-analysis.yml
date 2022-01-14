@@ -53,7 +53,7 @@ jobs:
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 https://git.io/JvXDl
     - run: |
-       ./gradew compileTestKotlin
+       ./gradlew compileTestKotlin
     #   make bootstrap
     #   make release
 
