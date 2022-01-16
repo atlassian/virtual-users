@@ -41,6 +41,7 @@ configurations.all {
                 "net.java.dev.jna:jna" -> useVersion("5.2.0")
             }
             when (requested.group) {
+                "org.apache.logging.log4j" -> useVersion("2.17.1")
                 "org.jetbrains.kotlin" -> useVersion("1.2.70")
                 "org.seleniumhq.selenium" -> useVersion(seleniumVersion)
             }
