@@ -3,6 +3,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val seleniumVersion = "3.141.59"
+val log4jVersion = "2.17.2"
 
 plugins {
     kotlin("jvm").version("1.4.10")
@@ -43,6 +44,7 @@ configurations.all {
             when (requested.group) {
                 "org.jetbrains.kotlin" -> useVersion("1.2.70")
                 "org.seleniumhq.selenium" -> useVersion(seleniumVersion)
+                "org.apache.logging.log4j" -> useVersion(log4jVersion)
             }
         }
         if (name.startsWith("test")) {
@@ -111,7 +113,7 @@ fun log4jCore(): List<String> = listOf(
 
 fun log4j(
     module: String
-): String = "org.apache.logging.log4j:log4j-$module:2.10.0"
+): String = "org.apache.logging.log4j:log4j-$module:$log4jVersion"
 
 
 tasks.wrapper {
