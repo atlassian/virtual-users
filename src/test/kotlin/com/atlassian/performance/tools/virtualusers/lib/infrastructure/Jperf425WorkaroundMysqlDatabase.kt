@@ -25,7 +25,7 @@ class Jperf425WorkaroundMysqlDatabase(
 }
 
 /**
- * Copy-pasted verbatim from [infrastructure:4.11.0](https://github.com/atlassian/infrastructure/blob/release-4.11.0/src/main/kotlin/com/atlassian/performance/tools/infrastructure/Docker.kt)
+ * Copy-pasted verbatim from [infrastructure](https://github.com/atlassian/infrastructure/blob/master/src/main/kotlin/com/atlassian/performance/tools/infrastructure/Docker.kt)
  * It's here just to interject the Docker install and MySQL setup with a Docker start.
  */
 private class CopyPastedDocker {
@@ -48,15 +48,15 @@ private class CopyPastedDocker {
             ),
             timeout = Duration.ofMinutes(2)
         )
+        ssh.execute("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7EA0A9C3F273FCD8")
+
         val release = ssh.execute("lsb_release -cs").output
-        val repository = "deb [arch=amd64] https://download.docker.com/linux/ubuntu $release stable"
-        ssh.execute("sudo add-apt-repository \"$repository\"")
-        ssh.execute("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -")
-        val version = "17.09.0~ce-0~ubuntu"
+        ssh.execute("sudo add-apt-repository 'deb [arch=amd64] https://download.docker.com/linux/ubuntu $release stable'")
+        val version = "5:19.03.8~3-0~ubuntu-$release"
         ubuntu.install(
             ssh = ssh,
             packages = listOf("docker-ce=$version"),
-            timeout = Duration.ofSeconds(180)
+            timeout = Duration.ofMinutes(5)
         )
     }
 }
