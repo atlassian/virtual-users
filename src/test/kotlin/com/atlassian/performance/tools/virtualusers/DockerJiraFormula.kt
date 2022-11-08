@@ -52,7 +52,12 @@ class DockerJiraFormula(
         db: SudoSshUbuntuContainer
     ): DockerJira {
         val peerJiraPort = 8080
-        val publishedJiraPort = jira.ports.bindings[ExposedPort.tcp(peerJiraPort)]!!.single().hostPortSpec.toInt()
+        val publishedJiraPort = jira
+            .ports
+            .bindings[ExposedPort.tcp(peerJiraPort)]!!
+            .single { it.hostIp == "0.0.0.0" }
+            .hostPortSpec
+            .toInt()
         val dockerJira = DockerJira(
             hostAddress = URI("http://localhost:$publishedJiraPort/"),
             peerAddress = URI("http://${jira.peerIp}:$peerJiraPort/")
