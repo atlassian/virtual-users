@@ -96,7 +96,7 @@ dependencies {
     listOf("docker-java-api", "docker-java-core", "docker-java-transport-zerodep").forEach { artifact ->
         testImplementation("com.github.docker-java:$artifact:3.2.5")
     }
-    testImplementation("com.atlassian.performance.tools:infrastructure:[4.0.0,4.15.0]")
+    testImplementation("com.atlassian.performance.tools:infrastructure:[4.21.0, 5.0.0)")
 }
 
 fun webdriver(): List<String> = listOf(
