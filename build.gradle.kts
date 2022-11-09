@@ -34,12 +34,14 @@ configurations.all {
                 "com.google.code.findbugs:jsr305" -> useVersion("1.3.9")
                 "org.jetbrains:annotations" -> useVersion("13.0")
                 "org.apache.commons:commons-compress" -> useVersion("1.9")
-                "org.testcontainers:testcontainers" -> useVersion("1.15.0")
-                "org.testcontainers:selenium" -> useVersion("1.15.0")
+                "org.testcontainers:testcontainers" -> useVersion("1.17.2")
+                "org.testcontainers:selenium" -> useVersion("1.17.2")
                 "javax.annotation:javax.annotation-api" -> useVersion("1.3.2")
                 "javax.xml.bind:jaxb-api" -> useVersion("2.3.1")
                 "net.java.dev.jna:jna-platform" -> useVersion("5.2.0")
                 "net.java.dev.jna:jna" -> useVersion("5.2.0")
+                // conflict between com.github.docker-java:docker-java-core and io.github.bonigarcia:webdrivermanager
+                "org.apache.commons:commons-lang3" -> useVersion("3.12.0")
             }
             when (requested.group) {
                 "org.jetbrains.kotlin" -> useVersion("1.2.70")
@@ -90,11 +92,11 @@ dependencies {
     api(log4j("core"))
     log4jCore().forEach { implementation(it) }
     implementation("io.github.bonigarcia:webdrivermanager:1.7.1")
-    testImplementation("junit:junit:4.12")
+    testImplementation("junit:junit:4.13.2")
     testImplementation("org.assertj:assertj-core:3.11.0")
     testImplementation("com.atlassian.performance.tools:docker-infrastructure:0.3.3")
     listOf("docker-java-api", "docker-java-core", "docker-java-transport-zerodep").forEach { artifact ->
-        testImplementation("com.github.docker-java:$artifact:3.2.5")
+        testImplementation("com.github.docker-java:$artifact:3.2.13")
     }
     testImplementation("com.atlassian.performance.tools:infrastructure:[4.21.0, 5.0.0)")
 }
