@@ -11,7 +11,6 @@ import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavi
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
 import com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf424WorkaroundJswDistro
-import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf425WorkaroundMysqlDatabase
 import org.junit.Test
 import java.net.URI
 import java.time.Duration
@@ -27,12 +26,12 @@ class LoadTestUserCreationIT {
         .resolve("jsw-7.13.0-100k-users-sync/")
         .let { bucket ->
             Dataset(
-                database = Jperf425WorkaroundMysqlDatabase(MySqlDatabase(
+                database = MySqlDatabase(
                     HttpDatasetPackage(
                         uri = bucket.resolve("database.tar.bz2"),
                         downloadTimeout = Duration.ofMinutes(6)
                     )
-                )),
+                ),
                 jiraHomeSource = JiraHomePackage(HttpDatasetPackage(
                     uri = bucket.resolve("jirahome.tar.bz2"),
                     downloadTimeout = Duration.ofMinutes(6)
