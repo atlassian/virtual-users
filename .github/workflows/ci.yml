@@ -27,6 +27,11 @@ jobs:
         with:
           path: ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle') }}
+      - name: Fix Docker-In-Docker mounts # https://github.com/moby/moby/issues/13742#issuecomment-725197223
+        run: |
+          sudo systemctl stop docker
+          echo '{"cgroup-parent":"/actions_job","storage-driver":"vfs"}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl start docker
       - name: Build
         run: ./gradlew build
       - name: Upload test reports
