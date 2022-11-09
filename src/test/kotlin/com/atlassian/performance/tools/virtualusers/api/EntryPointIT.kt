@@ -15,7 +15,6 @@ import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.DIAGNOS
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.MYSTERY
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.THROTTLING
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf424WorkaroundJswDistro
-import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf425WorkaroundMysqlDatabase
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Condition
 import org.junit.Test
@@ -32,12 +31,12 @@ class EntryPointIT {
         .let { bucket ->
             Dataset(
                 label = "7k issues JSW 7.2.0",
-                database = Jperf425WorkaroundMysqlDatabase(MySqlDatabase(
+                database = MySqlDatabase(
                     HttpDatasetPackage(
                         uri = bucket.resolve("database.tar.bz2"),
                         downloadTimeout = Duration.ofMinutes(5)
                     )
-                )),
+                ),
                 jiraHomeSource = JiraHomePackage(HttpDatasetPackage(
                     uri = bucket.resolve("jirahome.tar.bz2"),
                     downloadTimeout = Duration.ofMinutes(5)
