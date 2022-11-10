@@ -3,7 +3,6 @@
 # This file is expected to be part of source control.
 com.atlassian.data:random-data:1.4.3
 com.atlassian.performance.tools:concurrency:1.1.2
-com.atlassian.performance.tools:docker-infrastructure:0.3.3
 com.atlassian.performance.tools:infrastructure:4.21.0
 com.atlassian.performance.tools:io:1.2.0
 com.atlassian.performance.tools:jira-actions:3.17.3
@@ -90,7 +89,6 @@ org.jetbrains.kotlin:kotlin-stdlib:1.2.70
 org.jetbrains:annotations:13.0
 org.jsoup:jsoup:1.10.2
 org.rauschig:jarchivelib:0.7.1
-org.rnorth.duct-tape:duct-tape:1.0.8
 org.seleniumhq.selenium:selenium-api:3.141.59
 org.seleniumhq.selenium:selenium-chrome-driver:3.141.59
 org.seleniumhq.selenium:selenium-remote-driver:3.141.59
@@ -98,5 +96,3 @@ org.seleniumhq.selenium:selenium-support:3.141.59
 org.slf4j:slf4j-api:1.8.0-alpha2
 org.sonatype.plexus:plexus-cipher:1.4
 org.sonatype.plexus:plexus-sec-dispatcher:1.4
-org.testcontainers:selenium:1.17.2
-org.testcontainers:testcontainers:1.17.2

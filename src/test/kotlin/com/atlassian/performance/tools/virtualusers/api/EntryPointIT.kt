@@ -6,7 +6,6 @@ import com.atlassian.performance.tools.infrastructure.api.dataset.HttpDatasetPac
 import com.atlassian.performance.tools.infrastructure.api.jira.JiraHomePackage
 import com.atlassian.performance.tools.jiraactions.api.ActionMetric
 import com.atlassian.performance.tools.jiraactions.api.ActionResult
-import com.atlassian.performance.tools.virtualusers.ChromeContainer
 import com.atlassian.performance.tools.virtualusers.DockerJiraFormula
 import com.atlassian.performance.tools.virtualusers.SimpleScenario
 import com.atlassian.performance.tools.virtualusers.TestVuNode
@@ -14,6 +13,7 @@ import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.ACTING
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.DIAGNOSING
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.MYSTERY
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.THROTTLING
+import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeBrowser
 import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf424WorkaroundJswDistro
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Condition
@@ -75,7 +75,7 @@ class EntryPointIT {
                 "--flat", desiredTotalTime.toString(),
                 "--max-overall-load", "1.0/PT5S",
                 "--scenario", SimpleScenario::class.java.name,
-                "--browser", ChromeContainer::class.java.name,
+                "--browser", HeadlessChromeBrowser::class.java.name,
                 "--results", resultPath.toString(),
                 "--diagnostics-limit", "3",
                 "--seed", "-9183767962456348780"

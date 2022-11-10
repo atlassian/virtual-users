@@ -94,7 +94,6 @@ dependencies {
     implementation("io.github.bonigarcia:webdrivermanager:1.7.1")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.assertj:assertj-core:3.11.0")
-    testImplementation("com.atlassian.performance.tools:docker-infrastructure:0.3.3")
     listOf("docker-java-api", "docker-java-core", "docker-java-transport-zerodep").forEach { artifact ->
         testImplementation("com.github.docker-java:$artifact:3.2.13")
     }
