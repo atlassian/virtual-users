@@ -40,6 +40,14 @@ jobs:
         with:
           name: test-reports
           path: build/reports/tests
+      - name: Upload VU Artifacts
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: vu-artifacts
+          path: |
+            build/vu-nodes
+            virtual-users.log
       - name: Get publish token
         id: publish-token
         if: github.event.inputs.release == 'yes'
