@@ -1,5 +1,3 @@
-[![CircleCI](https://circleci.com/gh/atlassian/virtual-users.svg?style=svg)](https://circleci.com/gh/atlassian/virtual-users)
-
 # Virtual Users
 Virtual users simulate end users using browsers to communicate with a web application.
 They aim to be realistic, low-config and robust.
