@@ -14,7 +14,7 @@ import java.util.stream.Stream
  * @since 3.12.0
  */
 class VirtualUserResult internal constructor(
-    vuPath: Path
+    private val vuPath: Path
 ) {
     private val parser = ActionMetricsParser()
     private val actionMetrics = vuPath.resolve("action-metrics.jpt")
@@ -83,4 +83,6 @@ class VirtualUserResult internal constructor(
      * @since 3.12.0
      */
     fun getDiagnoses(): Path = diagnoses
+
+    fun getVuPath(): Path = vuPath
 }

@@ -157,7 +157,7 @@ internal class LoadTest(
     ): LoadSegment {
         val uuid = UUID.randomUUID()
         val vuResult = nodeResult.isolateVuResult(uuid.toString())
-        val driver = browser.start()
+        val driver = browser.start(vuResult)
         return LoadSegment(
             driver = driver,
             diagnostics = driver.getDriver().getDiagnostics(vuResult.getDiagnoses()),

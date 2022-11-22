@@ -1,3 +1,4 @@
 .gradle
 build
 virtual-users.log
+/.idea/
