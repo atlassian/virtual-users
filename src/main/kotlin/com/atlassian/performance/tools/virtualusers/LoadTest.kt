@@ -54,7 +54,7 @@ internal class LoadTest(
     private val random = SeededRandom(behavior.seed)
     private val diagnosisPatience = DiagnosisPatience(Duration.ofSeconds(5))
     private val diagnosisLimit = DiagnosisLimit(behavior.diagnosticsLimit)
-    private val scenario = behavior.scenario.getConstructor().newInstance() as Scenario
+    private val scenario = Class.forName(behavior.scenarioClass).getConstructor().newInstance() as Scenario
     private val browser = behavior.browser.getConstructor().newInstance() as Browser
     private val userGenerator = options.behavior.userGenerator.getConstructor().newInstance() as UserGenerator
 

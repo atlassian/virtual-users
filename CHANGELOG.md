@@ -23,6 +23,11 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.13.2...master
 
+### Added
+- Allow specifying Scenario class without having it in classpath. Resolve [JPERF-999].
+
+[JPERF-999]: https://ecosystem.atlassian.net/browse/JPERF-999
+
 ## [3.13.2] - 2022-04-08
 [3.13.2]: https://github.com/atlassian/virtual-users/compare/release-3.13.1...release-3.13.2
 

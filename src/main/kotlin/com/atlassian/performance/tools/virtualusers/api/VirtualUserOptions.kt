@@ -50,9 +50,10 @@ class VirtualUserOptions(
     val virtualUserLoad: VirtualUserLoad
         get() = behavior.load
 
+    @Suppress("UNCHECKED_CAST")
     @Deprecated(deprecatedGetterMessage)
     val scenario: Class<out Scenario>
-        get() = behavior.scenario
+        get() = Class.forName(behavior.scenarioClass) as Class<out Scenario>
 
     @Deprecated(deprecatedGetterMessage)
     val seed: Long
@@ -341,7 +342,7 @@ class VirtualUserOptions(
             rampParameter to behavior.load.ramp,
             flatParameter to behavior.load.flat,
             maxOverallLoadParameter to behavior.load.maxOverallLoad.let { "${it.change}/${it.time}" },
-            scenarioParameter to behavior.scenario.canonicalName,
+            scenarioParameter to behavior.scenarioClass,
             diagnosticsLimitParameter to behavior.diagnosticsLimit,
             seedParameter to behavior.seed,
             browserParameter to behavior.browser.name,
@@ -398,6 +399,7 @@ class VirtualUserOptions(
                 .getOptionValue(maxOverallLoadParameter)
                 ?.let { it.split('/') }
                 ?.let { (actions, time) -> TemporalRate(actions.toDouble(), Duration.parse(time)) }
+            val scenario = commandLine.getOptionValue(scenarioParameter)
             val diagnosticsLimit = commandLine.getOptionValue(diagnosticsLimitParameter).toInt()
             val seed = commandLine.getOptionValue(seedParameter).toLong()
             val skipSetup = commandLine.hasOption(skipSetupParameter)
@@ -409,7 +411,7 @@ class VirtualUserOptions(
                     userName = adminLogin,
                     password = adminPassword
                 ),
-                behavior = VirtualUserBehavior.Builder(getScenario(commandLine))
+                behavior = VirtualUserBehavior.Builder(scenario)
                     .let { if (results != null) it.results(results) else it }
                     .diagnosticsLimit(diagnosticsLimit)
                     .seed(seed)
@@ -428,13 +430,6 @@ class VirtualUserOptions(
                     .userGenerator(if (createUsers) RestUserGenerator::class.java else getUserGenerator(commandLine))
                     .build()
             )
-        }
-
-        private fun getScenario(commandLine: CommandLine): Class<out Scenario> {
-            val scenario = commandLine.getOptionValue(scenarioParameter)
-            val scenarioClass = Class.forName(scenario)
-            val scenarioConstructor = scenarioClass.getConstructor()
-            return (scenarioConstructor.newInstance() as Scenario)::class.java
         }
 
         private fun getBrowser(commandLine: CommandLine): Class<out Browser> {
