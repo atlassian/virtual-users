@@ -23,7 +23,7 @@ class VirtualUserBehavior private constructor(
     )
     internal val help: Boolean,
     internal val results: Path,
-    internal val scenario: Class<out Scenario>,
+    internal val scenarioClass: String,
     val load: VirtualUserLoad,
     val maxOverhead: Duration,
     internal val seed: Long,
@@ -48,7 +48,7 @@ class VirtualUserBehavior private constructor(
     ) : this(
         help = help,
         results = Paths.get("."),
-        scenario = scenario,
+        scenarioClass = scenario.canonicalName,
         load = load,
         maxOverhead = Duration.ofMinutes(5),
         seed = seed,
@@ -111,7 +111,7 @@ class VirtualUserBehavior private constructor(
     ): VirtualUserBehavior = Builder(this).load(load).build()
 
     class Builder(
-        private var scenario: Class<out Scenario>
+        private var scenarioClass: String
     ) {
         private var results: Path = Paths.get(".")
         private var load: VirtualUserLoad = VirtualUserLoad.Builder().build()
@@ -129,7 +129,7 @@ class VirtualUserBehavior private constructor(
          */
         fun results(results: Path) = apply { this.results = results }
 
-        fun scenario(scenario: Class<out Scenario>) = apply { this.scenario = scenario }
+        fun scenario(scenario: Class<out Scenario>) = apply { this.scenarioClass = scenario.canonicalName }
         fun load(load: VirtualUserLoad) = apply { this.load = load }
         fun maxOverhead(maxOverhead: Duration) = apply { this.maxOverhead = maxOverhead }
         fun seed(seed: Long) = apply { this.seed = seed }
@@ -150,13 +150,19 @@ class VirtualUserBehavior private constructor(
         fun userGenerator(userGenerator: Class<out UserGenerator>) = apply { this.userGenerator = userGenerator }
 
         constructor(
+            scenario: Class<out Scenario>
+        ) : this(
+            scenarioClass = scenario.canonicalName
+        )
+
+        constructor(
             behavior: VirtualUserBehavior
         ) : this(
-            scenario = behavior.scenario
+            scenarioClass = behavior.scenarioClass
         ) {
             load = behavior.load
             maxOverhead = behavior.maxOverhead
-            scenario = behavior.scenario
+            scenarioClass = behavior.scenarioClass
             diagnosticsLimit = behavior.diagnosticsLimit
             browser = behavior.browser
             logging = behavior.logging
@@ -168,7 +174,7 @@ class VirtualUserBehavior private constructor(
         fun build(): VirtualUserBehavior = VirtualUserBehavior(
             help = false,
             results = results,
-            scenario = scenario,
+            scenarioClass = scenarioClass,
             load = load,
             maxOverhead = maxOverhead,
             seed = seed,
