@@ -1,18 +1,13 @@
 package com.atlassian.performance.tools.virtualusers
 
-import com.atlassian.performance.tools.infrastructure.api.database.MySqlDatabase
-import com.atlassian.performance.tools.infrastructure.api.dataset.Dataset
-import com.atlassian.performance.tools.infrastructure.api.dataset.HttpDatasetPackage
-import com.atlassian.performance.tools.infrastructure.api.jira.JiraHomePackage
+import com.atlassian.performance.tools.virtualusers.TestJira.MANY_USERS_JIRA
 import com.atlassian.performance.tools.virtualusers.api.TemporalRate
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
 import com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator
-import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf424WorkaroundJswDistro
 import org.junit.Test
-import java.net.URI
 import java.time.Duration
 import java.util.concurrent.Executors
 
@@ -20,26 +15,6 @@ import java.util.concurrent.Executors
  * Tests integration of [LoadTest] + [RestUserGenerator].
  */
 class LoadTestUserCreationIT {
-
-    private val dataset: Dataset = URI("https://s3-eu-central-1.amazonaws.com/")
-        .resolve("jpt-custom-datasets-storage-a008820-datasetbucket-dah44h6l1l8p/")
-        .resolve("jsw-7.13.0-100k-users-sync/")
-        .let { bucket ->
-            Dataset(
-                database = MySqlDatabase(
-                    HttpDatasetPackage(
-                        uri = bucket.resolve("database.tar.bz2"),
-                        downloadTimeout = Duration.ofMinutes(6)
-                    )
-                ),
-                jiraHomeSource = JiraHomePackage(HttpDatasetPackage(
-                    uri = bucket.resolve("jirahome.tar.bz2"),
-                    downloadTimeout = Duration.ofMinutes(6)
-                )),
-                label = "100k users"
-            )
-        }
-    private val jiraFormula = DockerJiraFormula(Jperf424WorkaroundJswDistro("7.13.0"), dataset)
 
     @Test
     fun shouldCreateUsersInParallelDespiteBigUserBase() {
@@ -53,7 +28,7 @@ class LoadTestUserCreationIT {
             .build()
         val loadSlices = load.slice(nodes)
 
-        jiraFormula.runWithJira { jira ->
+        MANY_USERS_JIRA.runWithJira { jira ->
             (0 until nodes)
                 .map { loadSlices[it] }
                 .map { loadTest(jira, it, RestUserGenerator::class.java) }
