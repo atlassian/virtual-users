@@ -23,7 +23,8 @@ class EntryPointIT {
     fun shouldProduceMetrics() {
         val desiredTotalTime = Duration.ofMinutes(2)
 
-        val result = runMain(desiredTotalTime)
+        val nodeResult = runMain(desiredTotalTime)
+        val result = nodeResult.listResults().last()
 
         val tasks = result.streamTasks().toList()
         val actions = result.streamActions().toList()
@@ -34,9 +35,10 @@ class EntryPointIT {
             .contains(ACTING.label, THROTTLING.label, DIAGNOSING.label)
             .doesNotContain(MYSTERY.label)
         assertThat(unaccountedTime).isLessThan(Duration.ofSeconds(5))
+        assertThat(nodeResult.nodeDistribution.parent.fileName.toString()).isEqualTo("test-results")
     }
 
-    private fun runMain(desiredTotalTime: Duration): VirtualUserResult {
+    private fun runMain(desiredTotalTime: Duration): VirtualUserNodeResult {
         val resultPath = TestVuNode.isolateTestNode(javaClass)
         SMALL_JIRA.runWithJira { jira ->
             main(arrayOf(
@@ -56,8 +58,6 @@ class EntryPointIT {
             ))
         }
         return VirtualUserNodeResult(resultPath)
-            .listResults()
-            .last()
     }
 
     private fun isOk() = Condition<ActionMetric>(Predicate { it.result == ActionResult.OK }, "OK")
