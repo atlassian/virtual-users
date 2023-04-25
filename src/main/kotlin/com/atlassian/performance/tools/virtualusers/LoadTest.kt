@@ -72,11 +72,7 @@ internal class LoadTest(
         Thread.sleep(load.hold.toMillis())
         setUpJira()
         applyLoad(users)
-        val nodesDump = nodeResult.nodeDistribution.toFile()
-        nodesDump.ensureParentDirectory().bufferedWriter().use {
-            nodeCounter.dump(it)
-        }
-        logger.debug("Dumped node's counts to $nodesDump")
+        nodeResult.writeNodeCounts().use { nodeCounter.dump(it) }
         return nodeResult
     }
 

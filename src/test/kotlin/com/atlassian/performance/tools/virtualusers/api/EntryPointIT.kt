@@ -36,6 +36,9 @@ class EntryPointIT {
             .doesNotContain(MYSTERY.label)
         assertThat(unaccountedTime).isLessThan(Duration.ofSeconds(5))
         assertThat(nodeResult.nodeDistribution.parent.fileName.toString()).isEqualTo("test-results")
+        assertThat(nodeResult.countVusPerNode())
+            .hasSize(1)
+            .containsValue(1)
     }
 
     private fun runMain(desiredTotalTime: Duration): VirtualUserNodeResult {
