@@ -1,8 +1,10 @@
 package com.atlassian.performance.tools.virtualusers.api
 
 import com.atlassian.performance.tools.io.api.directories
+import com.atlassian.performance.tools.io.api.ensureParentDirectory
+import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
+import java.io.BufferedWriter
 import java.nio.file.Path
-import java.util.UUID
 
 /**
  * Points to results of multiple virtual users from a single VU node.
@@ -30,4 +32,18 @@ class VirtualUserNodeResult(
             .resolve(vu)
             .let { VirtualUserResult(it) }
     }
+
+    /**
+     * @return how many VUs visited a given application node (e.g. Jira node id)
+     */
+    fun countVusPerNode() : Map<String, Int> {
+        return nodeDistribution.toFile().bufferedReader().use { reader ->
+            JiraNodeCounter().parse(reader)
+        }
+    }
+
+    internal fun writeNodeCounts(): BufferedWriter = nodeDistribution
+        .toFile()
+        .ensureParentDirectory()
+        .bufferedWriter()
 }

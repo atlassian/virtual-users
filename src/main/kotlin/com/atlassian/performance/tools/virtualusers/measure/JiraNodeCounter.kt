@@ -1,9 +1,11 @@
 package com.atlassian.performance.tools.virtualusers.measure
 
 import org.apache.commons.csv.CSVFormat
+import org.apache.commons.csv.CSVParser
 import org.apache.commons.csv.CSVPrinter
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import java.io.Reader
 import java.lang.Exception
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -35,6 +37,16 @@ internal class JiraNodeCounter {
             printer.println()
             printer.flush()
         }
+    }
+
+    fun parse(reader: Reader): Map<String, Int> {
+        return CSVParser(reader, CSVFormat.DEFAULT)
+            .map { record -> record.toList() }
+            .associate { fields ->
+                val nodeId = fields[0]
+                val count = fields[1].toInt()
+                nodeId to count
+            }
     }
 
     private fun getResults(): Map<String, Int> {

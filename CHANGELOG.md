@@ -23,6 +23,9 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.13.2...master
 
+### Added
+- Add `VirtualUserNodeResult.countVusPerNode` to replace the `test-results/nodes.csv` file convention.
+
 ### Fixed
 - Restore `nodes.csv` location convention. Fix [JPERF-748].
 
