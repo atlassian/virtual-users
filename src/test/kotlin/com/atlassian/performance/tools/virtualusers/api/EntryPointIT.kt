@@ -1,49 +1,23 @@
 package com.atlassian.performance.tools.virtualusers.api
 
-import com.atlassian.performance.tools.infrastructure.api.database.MySqlDatabase
-import com.atlassian.performance.tools.infrastructure.api.dataset.Dataset
-import com.atlassian.performance.tools.infrastructure.api.dataset.HttpDatasetPackage
-import com.atlassian.performance.tools.infrastructure.api.jira.JiraHomePackage
 import com.atlassian.performance.tools.jiraactions.api.ActionMetric
 import com.atlassian.performance.tools.jiraactions.api.ActionResult
-import com.atlassian.performance.tools.virtualusers.DockerJiraFormula
 import com.atlassian.performance.tools.virtualusers.SimpleScenario
+import com.atlassian.performance.tools.virtualusers.TestJira.SMALL_JIRA
 import com.atlassian.performance.tools.virtualusers.TestVuNode
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.ACTING
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.DIAGNOSING
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.MYSTERY
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.THROTTLING
 import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeBrowser
-import com.atlassian.performance.tools.virtualusers.lib.infrastructure.Jperf424WorkaroundJswDistro
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Condition
 import org.junit.Test
-import java.net.URI
 import java.time.Duration
 import java.util.function.Predicate
 import kotlin.streams.toList
 
 class EntryPointIT {
-
-    private val smallDataset = URI("https://s3-eu-west-1.amazonaws.com/")
-        .resolve("jpt-custom-datasets-storage-a008820-datasetbucket-1sjxdtrv5hdhj/")
-        .resolve("dataset-f8dba866-9d1b-492e-b76c-f4a78ac3958c/")
-        .let { bucket ->
-            Dataset(
-                label = "7k issues JSW 7.2.0",
-                database = MySqlDatabase(
-                    HttpDatasetPackage(
-                        uri = bucket.resolve("database.tar.bz2"),
-                        downloadTimeout = Duration.ofMinutes(5)
-                    )
-                ),
-                jiraHomeSource = JiraHomePackage(HttpDatasetPackage(
-                    uri = bucket.resolve("jirahome.tar.bz2"),
-                    downloadTimeout = Duration.ofMinutes(5)
-                ))
-            )
-        }
-    private val jiraFormula = DockerJiraFormula(Jperf424WorkaroundJswDistro("7.2.0"), smallDataset)
 
     @Test
     fun shouldProduceMetrics() {
@@ -64,7 +38,7 @@ class EntryPointIT {
 
     private fun runMain(desiredTotalTime: Duration): VirtualUserResult {
         val resultPath = TestVuNode.isolateTestNode(javaClass)
-        jiraFormula.runWithJira { jira ->
+        SMALL_JIRA.runWithJira { jira ->
             main(arrayOf(
                 "--jira-address", jira.peerAddress.toString(),
                 "--login", "admin",
