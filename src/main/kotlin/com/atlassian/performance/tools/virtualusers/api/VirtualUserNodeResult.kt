@@ -13,7 +13,7 @@ class VirtualUserNodeResult(
     nodePath: Path
 ) {
     private val vuResults = nodePath.resolve("test-results")
-    internal val nodeDistribution = nodePath.resolve("nodes.csv")
+    internal val nodeDistribution = vuResults.resolve("nodes.csv")
 
     fun listResults(): List<VirtualUserResult> {
         return vuResults
