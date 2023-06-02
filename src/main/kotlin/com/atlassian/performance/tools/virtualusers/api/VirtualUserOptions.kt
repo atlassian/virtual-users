@@ -381,12 +381,11 @@ class VirtualUserOptions(
     class Parser {
 
         /**
-         * Parses cli args.
+         * Parses CLI args.
          */
         fun parse(args: Array<String>): VirtualUserOptions {
             val parser: CommandLineParser = DefaultParser()
             val commandLine = parser.parse(options, args)
-            val results = commandLine.getOptionValue(resultsParameter)?.let { Paths.get(it) }
             val jiraAddress = URI(commandLine.getOptionValue(jiraAddressParameter))
             val adminLogin = commandLine.getOptionValue(loginParameter)
             val adminPassword = commandLine.getOptionValue(passwordParameter)
@@ -394,14 +393,12 @@ class VirtualUserOptions(
             val hold = Duration.parse(commandLine.getOptionValue(holdParameter))
             val ramp = Duration.parse(commandLine.getOptionValue(rampParameter))
             val flat = Duration.parse(commandLine.getOptionValue(flatParameter))
-            val maxOverallLoad = commandLine
-                .getOptionValue(maxOverallLoadParameter)
-                ?.let { it.split('/') }
-                ?.let { (actions, time) -> TemporalRate(actions.toDouble(), Duration.parse(time)) }
+            val maxOverallLoad = getMaxOverallLoad(commandLine)
             val diagnosticsLimit = commandLine.getOptionValue(diagnosticsLimitParameter).toInt()
             val seed = commandLine.getOptionValue(seedParameter).toLong()
             val skipSetup = commandLine.hasOption(skipSetupParameter)
             val createUsers = commandLine.hasOption(createUsersParameter)
+            val results = commandLine.getOptionValue(resultsParameter)?.let { Paths.get(it) }
             val browser = getBrowser(commandLine)
             val logging = getLogging(commandLine)
             val userGenerator = if (createUsers) RestUserGenerator::class.java else getUserGenerator(commandLine)
@@ -412,11 +409,8 @@ class VirtualUserOptions(
                     password = adminPassword
                 ),
                 behavior = VirtualUserBehavior.Builder(getScenario(commandLine))
-                    .also { if (results != null) it.results(results) }
                     .diagnosticsLimit(diagnosticsLimit)
                     .seed(seed)
-                    .also { if (browser != null) it.browser(browser) }
-                    .also { if (logging != null) it.logging(logging) }
                     .load(
                         VirtualUserLoad.Builder()
                             .virtualUsers(virtualUsers)
@@ -427,6 +421,9 @@ class VirtualUserOptions(
                             .build()
                     )
                     .skipSetup(skipSetup)
+                    .also { if (results != null) it.results(results) }
+                    .also { if (browser != null) it.browser(browser) }
+                    .also { if (logging != null) it.logging(logging) }
                     .also { if (userGenerator != null) it.userGenerator(userGenerator) }
                     .build()
             )
@@ -438,6 +435,11 @@ class VirtualUserOptions(
             val scenarioConstructor = scenarioClass.getConstructor()
             return (scenarioConstructor.newInstance() as Scenario)::class.java
         }
+
+        private fun getMaxOverallLoad(commandLine: CommandLine) = commandLine
+            .getOptionValue(maxOverallLoadParameter)
+            ?.split('/')
+            ?.let { (actions, time) -> TemporalRate(actions.toDouble(), Duration.parse(time)) }
 
         private fun getBrowser(commandLine: CommandLine): Class<out Browser>? {
             return if (commandLine.hasOption(browserParameter)) {
