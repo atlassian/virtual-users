@@ -386,7 +386,7 @@ class VirtualUserOptions(
         fun parse(args: Array<String>): VirtualUserOptions {
             val parser: CommandLineParser = DefaultParser()
             val commandLine = parser.parse(options, args)
-            val results: Path? = Paths.get(commandLine.getOptionValue(resultsParameter))
+            val results: String? = commandLine.getOptionValue(resultsParameter)
             val jiraAddress = URI(commandLine.getOptionValue(jiraAddressParameter))
             val adminLogin = commandLine.getOptionValue(loginParameter)
             val adminPassword = commandLine.getOptionValue(passwordParameter)
@@ -410,7 +410,7 @@ class VirtualUserOptions(
                     password = adminPassword
                 ),
                 behavior = VirtualUserBehavior.Builder(getScenario(commandLine))
-                    .let { if (results != null) it.results(results) else it }
+                    .let { if (results != null) it.results(Paths.get(results)) else it }
                     .diagnosticsLimit(diagnosticsLimit)
                     .seed(seed)
                     .browser(getBrowser(commandLine))
