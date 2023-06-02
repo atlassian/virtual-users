@@ -386,7 +386,7 @@ class VirtualUserOptions(
         fun parse(args: Array<String>): VirtualUserOptions {
             val parser: CommandLineParser = DefaultParser()
             val commandLine = parser.parse(options, args)
-            val results: String? = commandLine.getOptionValue(resultsParameter)
+            val results = commandLine.getOptionValue(resultsParameter)?.let { Paths.get(it) }
             val jiraAddress = URI(commandLine.getOptionValue(jiraAddressParameter))
             val adminLogin = commandLine.getOptionValue(loginParameter)
             val adminPassword = commandLine.getOptionValue(passwordParameter)
@@ -402,7 +402,9 @@ class VirtualUserOptions(
             val seed = commandLine.getOptionValue(seedParameter).toLong()
             val skipSetup = commandLine.hasOption(skipSetupParameter)
             val createUsers = commandLine.hasOption(createUsersParameter)
-
+            val browser = getBrowser(commandLine)
+            val logging = getLogging(commandLine)
+            val userGenerator = if (createUsers) RestUserGenerator::class.java else getUserGenerator(commandLine)
             return VirtualUserOptions(
                 target = VirtualUserTarget(
                     webApplication = jiraAddress,
@@ -410,22 +412,22 @@ class VirtualUserOptions(
                     password = adminPassword
                 ),
                 behavior = VirtualUserBehavior.Builder(getScenario(commandLine))
-                    .let { if (results != null) it.results(Paths.get(results)) else it }
+                    .also { if (results != null) it.results(results) }
                     .diagnosticsLimit(diagnosticsLimit)
                     .seed(seed)
-                    .browser(getBrowser(commandLine))
-                    .logging(getLogging(commandLine))
+                    .also { if (browser != null) it.browser(browser) }
+                    .also { if (logging != null) it.logging(logging) }
                     .load(
                         VirtualUserLoad.Builder()
                             .virtualUsers(virtualUsers)
                             .hold(hold)
                             .ramp(ramp)
                             .flat(flat)
-                            .let { if (maxOverallLoad != null) it.maxOverallLoad(maxOverallLoad) else it }
+                            .also { if (maxOverallLoad != null) it.maxOverallLoad(maxOverallLoad) }
                             .build()
                     )
                     .skipSetup(skipSetup)
-                    .userGenerator(if (createUsers) RestUserGenerator::class.java else getUserGenerator(commandLine))
+                    .also { if (userGenerator != null) it.userGenerator(userGenerator) }
                     .build()
             )
         }
@@ -437,31 +439,31 @@ class VirtualUserOptions(
             return (scenarioConstructor.newInstance() as Scenario)::class.java
         }
 
-        private fun getBrowser(commandLine: CommandLine): Class<out Browser> {
+        private fun getBrowser(commandLine: CommandLine): Class<out Browser>? {
             return if (commandLine.hasOption(browserParameter)) {
                 val browser = commandLine.getOptionValue(browserParameter)
                 val browserClass = Class.forName(browser)
                 val browserConstructor = browserClass.getConstructor()
                 (browserConstructor.newInstance() as Browser)::class.java
-            } else GoogleChrome::class.java
+            } else null
         }
 
-        private fun getLogging(commandLine: CommandLine): Class<out AbstractConfiguration> {
+        private fun getLogging(commandLine: CommandLine): Class<out AbstractConfiguration>? {
             return if (commandLine.hasOption(loggingParameter)) {
                 val logging = commandLine.getOptionValue(loggingParameter)
                 val loggingClass = Class.forName(logging)
                 val loggingConstructor = loggingClass.getConstructor()
                 (loggingConstructor.newInstance() as AbstractConfiguration)::class.java
-            } else LogConfiguration::class.java
+            } else null
         }
 
-        private fun getUserGenerator(commandLine: CommandLine): Class<out UserGenerator> {
+        private fun getUserGenerator(commandLine: CommandLine): Class<out UserGenerator>? {
             return if (commandLine.hasOption(userGeneratorParameter)) {
                 val userGenerator = commandLine.getOptionValue(userGeneratorParameter)
                 val userGeneratorClass = Class.forName(userGenerator)
                 val userGeneratorConstructor = userGeneratorClass.getConstructor()
                 (userGeneratorConstructor.newInstance() as UserGenerator)::class.java
-            } else SuppliedUserGenerator::class.java
+            } else null
         }
     }
 }
