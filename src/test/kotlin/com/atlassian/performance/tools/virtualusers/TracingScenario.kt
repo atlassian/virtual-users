@@ -8,6 +8,7 @@ import com.atlassian.performance.tools.jiraactions.api.memories.User
 import com.atlassian.performance.tools.jiraactions.api.memories.UserMemory
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicInteger
 
 internal class TracingScenario : Scenario {
 
@@ -23,7 +24,7 @@ internal class TracingScenario : Scenario {
     override fun getSetupAction(jira: WebJira, meter: ActionMeter): Action {
         return object : Action {
             override fun run() {
-                setup = true
+                setupCounter.incrementAndGet()
             }
         }
     }
@@ -37,15 +38,13 @@ internal class TracingScenario : Scenario {
     }
 
     companion object Trace {
-        var setup = false
-            private set
+        val setupCounter = AtomicInteger(0)
 
         fun reset() {
-            setup = false
+            setupCounter.set(0)
             users = CopyOnWriteArrayList()
         }
 
         var users = CopyOnWriteArrayList<User>()
-
     }
 }

@@ -27,7 +27,7 @@ class LoadTestTest {
     private val globalStateLock = Object()
 
     @Test
-    fun shouldRunLoadTestWithoutExceptions() {
+    fun shouldSetUpOnce() {
         val loadTest = loadTest(
             virtualUsers = 6,
             skipSetup = false
@@ -35,11 +35,12 @@ class LoadTestTest {
 
         synchronized(globalStateLock) {
             TestBrowser.reset()
+            TracingScenario.reset()
             loadTest.run()
         }
 
-        assertThat(TestBrowser.timesStarted.get()).isEqualTo(7)
-        assertThat(TracingScenario.setup).isEqualTo(true)
+        assertThat(TestBrowser.timesStarted.get()).isEqualTo(6)
+        assertThat(TracingScenario.setupCounter).hasValue(1)
     }
 
     @Test
@@ -73,7 +74,7 @@ class LoadTestTest {
         }
 
         assertThat(TestBrowser.timesStarted.get()).isEqualTo(4)
-        assertThat(TracingScenario.setup).isEqualTo(false)
+        assertThat(TracingScenario.setupCounter).hasValue(0)
     }
 
     @Test
@@ -138,7 +139,7 @@ class LoadTestTest {
         )
     )
 
-    private class HardcodedUserGenerator : UserGenerator {
+    class HardcodedUserGenerator : UserGenerator {
 
         companion object Counter {
             val usersCreated: AtomicInteger = AtomicInteger(0)
@@ -153,7 +154,8 @@ class LoadTestTest {
         }
     }
 
-    internal class TestWebDriver : RemoteWebDriverMock(mapOf(By.id("footer-build-information") to listOf(WebElementMock("jira-node"))))
+    internal class TestWebDriver :
+        RemoteWebDriverMock(mapOf(By.id("footer-build-information") to listOf(WebElementMock("jira-node"))))
 
     internal class TestBrowser : Browser {
 

@@ -9,15 +9,16 @@ import java.io.Reader
 import java.lang.Exception
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.Supplier
 
-internal class JiraNodeCounter {
+public class ClusterNodeCounter {
 
     private val counter: MutableMap<String, AtomicInteger> = ConcurrentHashMap()
     private val logger: Logger = LogManager.getLogger(this::class.java)
 
-    fun count(node: ApplicationNode) {
+    fun count(node: Supplier<String>) {
         val nodeId = try {
-            node.identify()
+            node.get()
         } catch (exception: Exception) {
             logger.warn("Failed to identify jira node", exception)
             "unknown"

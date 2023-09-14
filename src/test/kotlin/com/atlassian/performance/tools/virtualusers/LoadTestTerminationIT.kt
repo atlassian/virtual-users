@@ -73,9 +73,7 @@ class LoadTestTerminationIT {
                 .results(TestVuNode.isolateTestNode(javaClass))
                 .build()
         )
-        return LoadTest(
-            options = options
-        )
+        return LoadTest(options)
     }
 
     private fun testTermination(
@@ -230,7 +228,7 @@ private class NavigatingScenario : Scenario {
         meter: ActionMeter
     ): List<Action> = listOf(
         object : Action {
-            private val navigation = ActionType("Navigation") { Unit }
+            private val navigation = ActionType("Navigation") { }
             override fun run() {
                 meter.measure(navigation) {
                     jira.navigateTo("whatever")
