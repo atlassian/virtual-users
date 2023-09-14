@@ -3,11 +3,15 @@ package com.atlassian.performance.tools.virtualusers.api
 import com.atlassian.performance.tools.jiraactions.api.memories.User
 import com.atlassian.performance.tools.jirasoftwareactions.api.JiraSoftwareScenario
 import com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome
+import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
 import com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator
 import com.atlassian.performance.tools.virtualusers.api.users.SuppliedUserGenerator
 import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
+import com.atlassian.performance.tools.virtualusers.engine.HttpLoadProcess
+import com.atlassian.performance.tools.virtualusers.engine.LoadProcess
+import com.atlassian.performance.tools.virtualusers.engine.LoadThreadFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
 import org.junit.Test
@@ -113,6 +117,42 @@ class VirtualUserOptionsTest {
         val reparsedCliArgs = parser.parse(cliArgs).toCliArgs()
 
         assertThat(reparsedCliArgs).isEqualTo(cliArgs)
+    }
+
+    @Test
+    fun shouldParseWithCustomLoadProcess() {
+        val options = optionsTemplate.withBehavior(
+            VirtualUserBehavior.Builder()
+                .loadProcess(MockLoadProcess::class.java)
+                .build()
+        )
+
+        assertThat(options.toCliArgs())
+            .containsSequence(
+                "--load-process",
+                "com.atlassian.performance.tools.virtualusers.api.VirtualUserOptionsTest.MockLoadProcess"
+            )
+            .containsSequence(
+                "--scenario",
+                "com.atlassian.performance.tools.virtualusers.engine.DoNotUseWhenEngineIsProvided"
+            )
+    }
+
+    @Test
+    fun shouldParseWithEmptyConstructor() {
+        val options = optionsTemplate.withBehavior(
+            VirtualUserBehavior.Builder().build()
+        )
+
+        assertThat(options.toCliArgs())
+            .containsSequence(
+                "--load-process",
+                "com.atlassian.performance.tools.virtualusers.engine.HttpLoadProcess"
+            )
+            .containsSequence(
+                "--scenario",
+                "com.atlassian.performance.tools.virtualusers.engine.DoNotUseWhenEngineIsProvided"
+            )
     }
 
     @Test
@@ -256,6 +296,11 @@ class VirtualUserOptionsTest {
         override fun generateUser(options: VirtualUserOptions): User {
             return User("test", "test")
         }
+    }
 
+    private class MockLoadProcess : LoadProcess {
+        override fun setUp(container: LoadProcessContainer): LoadThreadFactory {
+            throw Exception("no need to call it in this test")
+        }
     }
 }

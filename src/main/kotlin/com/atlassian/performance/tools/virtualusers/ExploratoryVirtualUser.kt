@@ -2,41 +2,35 @@ package com.atlassian.performance.tools.virtualusers
 
 import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
-import com.atlassian.performance.tools.virtualusers.api.TemporalRate
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.ACTING
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.DIAGNOSING
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.THROTTLING
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
 import com.atlassian.performance.tools.virtualusers.collections.CircularIterator
-import com.atlassian.performance.tools.virtualusers.measure.ApplicationNode
-import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import java.lang.Thread.sleep
 import java.time.Duration
 import java.time.Instant.now
 import java.util.concurrent.atomic.AtomicBoolean
 
+// TODO rename and put into API
 /**
  * Applies load on a Jira via page objects. Explores the instance to learn about data and choose pages to visit.
  * Wanders preset Jira pages with different proportions of each page. Their order is random.
  */
 internal class ExploratoryVirtualUser(
-    private val node: ApplicationNode,
-    private val nodeCounter: JiraNodeCounter,
+    private val load: VirtualUserLoad,
+    private val taskMeter: ActionMeter,
     private val actions: Iterable<Action>,
-    private val setUpAction: Action,
-    private val logInAction: Action,
-    private val maxLoad: TemporalRate,
-    private val diagnostics: Diagnostics,
-    private val taskMeter: ActionMeter
+    private val diagnostics: Diagnostics
 ) {
     private val logger: Logger = LogManager.getLogger(this::class.java)
 
-    fun setUpJira() {
-        logger.info("Setting up Jira...")
-        runWithDiagnostics(logInAction)
-        runWithDiagnostics(setUpAction)
-        logger.info("Jira is set up")
+    fun hold() {
+        logger.info("Waiting for ${load.hold}")
+        sleep(load.hold.toMillis())
     }
 
     /**
@@ -46,8 +40,6 @@ internal class ExploratoryVirtualUser(
         done: AtomicBoolean
     ) {
         logger.info("Applying load...")
-        logIn()
-        nodeCounter.count(node)
         val actionNames = actions.map { it.javaClass.simpleName }
         logger.debug("Circling through $actionNames")
         var actionsPerformed = 0.0
@@ -63,23 +55,19 @@ internal class ExploratoryVirtualUser(
                 logger.error("Failed to run $action, but we keep running", e)
             } finally {
                 actionsPerformed++
-                val expectedTimeSoFar = maxLoad.scaleChange(actionsPerformed).time
+                val expectedTimeSoFar = load.maxOverallLoad.scaleChange(actionsPerformed).time
                 val actualTimeSoFar = Duration.between(start, now())
                 val extraTime = expectedTimeSoFar - actualTimeSoFar
                 if (extraTime > Duration.ZERO) {
                     taskMeter.measure(THROTTLING) {
-                        Thread.sleep(extraTime.toMillis())
+                        sleep(extraTime.toMillis())
                     }
                 }
             }
         }
     }
 
-    private fun logIn() {
-        runWithDiagnostics(logInAction)
-    }
-
-    private fun runWithDiagnostics(
+    internal fun runWithDiagnostics(
         action: Action
     ) {
         try {

@@ -2,7 +2,7 @@ package com.atlassian.performance.tools.virtualusers.api
 
 import com.atlassian.performance.tools.io.api.directories
 import com.atlassian.performance.tools.io.api.ensureParentDirectory
-import com.atlassian.performance.tools.virtualusers.measure.JiraNodeCounter
+import com.atlassian.performance.tools.virtualusers.measure.ClusterNodeCounter
 import java.io.BufferedWriter
 import java.nio.file.Path
 
@@ -38,7 +38,7 @@ class VirtualUserNodeResult(
      */
     fun countVusPerNode() : Map<String, Int> {
         return nodeDistribution.toFile().bufferedReader().use { reader ->
-            JiraNodeCounter().parse(reader)
+            ClusterNodeCounter().parse(reader)
         }
     }
 

@@ -1,18 +1,17 @@
 package com.atlassian.performance.tools.virtualusers
 
 import com.atlassian.performance.tools.jiraactions.api.memories.User
-import com.atlassian.performance.tools.virtualusers.api.browsers.CloseableRemoteWebDriver
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
 import org.apache.logging.log4j.LogManager
 import java.io.BufferedWriter
 import java.time.Duration
-import java.util.UUID
+import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
-internal class LoadSegment(
-    val driver: CloseableRemoteWebDriver,
+internal class LoadSegment<CLIENT : AutoCloseable>(
+    val client: CLIENT,
     val actionOutput: BufferedWriter,
     val taskOutput: BufferedWriter,
     val diagnostics: Diagnostics,
@@ -33,7 +32,7 @@ internal class LoadSegment(
         }
         try {
             executor
-                .submit { driver.close() }
+                .submit { client.close() }
                 .get(DRIVER_CLOSE_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)
         } catch (e: Exception) {
             LOGGER.warn("Failed to close WebDriver", e)
@@ -44,4 +43,15 @@ internal class LoadSegment(
         private val LOGGER = LogManager.getLogger(this::class.java)
         internal val DRIVER_CLOSE_TIMEOUT = Duration.ofSeconds(30)
     }
+}
+
+internal fun List<LoadSegment<*>>.close() {
+    val logger = LogManager.getLogger(this::class.java)
+    logger.info("Closing segments")
+    val closePool = Executors.newCachedThreadPool { Thread(it, "close-segment") }
+    this
+        .map { closePool.submit { it.close() } }
+        .forEach { it.get() }
+    logger.info("Segments closed")
+    closePool.shutdown()
 }

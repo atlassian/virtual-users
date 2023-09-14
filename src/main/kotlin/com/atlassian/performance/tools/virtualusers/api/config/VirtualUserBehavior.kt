@@ -8,6 +8,7 @@ import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeB
 import com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator
 import com.atlassian.performance.tools.virtualusers.api.users.SuppliedUserGenerator
 import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
+import com.atlassian.performance.tools.virtualusers.engine.*
 import com.atlassian.performance.tools.virtualusers.logs.LogConfiguration
 import org.apache.logging.log4j.core.config.AbstractConfiguration
 import java.nio.file.Path
@@ -24,6 +25,7 @@ class VirtualUserBehavior private constructor(
     internal val help: Boolean,
     internal val results: Path,
     internal val scenario: Class<out Scenario>,
+    internal val loadProcess: Class<out LoadProcess>,
     val load: VirtualUserLoad,
     val maxOverhead: Duration,
     internal val seed: Long,
@@ -48,6 +50,7 @@ class VirtualUserBehavior private constructor(
     ) : this(
         help = help,
         results = Paths.get("."),
+        loadProcess = ScenarioToLoadProcessAdapter::class.java,
         scenario = scenario,
         load = load,
         maxOverhead = Duration.ofMinutes(5),
@@ -110,9 +113,9 @@ class VirtualUserBehavior private constructor(
         load: VirtualUserLoad
     ): VirtualUserBehavior = Builder(this).load(load).build()
 
-    class Builder(
-        private var scenario: Class<out Scenario>
-    ) {
+    class Builder() {
+        private var loadProcess: Class<out LoadProcess> = HttpLoadProcess::class.java
+        private var scenario: Class<out Scenario> = DoNotUseWhenEngineIsProvided::class.java
         private var results: Path = Paths.get(".")
         private var load: VirtualUserLoad = VirtualUserLoad.Builder().build()
         private var maxOverhead: Duration = Duration.ofMinutes(5)
@@ -123,17 +126,37 @@ class VirtualUserBehavior private constructor(
         private var skipSetup = false
         private var userGenerator: Class<out UserGenerator> = SuppliedUserGenerator::class.java
 
+        constructor(scenario: Class<out Scenario>) : this() {
+            this.loadProcess = ScenarioToLoadProcessAdapter::class.java
+            this.scenario = scenario
+        }
+
         /**
          * Points to a [VirtualUserNodeResult].
          * @since 3.12.0
          */
         fun results(results: Path) = apply { this.results = results }
 
-        fun scenario(scenario: Class<out Scenario>) = apply { this.scenario = scenario }
+        fun loadProcess(loadProcess: Class<out LoadProcess>) = apply { this.loadProcess = loadProcess }
+
+        @Deprecated(
+            "Use engine instead",
+            ReplaceWith(
+                "engine(ScenarioToEngineAdapter::class.java)",
+                "com.atlassian.performance.tools.virtualusers.ScenarioToEngineAdapter"
+            )
+        )
+        fun scenario(scenario: Class<out Scenario>) = apply {
+            this.scenario = scenario
+            loadProcess(ScenarioToLoadProcessAdapter::class.java)
+        }
+
         fun load(load: VirtualUserLoad) = apply { this.load = load }
         fun maxOverhead(maxOverhead: Duration) = apply { this.maxOverhead = maxOverhead }
         fun seed(seed: Long) = apply { this.seed = seed }
         fun diagnosticsLimit(diagnosticsLimit: Int) = apply { this.diagnosticsLimit = diagnosticsLimit }
+
+        @Deprecated("Include your browser/WebDriver logic in your Engine")
         fun browser(browser: Class<out Browser>) = apply { this.browser = browser }
         fun logging(logging: Class<out AbstractConfiguration>) = apply { this.logging = logging }
         fun skipSetup(skipSetup: Boolean) = apply { this.skipSetup = skipSetup }
@@ -151,11 +174,10 @@ class VirtualUserBehavior private constructor(
 
         constructor(
             behavior: VirtualUserBehavior
-        ) : this(
-            scenario = behavior.scenario
-        ) {
+        ) : this() {
             load = behavior.load
             maxOverhead = behavior.maxOverhead
+            loadProcess = behavior.loadProcess
             scenario = behavior.scenario
             diagnosticsLimit = behavior.diagnosticsLimit
             browser = behavior.browser
@@ -164,10 +186,10 @@ class VirtualUserBehavior private constructor(
             userGenerator = behavior.userGenerator
         }
 
-        @Suppress("DEPRECATION")
         fun build(): VirtualUserBehavior = VirtualUserBehavior(
             help = false,
             results = results,
+            loadProcess = loadProcess,
             scenario = scenario,
             load = load,
             maxOverhead = maxOverhead,

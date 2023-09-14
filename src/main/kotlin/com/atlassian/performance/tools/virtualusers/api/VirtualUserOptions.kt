@@ -3,19 +3,16 @@ package com.atlassian.performance.tools.virtualusers.api
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 import com.atlassian.performance.tools.jirasoftwareactions.api.JiraSoftwareScenario
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
-import com.atlassian.performance.tools.virtualusers.api.browsers.GoogleChrome
 import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeBrowser
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
 import com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator
-import com.atlassian.performance.tools.virtualusers.api.users.SuppliedUserGenerator
 import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
-import com.atlassian.performance.tools.virtualusers.logs.LogConfiguration
+import com.atlassian.performance.tools.virtualusers.engine.LoadProcess
 import org.apache.commons.cli.*
 import org.apache.logging.log4j.core.config.AbstractConfiguration
 import java.net.URI
 import java.net.URL
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.Duration
 import java.util.*
@@ -154,6 +151,7 @@ class VirtualUserOptions(
         const val flatParameter = "flat"
         const val maxOverallLoadParameter = "max-overall-load"
         const val scenarioParameter = "scenario"
+        const val loadProcessParameter = "load-process"
         const val browserParameter = "browser"
         const val seedParameter = "seed"
         const val diagnosticsLimitParameter = "diagnostics-limit"
@@ -256,7 +254,13 @@ class VirtualUserOptions(
                     .longOpt(scenarioParameter)
                     .hasArg(true)
                     .desc("Custom scenario")
-                    .required()
+                    .build()
+            )
+            .addOption(
+                Option.builder()
+                    .longOpt(loadProcessParameter)
+                    .hasArg(true)
+                    .desc("Custom load process")
                     .build()
             )
             .addOption(
@@ -342,6 +346,7 @@ class VirtualUserOptions(
             flatParameter to behavior.load.flat,
             maxOverallLoadParameter to behavior.load.maxOverallLoad.let { "${it.change}/${it.time}" },
             scenarioParameter to behavior.scenario.canonicalName,
+            loadProcessParameter to behavior.loadProcess.canonicalName,
             diagnosticsLimitParameter to behavior.diagnosticsLimit,
             seedParameter to behavior.seed,
             browserParameter to behavior.browser.name,
@@ -408,7 +413,7 @@ class VirtualUserOptions(
                     userName = adminLogin,
                     password = adminPassword
                 ),
-                behavior = VirtualUserBehavior.Builder(getScenario(commandLine))
+                behavior = buildBehavior(commandLine)
                     .diagnosticsLimit(diagnosticsLimit)
                     .seed(seed)
                     .load(
@@ -427,6 +432,24 @@ class VirtualUserOptions(
                     .also { if (userGenerator != null) it.userGenerator(userGenerator) }
                     .build()
             )
+        }
+
+        private fun buildBehavior(commandLine: CommandLine): VirtualUserBehavior.Builder {
+            val builder = VirtualUserBehavior.Builder()
+            if (commandLine.hasOption(loadProcessParameter)) {
+                builder.loadProcess(getLoadProcess(commandLine))
+            }
+            if (commandLine.hasOption(scenarioParameter)) {
+                builder.scenario(getScenario(commandLine))
+            }
+            return builder
+        }
+
+        private fun getLoadProcess(commandLine: CommandLine): Class<out LoadProcess> {
+            val loadProcess = commandLine.getOptionValue(loadProcessParameter)
+            val loadProcessClass = Class.forName(loadProcess)
+            val loadProcessConstructor = loadProcessClass.getConstructor()
+            return (loadProcessConstructor.newInstance() as LoadProcess)::class.java
         }
 
         private fun getScenario(commandLine: CommandLine): Class<out Scenario> {
