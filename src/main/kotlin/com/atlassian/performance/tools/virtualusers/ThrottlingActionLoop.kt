@@ -15,12 +15,12 @@ import java.time.Duration
 import java.time.Instant.now
 import java.util.concurrent.atomic.AtomicBoolean
 
-// TODO rename and put into API
 /**
- * Applies load on a Jira via page objects. Explores the instance to learn about data and choose pages to visit.
- * Wanders preset Jira pages with different proportions of each page. Their order is random.
+ * Respects [VirtualUserLoad.hold] and [VirtualUserLoad.maxOverallLoad].
+ * Loops through [actions] and uses [diagnostics] when  an action fails.
+ * Measures overheads with [taskMeter].
  */
-internal class ExploratoryVirtualUser(
+class ThrottlingActionLoop(
     private val load: VirtualUserLoad,
     private val taskMeter: ActionMeter,
     private val actions: Iterable<Action>,

@@ -8,7 +8,7 @@ import com.atlassian.performance.tools.jiraactions.api.memories.User
 import com.atlassian.performance.tools.jiraactions.api.memories.UserMemory
 import com.atlassian.performance.tools.jiraactions.api.memories.adaptive.AdaptiveUserMemory
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
-import com.atlassian.performance.tools.virtualusers.ExploratoryVirtualUser
+import com.atlassian.performance.tools.virtualusers.ThrottlingActionLoop
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
 import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContainer
@@ -77,7 +77,7 @@ private class ScenarioThreadFactory(
             DiagnosisLimit(behavior.diagnosticsLimit)
         )
         val userLogin = scenario.getLogInAction(webJira, meter, userMemory)
-        val looper = ExploratoryVirtualUser(
+        val looper = ThrottlingActionLoop(
             actions = scenario.getActions(webJira, random, meter),
             load = container.singleThreadLoad(),
             taskMeter = container.taskMeter(),
@@ -92,7 +92,7 @@ private class ScenarioThreadFactory(
         webJira: WebJira,
         meter: ActionMeter,
         target: VirtualUserTarget,
-        looper: ExploratoryVirtualUser
+        looper: ThrottlingActionLoop
     ) {
         if (!behavior.skipSetup) {
             synchronized(setUpActionRan) {
@@ -123,7 +123,7 @@ private class ScenarioThreadFactory(
 
 private class ScenarioThread(
     private val webJira: WebJira,
-    private val looper: ExploratoryVirtualUser,
+    private val looper: ThrottlingActionLoop,
     private val userLogin: Action,
     private val nodeCounter: ClusterNodeCounter
 ) : LoadThread {

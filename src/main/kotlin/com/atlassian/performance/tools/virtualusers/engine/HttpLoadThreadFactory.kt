@@ -6,7 +6,7 @@ import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
 import com.atlassian.performance.tools.jiraactions.api.memories.IssueKeyMemory
 import com.atlassian.performance.tools.jiraactions.api.memories.adaptive.AdaptiveIssueKeyMemory
-import com.atlassian.performance.tools.virtualusers.ExploratoryVirtualUser
+import com.atlassian.performance.tools.virtualusers.ThrottlingActionLoop
 import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
 import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContainer
 import com.atlassian.performance.tools.virtualusers.diagnostics.DisabledDiagnostics
@@ -42,7 +42,7 @@ private class HttpLoadThreadFactory : LoadThreadFactory {
         val actions = listOf(
             RestSearch(baseUri, http, container.actionMeter(), issueKeyMemory)
         )
-        val looper = ExploratoryVirtualUser(
+        val looper = ThrottlingActionLoop(
             container.singleThreadLoad(),
             container.taskMeter(),
             actions,
