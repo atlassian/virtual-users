@@ -50,7 +50,7 @@ class VirtualUserBehavior private constructor(
     ) : this(
         help = help,
         results = Paths.get("."),
-        loadProcess = ScenarioToLoadProcessAdapter::class.java,
+        loadProcess = ScenarioLoadProcess::class.java,
         scenario = scenario,
         load = load,
         maxOverhead = Duration.ofMinutes(5),
@@ -127,7 +127,7 @@ class VirtualUserBehavior private constructor(
         private var userGenerator: Class<out UserGenerator> = SuppliedUserGenerator::class.java
 
         constructor(scenario: Class<out Scenario>) : this() {
-            this.loadProcess = ScenarioToLoadProcessAdapter::class.java
+            this.loadProcess = ScenarioLoadProcess::class.java
             this.scenario = scenario
         }
 
@@ -148,7 +148,7 @@ class VirtualUserBehavior private constructor(
         )
         fun scenario(scenario: Class<out Scenario>) = apply {
             this.scenario = scenario
-            loadProcess(ScenarioToLoadProcessAdapter::class.java)
+            loadProcess(ScenarioLoadProcess::class.java)
         }
 
         fun load(load: VirtualUserLoad) = apply { this.load = load }

@@ -2,6 +2,7 @@ package com.atlassian.performance.tools.virtualusers.engine
 
 import com.atlassian.performance.tools.jiraactions.api.SeededRandom
 import com.atlassian.performance.tools.jiraactions.api.WebJira
+import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
 import com.atlassian.performance.tools.jiraactions.api.memories.User
 import com.atlassian.performance.tools.jiraactions.api.memories.UserMemory
@@ -9,7 +10,10 @@ import com.atlassian.performance.tools.jiraactions.api.memories.adaptive.Adaptiv
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 import com.atlassian.performance.tools.virtualusers.ExploratoryVirtualUser
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
-import com.atlassian.performance.tools.virtualusers.api.config.*
+import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
+import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContainer
+import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
+import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.*
 import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
 import com.atlassian.performance.tools.virtualusers.measure.ClusterNodeCounter
@@ -19,8 +23,7 @@ import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Supplier
 
-
-class ScenarioToLoadProcessAdapter : LoadProcess {
+class ScenarioLoadProcess : LoadProcess {
 
     private val setUpActionsRan: AtomicBoolean = AtomicBoolean(false)
 
@@ -34,11 +37,11 @@ class ScenarioToLoadProcessAdapter : LoadProcess {
         container.addCloseable(AutoCloseable {
             container.result().writeNodeCounts().use { counter.dump(it) }
         })
-        return ScenarioToLoadThreadAdapterFactory(scenario, userGenerator, browser, setUpActionsRan, counter)
+        return ScenarioThreadFactory(scenario, userGenerator, browser, setUpActionsRan, counter)
     }
 }
 
-private class ScenarioToLoadThreadAdapterFactory(
+private class ScenarioThreadFactory(
     private val scenario: Scenario,
     private val userGenerator: UserGenerator,
     private val browser: Browser,
@@ -81,18 +84,7 @@ private class ScenarioToLoadThreadAdapterFactory(
             diagnostics = diagnostics
         )
         setUpOnce(behavior, webJira, meter, target, looper)
-        return object : LoadThread {
-            override fun generateLoad(
-                stop: AtomicBoolean
-            ) {
-                nodeCounter.count(Supplier {
-                    webJira.getJiraNode()
-                })
-                looper.hold()
-                looper.runWithDiagnostics(userLogin)
-                looper.applyLoad(stop)
-            }
-        }
+        return ScenarioThread(webJira, looper, userLogin, nodeCounter)
     }
 
     private fun setUpOnce(
@@ -126,5 +118,23 @@ private class ScenarioToLoadThreadAdapterFactory(
 
         override fun remember(memories: Collection<User>) {
         }
+    }
+}
+
+private class ScenarioThread(
+    private val webJira: WebJira,
+    private val looper: ExploratoryVirtualUser,
+    private val userLogin: Action,
+    private val nodeCounter: ClusterNodeCounter
+) : LoadThread {
+    override fun generateLoad(
+        stop: AtomicBoolean
+    ) {
+        nodeCounter.count(Supplier {
+            webJira.getJiraNode()
+        })
+        looper.hold()
+        looper.runWithDiagnostics(userLogin)
+        looper.applyLoad(stop)
     }
 }
