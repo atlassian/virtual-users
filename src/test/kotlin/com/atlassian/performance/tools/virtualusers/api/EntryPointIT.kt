@@ -20,10 +20,10 @@ import kotlin.streams.toList
 class EntryPointIT {
 
     @Test
-    fun shouldProduceMetrics() {
+    fun shouldProduceBrowserLoadMetrics() {
         val desiredTotalTime = Duration.ofMinutes(2)
 
-        val nodeResult = runMain(desiredTotalTime)
+        val nodeResult = runScenario(desiredTotalTime)
         val result = nodeResult.listResults().last()
 
         val tasks = result.streamTasks().toList()
@@ -41,24 +41,64 @@ class EntryPointIT {
             .containsValue(1)
     }
 
-    private fun runMain(desiredTotalTime: Duration): VirtualUserNodeResult {
+    private fun runScenario(desiredTotalTime: Duration): VirtualUserNodeResult {
         val resultPath = TestVuNode.isolateTestNode(javaClass)
         SMALL_JIRA.runWithJira { jira ->
-            main(arrayOf(
-                "--jira-address", jira.peerAddress.toString(),
-                "--login", "admin",
-                "--password", "admin",
-                "--virtual-users", "1",
-                "--hold", "PT0S",
-                "--ramp", "PT0S",
-                "--flat", desiredTotalTime.toString(),
-                "--max-overall-load", "1.0/PT5S",
-                "--scenario", SimpleScenario::class.java.name,
-                "--browser", HeadlessChromeBrowser::class.java.name,
-                "--results", resultPath.toString(),
-                "--diagnostics-limit", "3",
-                "--seed", "-9183767962456348780"
-            ))
+            main(
+                arrayOf(
+                    "--jira-address", jira.peerAddress.toString(),
+                    "--login", "admin",
+                    "--password", "admin",
+                    "--virtual-users", "1",
+                    "--hold", "PT0S",
+                    "--ramp", "PT0S",
+                    "--flat", desiredTotalTime.toString(),
+                    "--max-overall-load", "1.0/PT5S",
+                    "--scenario", SimpleScenario::class.java.name,
+                    "--browser", HeadlessChromeBrowser::class.java.name,
+                    "--results", resultPath.toString(),
+                    "--diagnostics-limit", "3",
+                    "--seed", "-9183767962456348780"
+                )
+            )
+        }
+        return VirtualUserNodeResult(resultPath)
+    }
+
+    @Test
+    fun shouldProduceHttpLoadMetrics() {
+        val desiredTotalTime = Duration.ofMinutes(2)
+
+        val nodeResult = runDefaultLoadProcess(desiredTotalTime)
+        val result = nodeResult.listResults().last()
+
+        val tasks = result.streamTasks().toList()
+        val actions = result.streamActions().toList()
+        assertThat(actions.map { it.label }).containsOnly("POST search")
+        assertThat(actions).haveAtLeast(1, isOk())
+        assertThat(tasks.map { it.label })
+            .contains(ACTING.label, THROTTLING.label)
+            .doesNotContain(DIAGNOSING.label, MYSTERY.label)
+    }
+
+    private fun runDefaultLoadProcess(desiredTotalTime: Duration): VirtualUserNodeResult {
+        val resultPath = TestVuNode.isolateTestNode(javaClass)
+        SMALL_JIRA.runWithJira { jira ->
+            main(
+                arrayOf(
+                    "--jira-address", jira.peerAddress.toString(),
+                    "--login", "admin",
+                    "--password", "admin",
+                    "--virtual-users", "1",
+                    "--hold", "PT0S",
+                    "--ramp", "PT0S",
+                    "--flat", desiredTotalTime.toString(),
+                    "--max-overall-load", "1.0/PT5S",
+                    "--results", resultPath.toString(),
+                    "--diagnostics-limit", "3",
+                    "--seed", "-9183767962456348780"
+                )
+            )
         }
         return VirtualUserNodeResult(resultPath)
     }
