@@ -20,7 +20,7 @@ internal class LoadTest(
     private val process = behavior.loadProcess.getConstructor().newInstance()
 
     fun run(): VirtualUserNodeResult {
-        val processContainer = LoadProcessContainer.ConstructedLoadProcessContainer(
+        val processContainer = LoadProcessContainer.create(
             options,
             VirtualUserNodeResult(behavior.results),
             behavior.seed

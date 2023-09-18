@@ -2,31 +2,38 @@ package com.atlassian.performance.tools.virtualusers.api.config
 
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserNodeResult
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
-import com.atlassian.performance.tools.virtualusers.measure.ClusterNodeCounter
 import net.jcip.annotations.ThreadSafe
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 
 @ThreadSafe
-abstract class LoadProcessContainer private constructor() : AutoCloseable {
+class LoadProcessContainer private constructor(
+    private val options: VirtualUserOptions,
+    private val result: VirtualUserNodeResult,
+    private val seed: Long
+) : AutoCloseable {
 
-    abstract fun result(): VirtualUserNodeResult
-    abstract fun options(): VirtualUserOptions
-    abstract fun random(): Random
-    abstract fun addCloseable(closeable: AutoCloseable)
+    private val closeables: Queue<AutoCloseable> = ConcurrentLinkedQueue<AutoCloseable>()
 
-    /**
-     * TODO better name
-     */
-    @ThreadSafe
-    internal class ConstructedLoadProcessContainer(
-        private val options: VirtualUserOptions,
-        private val result: VirtualUserNodeResult,
-        private val seed: Long
-    ) : LoadProcessContainer() {
-        override fun result() = result
-        override fun options() = options
-        override fun random() = Random(seed)
+    fun result() = result
+    fun options() = options
+    fun random() = Random(seed)
+    fun addCloseable(closeable: AutoCloseable) {
+        closeables.add(closeable)
+    }
+
+    override fun close() {
+        synchronized(this) {
+            closeables.forEach { it.close() }
+            closeables.clear()
+        }
+    }
+
+    internal companion object Factory {
+        fun create(
+            options: VirtualUserOptions,
+            result: VirtualUserNodeResult,
+            seed: Long
+        ): LoadProcessContainer = LoadProcessContainer(options, result, seed)
     }
 }
-
-
