@@ -9,10 +9,7 @@ import com.atlassian.performance.tools.jiraactions.api.memories.adaptive.Adaptiv
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 import com.atlassian.performance.tools.virtualusers.ExploratoryVirtualUser
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
-import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
-import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContainer
-import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
-import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
+import com.atlassian.performance.tools.virtualusers.api.config.*
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.*
 import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
 import org.apache.logging.log4j.LogManager
@@ -47,7 +44,7 @@ private class ScenarioToLoadThreadAdapterFactory(
     private val logger: Logger = LogManager.getLogger(this::class.java)
 
     override fun fireUp(container: LoadThreadContainer): LoadThread {
-        val options = container.options()
+        val options = container.loadProcessContainer().options()
         val behavior = options.behavior
         val closeableWebDriver = browser.start()
         container.addCloseable(closeableWebDriver)
@@ -71,7 +68,7 @@ private class ScenarioToLoadThreadAdapterFactory(
             ),
             DiagnosisLimit(behavior.diagnosticsLimit)
         )
-        val nodeCounter = container.nodeCounter()
+        val nodeCounter = container.loadProcessContainer().nodeCounter()
         val userLogin = scenario.getLogInAction(webJira, meter, userMemory)
         val looper = ExploratoryVirtualUser(
             actions = scenario.getActions(webJira, random, meter),

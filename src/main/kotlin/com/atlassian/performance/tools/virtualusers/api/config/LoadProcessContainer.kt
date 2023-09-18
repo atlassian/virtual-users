@@ -7,16 +7,31 @@ import net.jcip.annotations.ThreadSafe
 import java.util.*
 
 /**
- * TODO split the interface
- * TODO return interfaces/abstracts only
  * TODO ensure all types are in API
  */
 @ThreadSafe
-interface LoadProcessContainer {
+abstract class LoadProcessContainer private constructor() {
 
-    fun result(): VirtualUserNodeResult
-    fun options(): VirtualUserOptions
-    fun random(): Random
-    fun nodeCounter(): ClusterNodeCounter
+    abstract fun result(): VirtualUserNodeResult
+    abstract fun options(): VirtualUserOptions
+    abstract fun random(): Random
+    abstract fun nodeCounter(): ClusterNodeCounter
+
+    /**
+     * TODO better name
+     */
+    @ThreadSafe
+    internal class ConstructedLoadProcessContainer(
+        private val options: VirtualUserOptions,
+        private val result: VirtualUserNodeResult,
+        private val nodeCounter: ClusterNodeCounter,
+        private val seed: Long
+    ) : LoadProcessContainer() {
+        override fun result() = result
+        override fun options() = options
+        override fun random() = Random(seed)
+        override fun nodeCounter() = nodeCounter
+    }
 }
+
 
