@@ -20,7 +20,7 @@ import kotlin.system.measureTimeMillis
 /**
  * Tests integration of [VirtualUserLoad.maxOverallLoad] and [Action]s with various [Thread.sleep] timings.
  */
-class ExploratoryVirtualUserLoadIT {
+class ThrottlingActionLoopLoadIT {
 
     @Test
     fun shouldRespectMaxLoad() {
@@ -95,7 +95,7 @@ class ExploratoryVirtualUserLoadIT {
     private fun prepareVu(
         actions: List<Action>,
         maxLoad: TemporalRate
-    ): ExploratoryVirtualUser = ExploratoryVirtualUser(
+    ): ThrottlingActionLoop = ThrottlingActionLoop(
         actions = actions,
         diagnostics = DisabledDiagnostics(),
         taskMeter = mockMeter(),
@@ -105,7 +105,7 @@ class ExploratoryVirtualUserLoadIT {
     )
 
     private fun applyLoad(
-        virtualUser: ExploratoryVirtualUser,
+        virtualUser: ThrottlingActionLoop,
         duration: Duration
     ): Duration {
         val done = AtomicBoolean(false)
