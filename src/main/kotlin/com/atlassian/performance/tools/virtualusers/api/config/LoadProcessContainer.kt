@@ -6,16 +6,13 @@ import com.atlassian.performance.tools.virtualusers.measure.ClusterNodeCounter
 import net.jcip.annotations.ThreadSafe
 import java.util.*
 
-/**
- * TODO ensure all types are in API
- */
 @ThreadSafe
-abstract class LoadProcessContainer private constructor() {
+abstract class LoadProcessContainer private constructor() : AutoCloseable {
 
     abstract fun result(): VirtualUserNodeResult
     abstract fun options(): VirtualUserOptions
     abstract fun random(): Random
-    abstract fun nodeCounter(): ClusterNodeCounter
+    abstract fun addCloseable(closeable: AutoCloseable)
 
     /**
      * TODO better name
@@ -24,13 +21,11 @@ abstract class LoadProcessContainer private constructor() {
     internal class ConstructedLoadProcessContainer(
         private val options: VirtualUserOptions,
         private val result: VirtualUserNodeResult,
-        private val nodeCounter: ClusterNodeCounter,
         private val seed: Long
     ) : LoadProcessContainer() {
         override fun result() = result
         override fun options() = options
         override fun random() = Random(seed)
-        override fun nodeCounter() = nodeCounter
     }
 }
 

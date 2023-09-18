@@ -5,7 +5,7 @@ import com.atlassian.performance.tools.virtualusers.api.VirtualUserNodeResult
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
 import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContainer
-import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContainerDefaults
+import com.atlassian.performance.tools.virtualusers.config.LoadThreadContainerDefaults
 import com.atlassian.performance.tools.virtualusers.engine.LoadThread
 import com.atlassian.performance.tools.virtualusers.measure.ClusterNodeCounter
 import java.util.*
@@ -25,7 +25,6 @@ internal class LoadTest(
         val processContainer = LoadProcessContainer.ConstructedLoadProcessContainer(
             options,
             VirtualUserNodeResult(behavior.results),
-            ClusterNodeCounter(),
             behavior.seed
         )
         val load = behavior.load
@@ -58,7 +57,7 @@ internal class LoadTest(
         }
         Thread.sleep(finish.toMillis())
         stop.set(true)
-        processContainer.result().writeNodeCounts().use { processContainer.nodeCounter().dump(it) }
+        processContainer.close()
         threads.forEach {
             it.container.close()
         }

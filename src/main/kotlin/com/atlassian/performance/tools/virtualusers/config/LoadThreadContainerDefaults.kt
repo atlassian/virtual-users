@@ -1,23 +1,21 @@
-package com.atlassian.performance.tools.virtualusers.api.config
+package com.atlassian.performance.tools.virtualusers.config
 
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
 import com.atlassian.performance.tools.jiraactions.api.measure.output.AppendableActionMetricOutput
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserResult
+import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
 import net.jcip.annotations.ThreadSafe
 import java.time.Duration
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
-/**
- * TODO better name
- */
 @ThreadSafe
 internal class LoadThreadContainerDefaults(
     internal val processContainer: LoadProcessContainer,
     internal val index: Int,
     internal val uuid: UUID
-) : AutoCloseable {
+) : LoadThreadContainer, AutoCloseable {
 
     private val closeables: Queue<AutoCloseable> = ConcurrentLinkedQueue<AutoCloseable>()
 
@@ -70,4 +68,3 @@ internal class LoadThreadContainerDefaults(
         }
     }
 }
-
