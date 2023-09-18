@@ -1,6 +1,8 @@
 package com.atlassian.performance.tools.virtualusers
 
 import com.atlassian.performance.tools.concurrency.api.submitWithLogContext
+import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
+import com.atlassian.performance.tools.jiraactions.api.measure.output.AppendableActionMetricOutput
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserNodeResult
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
@@ -8,11 +10,13 @@ import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContain
 import com.atlassian.performance.tools.virtualusers.engine.LoadThread
 import com.atlassian.performance.tools.virtualusers.measure.ClusterNodeCounter
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.Supplier
 
 internal class LoadTest(
     private val options: VirtualUserOptions
@@ -44,8 +48,21 @@ internal class LoadTest(
         val stop = AtomicBoolean(false)
         val threadFactory = process.setUp(processContainer)
         val threads = (1..threadCount).map { threadIndex ->
+            val uuid = Supplier { UUID.randomUUID() }
+            val threadResult = Supplier { processContainer.result().isolateVuResult(uuid.toString()) }
+            val closeables = ConcurrentLinkedQueue<AutoCloseable>()
             val threadContainer = LoadThreadContainer
                 .Builder(processContainer, threadIndex)
+                .uuid(uuid.get())
+                .threadResult(threadResult)
+                .closeables(closeables)
+                .actionMeter(Supplier {
+                    val actionOutput = threadResult.get().writeActionMetrics()
+                    closeables.add(actionOutput)
+                    ActionMeter.Builder(AppendableActionMetricOutput(actionOutput))
+                        .virtualUser(uuid.get())
+                        .build()
+                })
                 .build()
             val readyThread = threadFactory.fireUp(threadContainer)
             ContainedThread(readyThread, threadContainer)
