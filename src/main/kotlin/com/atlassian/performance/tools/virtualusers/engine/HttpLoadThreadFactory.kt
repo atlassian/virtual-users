@@ -4,18 +4,15 @@ import com.atlassian.performance.tools.jiraactions.api.ActionType
 import com.atlassian.performance.tools.jiraactions.api.SeededRandom
 import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
-import com.atlassian.performance.tools.jiraactions.api.measure.output.AppendableActionMetricOutput
 import com.atlassian.performance.tools.jiraactions.api.memories.IssueKeyMemory
 import com.atlassian.performance.tools.jiraactions.api.memories.adaptive.AdaptiveIssueKeyMemory
 import com.atlassian.performance.tools.virtualusers.ExploratoryVirtualUser
 import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
 import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContainer
-import com.atlassian.performance.tools.virtualusers.config.LoadThreadContainerDefaults
 import com.atlassian.performance.tools.virtualusers.diagnostics.DisabledDiagnostics
 import okhttp3.*
 import java.net.URI
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.Supplier
 import javax.json.spi.JsonProvider
 
 class HttpLoadProcess : LoadProcess {
@@ -28,16 +25,6 @@ class HttpLoadProcess : LoadProcess {
 private class HttpLoadThreadFactory : LoadThreadFactory {
 
     override fun fireUp(container: LoadThreadContainer): LoadThread {
-        container.
-        val myContainer = LoadThreadContainer.Builder(container)
-            .actionMeter(Supplier {
-                val actionOutput = container.threadResult().writeActionMetrics()
-                container.addCloseable(actionOutput)
-                ActionMeter.Builder(AppendableActionMetricOutput(actionOutput))
-                    .virtualUser(container.uuid)
-                    .build()
-            })
-            .build()
         val target = container.loadProcessContainer().options().target
         val http = OkHttpClient.Builder()
             .addInterceptor { chain ->
@@ -53,7 +40,7 @@ private class HttpLoadThreadFactory : LoadThreadFactory {
         val seededRandom = SeededRandom(container.random().nextLong())
         val issueKeyMemory = AdaptiveIssueKeyMemory(seededRandom)
         val actions = listOf(
-            RestSearch(baseUri, http, actionMeter, issueKeyMemory)
+            RestSearch(baseUri, http, container.actionMeter(), issueKeyMemory)
         )
         val looper = ExploratoryVirtualUser(
             container.singleThreadLoad(),
