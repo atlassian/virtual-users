@@ -1,13 +1,11 @@
 package com.atlassian.performance.tools.virtualusers
 
 import com.atlassian.performance.tools.concurrency.api.submitWithLogContext
-import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
-import com.atlassian.performance.tools.jiraactions.api.measure.output.AppendableActionMetricOutput
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserNodeResult
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
-import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContainerDefaults
 import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
 import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContainer
+import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContainerDefaults
 import com.atlassian.performance.tools.virtualusers.engine.LoadThread
 import com.atlassian.performance.tools.virtualusers.measure.ClusterNodeCounter
 import java.util.*
@@ -16,7 +14,6 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.function.Supplier
 
 internal class LoadTest(
     private val options: VirtualUserOptions
@@ -50,13 +47,6 @@ internal class LoadTest(
         val threads = (1..threadCount).map { threadIndex ->
             val defaults = LoadThreadContainerDefaults(processContainer, threadIndex, UUID.randomUUID())
             val threadContainer = LoadThreadContainer.Builder(defaults)
-                .actionMeter(Supplier {
-                    val actionOutput = defaults.threadResult().writeActionMetrics()
-                    defaults.addCloseable(actionOutput)
-                    ActionMeter.Builder(AppendableActionMetricOutput(actionOutput))
-                        .virtualUser(defaults.uuid)
-                        .build()
-                })
                 .build()
             val readyThread = threadFactory.fireUp(threadContainer)
             ContainedThread(readyThread, threadContainer)
