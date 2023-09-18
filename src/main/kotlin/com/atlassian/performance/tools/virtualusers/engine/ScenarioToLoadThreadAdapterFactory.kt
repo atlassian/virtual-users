@@ -12,11 +12,11 @@ import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.config.*
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.*
 import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
+import com.atlassian.performance.tools.virtualusers.measure.ClusterNodeCounter
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Supplier
 
 
@@ -30,7 +30,11 @@ class ScenarioToLoadProcessAdapter : LoadProcess {
         val scenario = behavior.scenario.getConstructor().newInstance()
         val userGenerator = behavior.userGenerator.getConstructor().newInstance()
         val browser = behavior.browser.getConstructor().newInstance()
-        return ScenarioToLoadThreadAdapterFactory(scenario, userGenerator, browser, setUpActionsRan)
+        val counter = ClusterNodeCounter()
+        container.addCloseable(AutoCloseable {
+            container.result().writeNodeCounts().use { counter.dump(it) }
+        })
+        return ScenarioToLoadThreadAdapterFactory(scenario, userGenerator, browser, setUpActionsRan, counter)
     }
 }
 
@@ -38,7 +42,8 @@ private class ScenarioToLoadThreadAdapterFactory(
     private val scenario: Scenario,
     private val userGenerator: UserGenerator,
     private val browser: Browser,
-    private val setUpActionRan: AtomicBoolean
+    private val setUpActionRan: AtomicBoolean,
+    private val nodeCounter: ClusterNodeCounter
 ) : LoadThreadFactory {
 
     private val logger: Logger = LogManager.getLogger(this::class.java)
@@ -68,7 +73,6 @@ private class ScenarioToLoadThreadAdapterFactory(
             ),
             DiagnosisLimit(behavior.diagnosticsLimit)
         )
-        val nodeCounter = container.loadProcessContainer().nodeCounter()
         val userLogin = scenario.getLogInAction(webJira, meter, userMemory)
         val looper = ExploratoryVirtualUser(
             actions = scenario.getActions(webJira, random, meter),

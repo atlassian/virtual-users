@@ -1,17 +1,18 @@
 package com.atlassian.performance.tools.virtualusers.measure
 
+import net.jcip.annotations.ThreadSafe
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import org.apache.commons.csv.CSVPrinter
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.io.Reader
-import java.lang.Exception
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Supplier
 
-public class ClusterNodeCounter {
+@ThreadSafe
+internal class ClusterNodeCounter {
 
     private val counter: MutableMap<String, AtomicInteger> = ConcurrentHashMap()
     private val logger: Logger = LogManager.getLogger(this::class.java)

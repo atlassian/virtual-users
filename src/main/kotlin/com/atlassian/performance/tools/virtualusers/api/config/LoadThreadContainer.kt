@@ -3,6 +3,7 @@ package com.atlassian.performance.tools.virtualusers.api.config
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserResult
+import com.atlassian.performance.tools.virtualusers.config.LoadThreadContainerDefaults
 import net.jcip.annotations.ThreadSafe
 import java.util.*
 import java.util.function.Consumer
@@ -10,10 +11,9 @@ import java.util.function.Supplier
 
 /**
  * TODO return interfaces/abstracts only
- * TODO ensure all types are in API
  */
 @ThreadSafe
-class LoadThreadContainer(
+class LoadThreadContainer private constructor(
     private val processContainer: LoadProcessContainer,
     private val index: Supplier<Int>,
     private val id: Supplier<String>,
@@ -47,7 +47,7 @@ class LoadThreadContainer(
 
     override fun close() = onClose.run()
 
-    internal class Builder(
+    class Builder internal constructor(
         private val defaultContainer: LoadThreadContainerDefaults
     ) {
 
