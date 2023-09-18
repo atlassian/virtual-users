@@ -3,9 +3,8 @@ package com.atlassian.performance.tools.virtualusers
 import com.atlassian.performance.tools.concurrency.api.submitWithLogContext
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserNodeResult
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
+import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
 import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContainer
-import com.atlassian.performance.tools.virtualusers.config.ConstructedLoadProcessContainer
-import com.atlassian.performance.tools.virtualusers.config.LoadThreadContainerImplTodoBetterNameMaybe
 import com.atlassian.performance.tools.virtualusers.engine.LoadThread
 import com.atlassian.performance.tools.virtualusers.measure.ClusterNodeCounter
 import java.util.*
@@ -22,7 +21,7 @@ internal class LoadTest(
     private val process = behavior.loadProcess.getConstructor().newInstance()
 
     fun run(): VirtualUserNodeResult {
-        val processContainer = ConstructedLoadProcessContainer(
+        val processContainer = LoadProcessContainer.ConstructedLoadProcessContainer(
             options,
             VirtualUserNodeResult(behavior.results),
             ClusterNodeCounter(),
@@ -45,7 +44,7 @@ internal class LoadTest(
         val stop = AtomicBoolean(false)
         val threadFactory = process.setUp(processContainer)
         val threads = (1..threadCount).map { threadIndex ->
-            val threadContainer = LoadThreadContainerImplTodoBetterNameMaybe(
+            val threadContainer = LoadThreadContainer.LoadThreadContainerImplTodoBetterNameMaybe(
                 processContainer,
                 threadIndex,
                 UUID.randomUUID()

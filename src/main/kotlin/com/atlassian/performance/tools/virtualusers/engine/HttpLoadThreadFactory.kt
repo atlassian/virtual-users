@@ -25,7 +25,7 @@ class HttpLoadProcess : LoadProcess {
 private class HttpLoadThreadFactory : LoadThreadFactory {
 
     override fun fireUp(container: LoadThreadContainer): LoadThread {
-        val target = container.options().target
+        val target = container.loadProcessContainer().options().target
         val http = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 chain
