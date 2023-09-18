@@ -5,12 +5,12 @@ import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
 import com.atlassian.performance.tools.jiraactions.api.measure.output.AppendableActionMetricOutput
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserNodeResult
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
+import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContainerDefaults
 import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
 import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContainer
 import com.atlassian.performance.tools.virtualusers.engine.LoadThread
 import com.atlassian.performance.tools.virtualusers.measure.ClusterNodeCounter
 import java.util.*
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.MILLISECONDS
@@ -48,19 +48,13 @@ internal class LoadTest(
         val stop = AtomicBoolean(false)
         val threadFactory = process.setUp(processContainer)
         val threads = (1..threadCount).map { threadIndex ->
-            val uuid = Supplier { UUID.randomUUID() }
-            val threadResult = Supplier { processContainer.result().isolateVuResult(uuid.toString()) }
-            val closeables = ConcurrentLinkedQueue<AutoCloseable>()
-            val threadContainer = LoadThreadContainer
-                .Builder(processContainer, threadIndex)
-                .uuid(uuid.get())
-                .threadResult(threadResult)
-                .closeables(closeables)
+            val defaults = LoadThreadContainerDefaults(processContainer, threadIndex, UUID.randomUUID())
+            val threadContainer = LoadThreadContainer.Builder(defaults)
                 .actionMeter(Supplier {
-                    val actionOutput = threadResult.get().writeActionMetrics()
-                    closeables.add(actionOutput)
+                    val actionOutput = defaults.threadResult().writeActionMetrics()
+                    defaults.addCloseable(actionOutput)
                     ActionMeter.Builder(AppendableActionMetricOutput(actionOutput))
-                        .virtualUser(uuid.get())
+                        .virtualUser(defaults.uuid)
                         .build()
                 })
                 .build()
@@ -68,7 +62,7 @@ internal class LoadTest(
             ContainedThread(readyThread, threadContainer)
         }
         threads.forEach { engine ->
-            pool.submitWithLogContext(engine.container.id) {
+            pool.submitWithLogContext(engine.container.id()) {
                 engine.loadThread.generateLoad(stop)
             }
         }

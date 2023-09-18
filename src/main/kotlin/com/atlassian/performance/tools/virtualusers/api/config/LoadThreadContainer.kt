@@ -1,13 +1,10 @@
 package com.atlassian.performance.tools.virtualusers.api.config
 
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
-import com.atlassian.performance.tools.jiraactions.api.measure.output.AppendableActionMetricOutput
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserResult
 import net.jcip.annotations.ThreadSafe
-import java.time.Duration
 import java.util.*
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.Consumer
 import java.util.function.Supplier
 
@@ -18,16 +15,19 @@ import java.util.function.Supplier
 @ThreadSafe
 class LoadThreadContainer(
     private val processContainer: LoadProcessContainer,
-    private val uuid: UUID,
+    private val index: Supplier<Int>,
+    private val id: Supplier<String>,
     private val random: Supplier<Random>,
     private val actionMeter: Supplier<ActionMeter>,
     private val taskMeter: Supplier<ActionMeter>,
     private val threadResult: Supplier<VirtualUserResult>,
     private val singleThreadLoad: Supplier<VirtualUserLoad>,
-    private val addClosableConsumer: Consumer<AutoCloseable>,
+    private val addClosable: Consumer<AutoCloseable>,
     private val onClose: Runnable
 ) : AutoCloseable {
-    val id: String = uuid.toString()
+
+    fun index() = index.get()
+    fun id() = id.get()
 
     fun threadResult() = threadResult.get()
 
@@ -42,25 +42,27 @@ class LoadThreadContainer(
     fun loadProcessContainer() = processContainer
 
     fun addCloseable(closeable: AutoCloseable) {
-        addClosableConsumer.accept(closeable)
+        addClosable.accept(closeable)
     }
 
     override fun close() = onClose.run()
 
-    class Builder(
-        private var processContainer: LoadProcessContainer,
-        private var index: Int
+    internal class Builder(
+        private val defaultContainer: LoadThreadContainerDefaults
     ) {
-        private var uuid: UUID = UUID.randomUUID()
-        private var random: Supplier<Random>? = null
-        private var actionMeter: Supplier<ActionMeter>? = null
-        private var taskMeter: Supplier<ActionMeter>? = null
-        private var threadResult: Supplier<VirtualUserResult>? = null
-        private var singleThreadLoad: Supplier<VirtualUserLoad>? = null
-        private var closeables: Queue<AutoCloseable> = ConcurrentLinkedQueue<AutoCloseable>()
-        private var onClose: Runnable? = null
 
-        fun uuid(uuid: UUID) = apply { this.uuid = uuid }
+        private var processContainer: LoadProcessContainer = defaultContainer.loadProcessContainer()
+        private var index: Supplier<Int> = Supplier { defaultContainer.index }
+        private var id: Supplier<String> = Supplier(defaultContainer::id)
+        private var random: Supplier<Random> = Supplier(defaultContainer::random)
+        private var actionMeter: Supplier<ActionMeter> = Supplier(defaultContainer::actionMeter)
+        private var taskMeter: Supplier<ActionMeter> = Supplier { defaultContainer.taskMeter() }
+        private var threadResult: Supplier<VirtualUserResult> = Supplier(defaultContainer::threadResult)
+        private var singleThreadLoad: Supplier<VirtualUserLoad> = Supplier(defaultContainer::singleThreadLoad)
+        private var addClosable: Consumer<AutoCloseable> = Consumer(defaultContainer::addCloseable)
+        private var onClose: Runnable = Runnable(defaultContainer::close)
+
+        fun id(id: Supplier<String>) = apply { this.id = id }
         fun random(random: Supplier<Random>) = apply { this.random = random }
         fun actionMeter(actionMeter: Supplier<ActionMeter>) = apply { this.actionMeter = actionMeter }
         fun taskMeter(taskMeter: Supplier<ActionMeter>) = apply { this.taskMeter = taskMeter }
@@ -68,51 +70,21 @@ class LoadThreadContainer(
         fun singleThreadLoad(singleThreadLoad: Supplier<VirtualUserLoad>) =
             apply { this.singleThreadLoad = singleThreadLoad }
 
-        fun closeables(closeables: Queue<AutoCloseable>) = apply { this.closeables = closeables }
+        fun addClosable(addClosable: Consumer<AutoCloseable>) = apply { this.addClosable = addClosable }
+        fun onClose(onClose: Runnable) = apply { this.onClose = onClose }
 
-        fun build(): LoadThreadContainer {
-            val threadResult =
-                threadResult ?: Supplier { processContainer.result().isolateVuResult(uuid.toString()) }
-            return LoadThreadContainer(
-                processContainer = processContainer,
-                uuid = uuid,
-                random = random ?: Supplier { Random(processContainer.random().nextLong()) },
-                actionMeter = actionMeter ?: Supplier {
-                    val actionOutput = threadResult.get().writeActionMetrics()
-                    closeables.add(actionOutput)
-                    ActionMeter.Builder(AppendableActionMetricOutput(actionOutput))
-                        .virtualUser(uuid)
-                        .build()
-                },
-                taskMeter = taskMeter ?: Supplier {
-                    val taskOutput = threadResult.get().writeTaskMetrics()
-                    closeables.add(taskOutput)
-                    ActionMeter.Builder(AppendableActionMetricOutput(taskOutput))
-                        .virtualUser(uuid)
-                        .build()
-                },
-                threadResult = threadResult,
-                singleThreadLoad = singleThreadLoad
-                    ?: Supplier {
-                        val overallLoad = processContainer.options().behavior.load
-                        val singleThreadHold =
-                            overallLoad.hold + overallLoad.rampInterval.multipliedBy(index.toLong())
-                        VirtualUserLoad.Builder()
-                            .virtualUsers(1)
-                            .hold(singleThreadHold)
-                            .ramp(Duration.ZERO)
-                            .flat(overallLoad.total - singleThreadHold)
-                            .maxOverallLoad(overallLoad.maxOverallLoad / overallLoad.virtualUsers)
-                            .build()
-                    },
-                onClose = onClose ?: Runnable {
-                    synchronized(closeables) {
-                        closeables.forEach { it.close() }
-                    }
-                },
-                addClosableConsumer = Consumer { closeables.add(it) }
-            )
-        }
+        fun build() = LoadThreadContainer(
+            processContainer = processContainer,
+            index = index,
+            id = id,
+            random = random,
+            actionMeter = actionMeter,
+            taskMeter = taskMeter,
+            threadResult = threadResult,
+            singleThreadLoad = singleThreadLoad,
+            addClosable = addClosable,
+            onClose = onClose
+        )
     }
 }
 
