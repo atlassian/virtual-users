@@ -44,11 +44,9 @@ internal class LoadTest(
         val stop = AtomicBoolean(false)
         val threadFactory = process.setUp(processContainer)
         val threads = (1..threadCount).map { threadIndex ->
-            val threadContainer = LoadThreadContainer.LoadThreadContainerImplTodoBetterNameMaybe(
-                processContainer,
-                threadIndex,
-                UUID.randomUUID()
-            )
+            val threadContainer = LoadThreadContainer
+                .Builder(processContainer, threadIndex)
+                .build()
             val readyThread = threadFactory.fireUp(threadContainer)
             ContainedThread(readyThread, threadContainer)
         }
