@@ -8,83 +8,110 @@ import net.jcip.annotations.ThreadSafe
 import java.time.Duration
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.function.Consumer
+import java.util.function.Supplier
 
 /**
- * TODO split the interface
  * TODO return interfaces/abstracts only
  * TODO ensure all types are in API
  */
 @ThreadSafe
-abstract class LoadThreadContainer private constructor() : AutoCloseable {
+class LoadThreadContainer(
+    private val processContainer: LoadProcessContainer,
+    private val uuid: UUID,
+    private val random: Supplier<Random>,
+    private val actionMeter: Supplier<ActionMeter>,
+    private val taskMeter: Supplier<ActionMeter>,
+    private val threadResult: Supplier<VirtualUserResult>,
+    private val singleThreadLoad: Supplier<VirtualUserLoad>,
+    private val addClosableConsumer: Consumer<AutoCloseable>,
+    private val onClose: Runnable
+) : AutoCloseable {
+    val id: String = uuid.toString()
 
-    abstract val id: String
-    abstract fun actionMeter(): ActionMeter
-    abstract fun taskMeter(): ActionMeter
-    abstract fun threadResult(): VirtualUserResult
-    abstract fun addCloseable(closeable: AutoCloseable)
-    abstract fun singleThreadLoad(): VirtualUserLoad
-    abstract fun loadProcessContainer(): LoadProcessContainer
-    abstract fun random(): Random
+    fun threadResult() = threadResult.get()
 
-    /**
-     * TODO better name
-     */
-    @ThreadSafe
-    internal class LoadThreadContainerImplTodoBetterNameMaybe(
-        private val processContainer: LoadProcessContainer,
-        private val index: Int,
-        private val uuid: UUID
-    ) : LoadThreadContainer() {
+    fun random() = random.get()
 
-        private val closeables: Queue<AutoCloseable> = ConcurrentLinkedQueue<AutoCloseable>()
+    fun actionMeter() = actionMeter.get()
 
-        override val id: String = uuid.toString()
+    fun taskMeter() = taskMeter.get()
 
-        override fun threadResult(): VirtualUserResult = processContainer.result().isolateVuResult(id)
+    fun singleThreadLoad() = singleThreadLoad.get()
 
-        override fun random(): Random {
-            return Random(processContainer.random().nextLong())
-        }
+    fun loadProcessContainer() = processContainer
 
-        override fun actionMeter(): ActionMeter {
-            val actionOutput = threadResult().writeActionMetrics()
-            addCloseable(actionOutput)
-            return ActionMeter.Builder(AppendableActionMetricOutput(actionOutput))
-                .virtualUser(uuid)
-                .build()
-        }
+    fun addCloseable(closeable: AutoCloseable) {
+        addClosableConsumer.accept(closeable)
+    }
 
-        override fun taskMeter(): ActionMeter {
-            val taskOutput = threadResult().writeTaskMetrics()
-            addCloseable(taskOutput)
-            return ActionMeter.Builder(AppendableActionMetricOutput(taskOutput))
-                .virtualUser(uuid)
-                .build()
-        }
+    override fun close() = onClose.run()
 
-        override fun singleThreadLoad(): VirtualUserLoad {
-            val overallLoad = processContainer.options().behavior.load
-            val singleThreadHold = overallLoad.hold + overallLoad.rampInterval.multipliedBy(index.toLong())
-            return VirtualUserLoad.Builder()
-                .virtualUsers(1)
-                .hold(singleThreadHold)
-                .ramp(Duration.ZERO)
-                .flat(overallLoad.total - singleThreadHold)
-                .maxOverallLoad(overallLoad.maxOverallLoad / overallLoad.virtualUsers)
-                .build()
-        }
+    class Builder(
+        private var processContainer: LoadProcessContainer,
+        private var index: Int
+    ) {
+        private var uuid: UUID = UUID.randomUUID()
+        private var random: Supplier<Random>? = null
+        private var actionMeter: Supplier<ActionMeter>? = null
+        private var taskMeter: Supplier<ActionMeter>? = null
+        private var threadResult: Supplier<VirtualUserResult>? = null
+        private var singleThreadLoad: Supplier<VirtualUserLoad>? = null
+        private var closeables: Queue<AutoCloseable> = ConcurrentLinkedQueue<AutoCloseable>()
+        private var onClose: Runnable? = null
 
-        override fun loadProcessContainer() = processContainer
+        fun uuid(uuid: UUID) = apply { this.uuid = uuid }
+        fun random(random: Supplier<Random>) = apply { this.random = random }
+        fun actionMeter(actionMeter: Supplier<ActionMeter>) = apply { this.actionMeter = actionMeter }
+        fun taskMeter(taskMeter: Supplier<ActionMeter>) = apply { this.taskMeter = taskMeter }
+        fun threadResult(threadResult: Supplier<VirtualUserResult>) = apply { this.threadResult = threadResult }
+        fun singleThreadLoad(singleThreadLoad: Supplier<VirtualUserLoad>) =
+            apply { this.singleThreadLoad = singleThreadLoad }
 
-        override fun addCloseable(closeable: AutoCloseable) {
-            closeables.add(closeable)
-        }
+        fun closeables(closeables: Queue<AutoCloseable>) = apply { this.closeables = closeables }
 
-        override fun close() {
-            synchronized(this) {
-                closeables.forEach { it.close() }
-                closeables.clear()
-            }
+        fun build(): LoadThreadContainer {
+            val threadResult =
+                threadResult ?: Supplier { processContainer.result().isolateVuResult(uuid.toString()) }
+            return LoadThreadContainer(
+                processContainer = processContainer,
+                uuid = uuid,
+                random = random ?: Supplier { Random(processContainer.random().nextLong()) },
+                actionMeter = actionMeter ?: Supplier {
+                    val actionOutput = threadResult.get().writeActionMetrics()
+                    closeables.add(actionOutput)
+                    ActionMeter.Builder(AppendableActionMetricOutput(actionOutput))
+                        .virtualUser(uuid)
+                        .build()
+                },
+                taskMeter = taskMeter ?: Supplier {
+                    val taskOutput = threadResult.get().writeTaskMetrics()
+                    closeables.add(taskOutput)
+                    ActionMeter.Builder(AppendableActionMetricOutput(taskOutput))
+                        .virtualUser(uuid)
+                        .build()
+                },
+                threadResult = threadResult,
+                singleThreadLoad = singleThreadLoad
+                    ?: Supplier {
+                        val overallLoad = processContainer.options().behavior.load
+                        val singleThreadHold =
+                            overallLoad.hold + overallLoad.rampInterval.multipliedBy(index.toLong())
+                        VirtualUserLoad.Builder()
+                            .virtualUsers(1)
+                            .hold(singleThreadHold)
+                            .ramp(Duration.ZERO)
+                            .flat(overallLoad.total - singleThreadHold)
+                            .maxOverallLoad(overallLoad.maxOverallLoad / overallLoad.virtualUsers)
+                            .build()
+                    },
+                onClose = onClose ?: Runnable {
+                    synchronized(closeables) {
+                        closeables.forEach { it.close() }
+                    }
+                },
+                addClosableConsumer = Consumer { closeables.add(it) }
+            )
         }
     }
 }
