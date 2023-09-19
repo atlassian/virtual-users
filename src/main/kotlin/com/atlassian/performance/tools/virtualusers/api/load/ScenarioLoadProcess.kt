@@ -172,7 +172,6 @@ private class ScenarioThread(
         nodeCounter.count(Supplier {
             webJira.getJiraNode()
         })
-        looper.runWithDiagnostics(userLogin)
-        looper.generateLoad(stop)
+        looper.logInThenGenerate(userLogin, stop)
     }
 }

@@ -13,6 +13,7 @@ import java.time.Duration
 import java.time.Duration.*
 import java.util.*
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.schedule
 import kotlin.math.exp
@@ -49,28 +50,28 @@ class ThrottlingActionLoopLoadIT {
         assertLoadInRange(actualLoad, closeToMaxLoad, maxLoad)
     }
 
-    // TODO this belongs to the ScenarioToEngineAdapter tests?
     @Test
     fun shouldNotRetryOnLoginAction() {
-//        val server = QuickServer()
-//        val logInAction = object : Action {
-//            override fun run() {
-//                throw Exception("Failed login attempt.")
-//            }
-//        }
-//        val virtualUser = prepareVu(
-//            actions = listOf(server),
-//            maxLoad = TemporalRate(1_000_000.00, ofSeconds(1)),
-//            logInAction = logInAction
-//        )
-//
-//        val done = AutoCloseableExecutorService(Executors.newSingleThreadExecutor()).use { executorService ->
-//            val applyLoadFuture = executorService.submit { virtualUser.applyLoad(AtomicBoolean(true)) }
-//            Thread.sleep(1000)
-//            return@use applyLoadFuture.isDone
-//        }
-//
-//        assertThat(done).isTrue()
+        val server = QuickServer()
+        val logInAction = object : Action {
+            override fun run() {
+                throw Exception("Failed login attempt.")
+            }
+        }
+        val virtualUser = prepareVu(
+            actions = listOf(server),
+            maxLoad = TemporalRate(1_000_000.00, ofSeconds(1))
+        )
+
+        val done = AutoCloseableExecutorService(Executors.newSingleThreadExecutor()).use { executorService ->
+            val applyLoadFuture = executorService.submit {
+                virtualUser.logInThenGenerate(logInAction, AtomicBoolean(true))
+            }
+            Thread.sleep(1000)
+            return@use applyLoadFuture.isDone
+        }
+
+        assertThat(done).isTrue()
     }
 
     @Test
