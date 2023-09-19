@@ -1,5 +1,6 @@
 package com.atlassian.performance.tools.virtualusers.api.config
 
+import com.atlassian.performance.tools.jiraactions.api.SeededRandom
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserNodeResult
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import net.jcip.annotations.ThreadSafe
@@ -10,14 +11,14 @@ import java.util.concurrent.ConcurrentLinkedQueue
 class LoadProcessContainer private constructor(
     private val options: VirtualUserOptions,
     private val result: VirtualUserNodeResult,
-    private val seed: Long
+    private val random: SeededRandom
 ) : AutoCloseable {
 
     private val closeables: Queue<AutoCloseable> = ConcurrentLinkedQueue<AutoCloseable>()
 
     fun result() = result
     fun options() = options
-    fun random() = Random(seed)
+    fun seededRandom() = random
     fun addCloseable(closeable: AutoCloseable) {
         closeables.add(closeable)
     }
@@ -33,7 +34,7 @@ class LoadProcessContainer private constructor(
         fun create(
             options: VirtualUserOptions,
             result: VirtualUserNodeResult,
-            seed: Long
-        ): LoadProcessContainer = LoadProcessContainer(options, result, seed)
+            random: SeededRandom
+        ): LoadProcessContainer = LoadProcessContainer(options, result, random)
     }
 }

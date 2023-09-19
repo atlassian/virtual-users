@@ -88,7 +88,7 @@ private class ScenarioThreadFactory(
             target.webApplication,
             target.password
         )
-        val random = SeededRandom(container.random().nextLong())
+        val random = container.seededRandom()
         val userMemory = allocateUser(random)
         val meter = container.actionMeter()
         val diagnostics = LimitedDiagnostics(

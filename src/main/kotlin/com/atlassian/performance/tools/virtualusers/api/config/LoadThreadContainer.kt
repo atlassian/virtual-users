@@ -1,5 +1,6 @@
 package com.atlassian.performance.tools.virtualusers.api.config
 
+import com.atlassian.performance.tools.jiraactions.api.SeededRandom
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
 import com.atlassian.performance.tools.jiraactions.api.measure.output.AppendableActionMetricOutput
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
@@ -22,8 +23,8 @@ class LoadThreadContainer private constructor(
 
     fun threadResult(): VirtualUserResult = processContainer.result().isolateVuResult(id)
 
-    fun random(): Random {
-        return Random(processContainer.random().nextLong())
+    fun seededRandom(): SeededRandom {
+        return SeededRandom(processContainer.seededRandom().random.nextLong())
     }
 
     fun actionMeter(): ActionMeter {
