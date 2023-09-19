@@ -15,7 +15,6 @@ import com.atlassian.performance.tools.virtualusers.api.load.ThrottlingActionLoo
 import com.atlassian.performance.tools.virtualusers.diagnostics.DisabledDiagnostics
 import okhttp3.*
 import java.net.URI
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.json.spi.JsonProvider
 
 class HttpLoadProcess : LoadProcess {
@@ -45,24 +44,12 @@ private class HttpLoadThreadFactory : LoadThreadFactory {
         val actions = listOf(
             RestSearch(baseUri, http, container.actionMeter(), issueKeyMemory)
         )
-        val looper = ThrottlingActionLoop(
-            container.singleThreadLoad(),
+        return ThrottlingActionLoop(
+            container.singleThreadLoad().maxOverallLoad,
             container.taskMeter(),
             actions,
             DisabledDiagnostics()
         )
-        return HttpLoadThread(looper)
-    }
-}
-
-private class HttpLoadThread(
-    private val looper: ThrottlingActionLoop
-) : LoadThread {
-    override fun generateLoad(
-        stop: AtomicBoolean
-    ) {
-        looper.hold()
-        looper.applyLoad(stop)
     }
 }
 

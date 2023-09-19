@@ -6,6 +6,7 @@ import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
 import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContainer
 import com.atlassian.performance.tools.virtualusers.api.load.LoadThread
+import java.lang.Thread.sleep
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
@@ -48,10 +49,11 @@ internal class LoadTest(
         }
         threads.forEach { thread ->
             pool.submitWithLogContext(thread.container.id) {
+                sleep(load.hold.toMillis())
                 thread.loadThread.generateLoad(stop)
             }
         }
-        Thread.sleep(finish.toMillis())
+        sleep(finish.toMillis())
         stop.set(true)
         processContainer.close()
         threads.forEach {
