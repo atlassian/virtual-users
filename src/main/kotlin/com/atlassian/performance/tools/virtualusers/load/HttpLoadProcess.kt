@@ -1,4 +1,4 @@
-package com.atlassian.performance.tools.virtualusers.engine
+package com.atlassian.performance.tools.virtualusers.load
 
 import com.atlassian.performance.tools.jiraactions.api.ActionType
 import com.atlassian.performance.tools.jiraactions.api.SeededRandom
@@ -6,9 +6,12 @@ import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
 import com.atlassian.performance.tools.jiraactions.api.memories.IssueKeyMemory
 import com.atlassian.performance.tools.jiraactions.api.memories.adaptive.AdaptiveIssueKeyMemory
-import com.atlassian.performance.tools.virtualusers.ThrottlingActionLoop
 import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
 import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContainer
+import com.atlassian.performance.tools.virtualusers.api.load.LoadProcess
+import com.atlassian.performance.tools.virtualusers.api.load.LoadThread
+import com.atlassian.performance.tools.virtualusers.api.load.LoadThreadFactory
+import com.atlassian.performance.tools.virtualusers.api.load.ThrottlingActionLoop
 import com.atlassian.performance.tools.virtualusers.diagnostics.DisabledDiagnostics
 import okhttp3.*
 import java.net.URI
@@ -17,14 +20,14 @@ import javax.json.spi.JsonProvider
 
 class HttpLoadProcess : LoadProcess {
 
-    override fun setUp(container: LoadProcessContainer): LoadThreadFactory {
+    override fun prepareFactory(container: LoadProcessContainer): LoadThreadFactory {
         return HttpLoadThreadFactory()
     }
 }
 
 private class HttpLoadThreadFactory : LoadThreadFactory {
 
-    override fun fireUp(container: LoadThreadContainer): LoadThread {
+    override fun prepareThread(container: LoadThreadContainer): LoadThread {
         val target = container.loadProcessContainer().options().target
         val http = OkHttpClient.Builder()
             .addInterceptor { chain ->
@@ -48,19 +51,22 @@ private class HttpLoadThreadFactory : LoadThreadFactory {
             actions,
             DisabledDiagnostics()
         )
-        return object : LoadThread {
-            override fun generateLoad(
-                stop: AtomicBoolean
-            ) {
-                looper.hold()
-                looper.applyLoad(stop)
-            }
-        }
+        return HttpLoadThread(looper)
     }
 }
 
+private class HttpLoadThread(
+    private val looper: ThrottlingActionLoop
+) : LoadThread {
+    override fun generateLoad(
+        stop: AtomicBoolean
+    ) {
+        looper.hold()
+        looper.applyLoad(stop)
+    }
+}
 
-class RestSearch(
+private class RestSearch(
     private val base: URI,
     private val http: OkHttpClient,
     private val meter: ActionMeter,

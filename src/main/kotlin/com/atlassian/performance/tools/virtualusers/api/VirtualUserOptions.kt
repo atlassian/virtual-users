@@ -8,7 +8,7 @@ import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavi
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
 import com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator
 import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
-import com.atlassian.performance.tools.virtualusers.engine.LoadProcess
+import com.atlassian.performance.tools.virtualusers.api.load.LoadProcess
 import org.apache.commons.cli.*
 import org.apache.logging.log4j.core.config.AbstractConfiguration
 import java.net.URI

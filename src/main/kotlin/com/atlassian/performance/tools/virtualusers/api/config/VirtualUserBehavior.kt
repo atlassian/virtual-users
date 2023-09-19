@@ -5,10 +5,11 @@ import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserNodeResult
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeBrowser
+import com.atlassian.performance.tools.virtualusers.api.load.LoadProcess
 import com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator
 import com.atlassian.performance.tools.virtualusers.api.users.SuppliedUserGenerator
 import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
-import com.atlassian.performance.tools.virtualusers.engine.*
+import com.atlassian.performance.tools.virtualusers.load.*
 import com.atlassian.performance.tools.virtualusers.logs.LogConfiguration
 import org.apache.logging.log4j.core.config.AbstractConfiguration
 import java.nio.file.Path
@@ -115,7 +116,7 @@ class VirtualUserBehavior private constructor(
 
     class Builder() {
         private var loadProcess: Class<out LoadProcess> = HttpLoadProcess::class.java
-        private var scenario: Class<out Scenario> = DoNotUseWhenEngineIsProvided::class.java
+        private var scenario: Class<out Scenario> = DoNotUseWhenLoadProcessIsProvided::class.java
         private var results: Path = Paths.get(".")
         private var load: VirtualUserLoad = VirtualUserLoad.Builder().build()
         private var maxOverhead: Duration = Duration.ofMinutes(5)

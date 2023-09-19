@@ -1,9 +1,10 @@
-package com.atlassian.performance.tools.virtualusers
+package com.atlassian.performance.tools.virtualusers.api.load
 
 import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
 import com.atlassian.performance.tools.jiraactions.api.measure.output.ThrowawayActionMetricOutput
-import com.atlassian.performance.tools.virtualusers.api.*
+import com.atlassian.performance.tools.virtualusers.api.TemporalRate
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.diagnostics.DisabledDiagnostics
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.Offset.offset
