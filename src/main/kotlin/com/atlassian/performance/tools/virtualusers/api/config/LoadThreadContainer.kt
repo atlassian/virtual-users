@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 class LoadThreadContainer private constructor(
     private val processContainer: LoadProcessContainer,
     private val index: Int,
-    internal val uuid: UUID
+    private val uuid: UUID
 ) : AutoCloseable {
 
     private val closeables: Queue<AutoCloseable> = ConcurrentLinkedQueue<AutoCloseable>()

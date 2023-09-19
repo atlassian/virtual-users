@@ -26,6 +26,10 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ### Added
 - Add `LoadProcess`, `LoadThreadFactory` and `LoadThread` SPIs for greater control over load generation.
   For example, implementations can avoid starting a `WebDriver` instance if they don't need it. Fix [JPERF-126].
+- Add `ScenarioLoadProcess` as a bridge between old `Scenario` impls and new `LoadProcess`.
+
+### Deprecated
+- Deprecate `VirtualUserBehavior.scenario`, `Browser` and `UserGenerator` in favor of `LoadProcess`.
 
 [JPERF-126]: https://ecosystem.atlassian.net/browse/JPERF-126
 

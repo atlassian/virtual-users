@@ -46,9 +46,9 @@ internal class LoadTest(
             val readyThread = threadFactory.prepareThread(threadContainer)
             ContainedThread(readyThread, threadContainer)
         }
-        threads.forEach { engine ->
-            pool.submitWithLogContext(engine.container.id) {
-                engine.loadThread.generateLoad(stop)
+        threads.forEach { thread ->
+            pool.submitWithLogContext(thread.container.id) {
+                thread.loadThread.generateLoad(stop)
             }
         }
         Thread.sleep(finish.toMillis())

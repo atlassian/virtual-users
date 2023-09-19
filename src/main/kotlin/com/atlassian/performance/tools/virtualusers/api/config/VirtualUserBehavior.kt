@@ -6,6 +6,7 @@ import com.atlassian.performance.tools.virtualusers.api.VirtualUserNodeResult
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeBrowser
 import com.atlassian.performance.tools.virtualusers.api.load.LoadProcess
+import com.atlassian.performance.tools.virtualusers.api.load.ScenarioLoadProcess
 import com.atlassian.performance.tools.virtualusers.api.users.RestUserGenerator
 import com.atlassian.performance.tools.virtualusers.api.users.SuppliedUserGenerator
 import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
@@ -19,6 +20,7 @@ import java.time.Duration
 /**
  * @param [maxOverhead] Maximum time to be running, but not applying load.
  */
+@Suppress("DEPRECATION") // maintain deprecated impl for bridge APIs like `ScenarioLoadProcess`
 class VirtualUserBehavior private constructor(
     @Deprecated(
         message = "There should be no need to display help from Java API. Read the Javadoc or sources instead."
@@ -114,6 +116,7 @@ class VirtualUserBehavior private constructor(
         load: VirtualUserLoad
     ): VirtualUserBehavior = Builder(this).load(load).build()
 
+    @Suppress("DEPRECATION") // offer deprecated APIs for compatibility
     class Builder() {
         private var loadProcess: Class<out LoadProcess> = HttpLoadProcess::class.java
         private var scenario: Class<out Scenario> = DoNotUseWhenLoadProcessIsProvided::class.java
@@ -127,6 +130,13 @@ class VirtualUserBehavior private constructor(
         private var skipSetup = false
         private var userGenerator: Class<out UserGenerator> = SuppliedUserGenerator::class.java
 
+        @Deprecated(
+            "Use LoadProcess instead",
+            ReplaceWith(
+                "Builder().loadProcess(ScenarioLoadProcess::class.java)",
+                "com.atlassian.performance.tools.virtualusers.api.load.ScenarioLoadProcess"
+            )
+        )
         constructor(scenario: Class<out Scenario>) : this() {
             this.loadProcess = ScenarioLoadProcess::class.java
             this.scenario = scenario
@@ -141,10 +151,10 @@ class VirtualUserBehavior private constructor(
         fun loadProcess(loadProcess: Class<out LoadProcess>) = apply { this.loadProcess = loadProcess }
 
         @Deprecated(
-            "Use engine instead",
+            "Use LoadProcess instead",
             ReplaceWith(
-                "engine(ScenarioToEngineAdapter::class.java)",
-                "com.atlassian.performance.tools.virtualusers.ScenarioToEngineAdapter"
+                "loadProcess(ScenarioLoadProcess::class.java)",
+                "com.atlassian.performance.tools.virtualusers.api.load.ScenarioLoadProcess"
             )
         )
         fun scenario(scenario: Class<out Scenario>) = apply {
@@ -157,7 +167,7 @@ class VirtualUserBehavior private constructor(
         fun seed(seed: Long) = apply { this.seed = seed }
         fun diagnosticsLimit(diagnosticsLimit: Int) = apply { this.diagnosticsLimit = diagnosticsLimit }
 
-        @Deprecated("Include your browser/WebDriver logic in your Engine")
+        @Suppress("DEPRECATION")
         fun browser(browser: Class<out Browser>) = apply { this.browser = browser }
         fun logging(logging: Class<out AbstractConfiguration>) = apply { this.logging = logging }
         fun skipSetup(skipSetup: Boolean) = apply { this.skipSetup = skipSetup }
