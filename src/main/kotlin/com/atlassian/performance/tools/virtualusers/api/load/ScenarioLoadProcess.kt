@@ -10,6 +10,7 @@ import com.atlassian.performance.tools.jiraactions.api.memories.User
 import com.atlassian.performance.tools.jiraactions.api.memories.UserMemory
 import com.atlassian.performance.tools.jiraactions.api.memories.adaptive.AdaptiveUserMemory
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
+import com.atlassian.performance.tools.virtualusers.BestEffortCloseable
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
@@ -64,8 +65,9 @@ class ScenarioLoadProcess : LoadProcess {
     }
 }
 
+
 @ThreadSafe
-private class ScenarioThreadFactory(
+internal class ScenarioThreadFactory(
     private val scenario: Scenario,
     private val users: List<User>,
     private val browser: Browser,
@@ -76,11 +78,17 @@ private class ScenarioThreadFactory(
     private val logger: Logger = LogManager.getLogger(this::class.java)
     private val unallocatedUsers: Queue<User> = ConcurrentLinkedQueue(users)
 
+    companion object {
+        internal val DRIVER_CLOSE_TIMEOUT = Duration.ofSeconds(30)
+    }
+
     override fun prepareThread(container: LoadThreadContainer): LoadThread {
         val options = container.loadProcessContainer().options()
         val behavior = options.behavior
         val closeableWebDriver = browser.start()
-        container.addCloseable(closeableWebDriver)
+        container.addCloseable(
+            BestEffortCloseable(closeableWebDriver, DRIVER_CLOSE_TIMEOUT, "WebDriver", logger)
+        )
         val webDriver = closeableWebDriver.getDriver()
         val target = options.target
         val webJira = WebJira(
@@ -149,6 +157,7 @@ private class ScenarioThreadFactory(
         override fun remember(memories: Collection<User>) {
         }
     }
+
 }
 
 private class ScenarioThread(
