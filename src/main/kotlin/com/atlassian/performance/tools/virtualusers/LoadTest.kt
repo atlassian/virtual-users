@@ -56,10 +56,10 @@ internal class LoadTest(
         }
         sleep(finish.toMillis())
         stop.set(true)
-        processContainer.close()
         threads.forEach {
             it.container.close()
         }
+        processContainer.close()
         return processContainer.result()
     }
 }
