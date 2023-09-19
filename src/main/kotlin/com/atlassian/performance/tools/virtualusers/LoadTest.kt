@@ -1,5 +1,6 @@
 package com.atlassian.performance.tools.virtualusers
 
+import com.atlassian.performance.tools.concurrency.api.AbruptExecutorService
 import com.atlassian.performance.tools.concurrency.api.submitWithLogContext
 import com.atlassian.performance.tools.jiraactions.api.SeededRandom
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserNodeResult
@@ -7,8 +8,11 @@ import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
 import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContainer
 import com.atlassian.performance.tools.virtualusers.api.load.LoadThread
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import java.lang.Thread.sleep
 import java.util.*
+import java.util.concurrent.Executors.newCachedThreadPool
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.MILLISECONDS
@@ -18,6 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger
 internal class LoadTest(
     private val options: VirtualUserOptions
 ) {
+
+    private val logger: Logger = LogManager.getLogger(this::class.java)
 
     fun run(): VirtualUserNodeResult {
         val behavior = options.behavior
@@ -56,11 +62,19 @@ internal class LoadTest(
         }
         sleep(finish.toMillis())
         stop.set(true)
-        threads.forEach {
-            it.container.close()
-        }
+        close(threads)
         processContainer.close()
         return processContainer.result()
+    }
+
+    private fun close(threads: List<ContainedThread>) {
+        logger.info("Closing thread containers")
+        AbruptExecutorService(newCachedThreadPool { Thread(it, "close-thread-containers") }).use { pool ->
+            threads
+                .map { pool.submit { it.container.close() } }
+                .forEach { it.get() }
+        }
+        logger.info("Thread containers closed")
     }
 }
 
