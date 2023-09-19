@@ -10,6 +10,7 @@ import net.jcip.annotations.ThreadSafe
  * If the implementation needs to be called sequentially, implement synchronization internally.
  */
 @ThreadSafe
+@Deprecated("Include your user generation logic in your LoadProcess")
 interface UserGenerator {
 
     fun generateUser(options: VirtualUserOptions): User

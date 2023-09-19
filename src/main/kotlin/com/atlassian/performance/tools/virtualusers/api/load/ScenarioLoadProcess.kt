@@ -1,4 +1,4 @@
-package com.atlassian.performance.tools.virtualusers.load
+package com.atlassian.performance.tools.virtualusers.api.load
 
 import com.atlassian.performance.tools.jiraactions.api.SeededRandom
 import com.atlassian.performance.tools.jiraactions.api.WebJira
@@ -14,10 +14,6 @@ import com.atlassian.performance.tools.virtualusers.api.config.LoadThreadContain
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
 import com.atlassian.performance.tools.virtualusers.api.diagnostics.*
-import com.atlassian.performance.tools.virtualusers.api.load.LoadProcess
-import com.atlassian.performance.tools.virtualusers.api.load.LoadThread
-import com.atlassian.performance.tools.virtualusers.api.load.LoadThreadFactory
-import com.atlassian.performance.tools.virtualusers.api.load.ThrottlingActionLoop
 import com.atlassian.performance.tools.virtualusers.api.users.UserGenerator
 import com.atlassian.performance.tools.virtualusers.measure.ClusterNodeCounter
 import org.apache.logging.log4j.LogManager
