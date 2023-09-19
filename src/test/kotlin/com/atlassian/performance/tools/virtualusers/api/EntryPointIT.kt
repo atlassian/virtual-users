@@ -2,6 +2,7 @@ package com.atlassian.performance.tools.virtualusers.api
 
 import com.atlassian.performance.tools.jiraactions.api.ActionMetric
 import com.atlassian.performance.tools.jiraactions.api.ActionResult
+import com.atlassian.performance.tools.virtualusers.DockerJira
 import com.atlassian.performance.tools.virtualusers.SimpleScenario
 import com.atlassian.performance.tools.virtualusers.TestJira.SMALL_JIRA
 import com.atlassian.performance.tools.virtualusers.TestVuNode
@@ -10,6 +11,7 @@ import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.DIAGNOS
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.MYSTERY
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.THROTTLING
 import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeBrowser
+import com.atlassian.performance.tools.virtualusers.load.HttpLoadProcess
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Condition
 import org.junit.Test
@@ -22,8 +24,25 @@ class EntryPointIT {
     @Test
     fun shouldProduceBrowserLoadMetrics() {
         val desiredTotalTime = Duration.ofMinutes(2)
-
-        val nodeResult = runScenario(desiredTotalTime)
+        val resultPath = TestVuNode.isolateTestNode(javaClass)
+        SMALL_JIRA.runWithJira { jira ->
+            main(
+                arrayOf(
+                    *jira.toTargetArgs(),
+                    "--virtual-users", "1",
+                    "--hold", "PT0S",
+                    "--ramp", "PT0S",
+                    "--flat", desiredTotalTime.toString(),
+                    "--max-overall-load", "1.0/PT5S",
+                    "--scenario", SimpleScenario::class.java.name,
+                    "--browser", HeadlessChromeBrowser::class.java.name,
+                    "--results", resultPath.toString(),
+                    "--diagnostics-limit", "3",
+                    "--seed", "-9183767962456348780"
+                )
+            )
+        }
+        val nodeResult = VirtualUserNodeResult(resultPath)
         val result = nodeResult.listResults().last()
 
         val tasks = result.streamTasks().toList()
@@ -41,66 +60,29 @@ class EntryPointIT {
             .containsValue(1)
     }
 
-    private fun runScenario(desiredTotalTime: Duration): VirtualUserNodeResult {
-        val resultPath = TestVuNode.isolateTestNode(javaClass)
-        SMALL_JIRA.runWithJira { jira ->
-            main(
-                arrayOf(
-                    "--jira-address", jira.peerAddress.toString(),
-                    "--login", "admin",
-                    "--password", "admin",
-                    "--virtual-users", "1",
-                    "--hold", "PT0S",
-                    "--ramp", "PT0S",
-                    "--flat", desiredTotalTime.toString(),
-                    "--max-overall-load", "1.0/PT5S",
-                    "--scenario", SimpleScenario::class.java.name,
-                    "--browser", HeadlessChromeBrowser::class.java.name,
-                    "--results", resultPath.toString(),
-                    "--diagnostics-limit", "3",
-                    "--seed", "-9183767962456348780"
-                )
-            )
-        }
-        return VirtualUserNodeResult(resultPath)
-    }
-
     @Test
     fun shouldProduceHttpLoadMetrics() {
-        val desiredTotalTime = Duration.ofMinutes(2)
-
-        val nodeResult = runDefaultLoadProcess(desiredTotalTime)
-        val result = nodeResult.listResults().last()
-
-        val tasks = result.streamTasks().toList()
-        val actions = result.streamActions().toList()
-        assertThat(actions.map { it.label }).containsOnly("POST search")
-        assertThat(actions).haveAtLeast(1, isOk())
-        assertThat(tasks.map { it.label })
-            .contains(ACTING.label, THROTTLING.label)
-            .doesNotContain(DIAGNOSING.label, MYSTERY.label)
-    }
-
-    private fun runDefaultLoadProcess(desiredTotalTime: Duration): VirtualUserNodeResult {
         val resultPath = TestVuNode.isolateTestNode(javaClass)
         SMALL_JIRA.runWithJira { jira ->
             main(
                 arrayOf(
-                    "--jira-address", jira.peerAddress.toString(),
-                    "--login", "admin",
-                    "--password", "admin",
-                    "--virtual-users", "1",
+                    *jira.toTargetArgs(),
+                    "--load-process", HttpLoadProcess::class.java.name,
+                    "--virtual-users", "1000",
                     "--hold", "PT0S",
                     "--ramp", "PT0S",
-                    "--flat", desiredTotalTime.toString(),
-                    "--max-overall-load", "1.0/PT5S",
+                    "--flat", Duration.ofMinutes(2).toString(),
+                    "--max-overall-load", "10000.0/PT1S",
                     "--results", resultPath.toString(),
-                    "--diagnostics-limit", "3",
-                    "--seed", "-9183767962456348780"
+                    "--diagnostics-limit", "5",
+                    "--seed", "12345"
                 )
             )
         }
-        return VirtualUserNodeResult(resultPath)
+        val nodeResult = VirtualUserNodeResult(resultPath)
+        val actions = nodeResult.listResults().flatMap { it.streamActions().toList() }
+        assertThat(actions.map { it.label }).containsOnly("POST search")
+        assertThat(actions).haveAtLeast(1000, isOk())
     }
 
     private fun isOk() = Condition<ActionMetric>(Predicate { it.result == ActionResult.OK }, "OK")
@@ -108,4 +90,10 @@ class EntryPointIT {
     private fun List<ActionMetric>.sumDurations(): Duration {
         return map { it.duration }.fold(Duration.ZERO) { a, b -> a + b }
     }
+
+    private fun DockerJira.toTargetArgs() = arrayOf(
+        "--jira-address", peerAddress.toString(),
+        "--login", "admin",
+        "--password", "admin"
+    )
 }
