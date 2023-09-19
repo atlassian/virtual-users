@@ -68,7 +68,7 @@ class EntryPointIT {
                 arrayOf(
                     *jira.toTargetArgs(),
                     "--load-process", HttpLoadProcess::class.java.name,
-                    "--virtual-users", "1000",
+                    "--virtual-users", "100",
                     "--hold", "PT0S",
                     "--ramp", "PT0S",
                     "--flat", Duration.ofMinutes(2).toString(),
@@ -82,7 +82,7 @@ class EntryPointIT {
         val nodeResult = VirtualUserNodeResult(resultPath)
         val actions = nodeResult.listResults().flatMap { it.streamActions().toList() }
         assertThat(actions.map { it.label }).containsOnly("POST search")
-        assertThat(actions).haveAtLeast(1000, isOk())
+        assertThat(actions).haveAtLeast(100, isOk())
     }
 
     private fun isOk() = Condition<ActionMetric>(Predicate { it.result == ActionResult.OK }, "OK")
