@@ -118,15 +118,15 @@ class LoadTestTerminationIT {
 
 private val CLOSED_BROWSERS: MutableList<Class<*>> = mutableListOf()
 
-private class SlowShutdownBrowser : SlowNavigationBrowser() {
+class SlowShutdownBrowser : SlowNavigationBrowser() {
     override val shutdown: Duration = Duration.ofSeconds(120)
 }
 
-private class FastShutdownBrowser : SlowNavigationBrowser() {
+class FastShutdownBrowser : SlowNavigationBrowser() {
     override val shutdown: Duration = Duration.ofMillis(500)
 }
 
-private abstract class SlowNavigationBrowser : Browser {
+abstract class SlowNavigationBrowser : Browser {
     private val navigation: Duration = Duration.ofSeconds(10)
     abstract val shutdown: Duration
 
@@ -212,7 +212,7 @@ private class MockHttpServer(
     }
 }
 
-private class NavigatingScenario : Scenario {
+class NavigatingScenario : Scenario {
 
     override fun getLogInAction(
         jira: WebJira,
