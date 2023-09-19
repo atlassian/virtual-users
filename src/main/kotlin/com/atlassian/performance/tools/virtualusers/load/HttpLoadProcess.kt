@@ -89,7 +89,9 @@ private class RestSearch(
             if (response.isSuccessful.not()) {
                 throw Exception("Response failed: $response")
             }
-            val responseJson = json.createReader(response.body()!!.byteStream()).readObject()
+            val responseJson = response.body()!!.use {
+                json.createReader(it.byteStream()).readObject()
+            }
             if (responseJson.getInt("total") <= 0) {
                 throw Exception("Expected more than zero issues, got $responseJson")
             }
