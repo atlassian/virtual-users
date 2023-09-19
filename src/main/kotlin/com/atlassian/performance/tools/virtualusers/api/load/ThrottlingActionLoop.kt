@@ -28,9 +28,7 @@ class ThrottlingActionLoop(
 ) : LoadThread {
     private val logger: Logger = LogManager.getLogger(this::class.java)
 
-    override fun generateLoad(
-        stop: AtomicBoolean
-    ) {
+    override fun generateLoad(stop: AtomicBoolean) {
         logger.info("Applying load...")
         val actionNames = actions.map { it.javaClass.simpleName }
         logger.debug("Circling through $actionNames")
@@ -57,6 +55,14 @@ class ThrottlingActionLoop(
                 }
             }
         }
+    }
+
+    internal fun logInThenGenerate(
+        logInAction: Action,
+        stop: AtomicBoolean
+    ) {
+        runWithDiagnostics(logInAction)
+        generateLoad(stop)
     }
 
     internal fun runWithDiagnostics(
