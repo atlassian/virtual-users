@@ -1,6 +1,7 @@
 package com.atlassian.performance.tools.virtualusers
 
 import com.atlassian.performance.tools.concurrency.api.submitWithLogContext
+import com.atlassian.performance.tools.jiraactions.api.SeededRandom
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserNodeResult
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.config.LoadProcessContainer
@@ -24,7 +25,7 @@ internal class LoadTest(
         val processContainer = LoadProcessContainer.create(
             options,
             VirtualUserNodeResult(behavior.results),
-            behavior.seed
+            SeededRandom(behavior.seed)
         )
         val load = behavior.load
         val finish = load.ramp + load.flat

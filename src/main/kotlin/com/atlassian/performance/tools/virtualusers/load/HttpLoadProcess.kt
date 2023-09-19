@@ -1,7 +1,6 @@
 package com.atlassian.performance.tools.virtualusers.load
 
 import com.atlassian.performance.tools.jiraactions.api.ActionType
-import com.atlassian.performance.tools.jiraactions.api.SeededRandom
 import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
 import com.atlassian.performance.tools.jiraactions.api.memories.IssueKeyMemory
@@ -39,8 +38,7 @@ private class HttpLoadThreadFactory : LoadThreadFactory {
             }
             .build()
         val baseUri = target.webApplication
-        val seededRandom = SeededRandom(container.random().nextLong())
-        val issueKeyMemory = AdaptiveIssueKeyMemory(seededRandom)
+        val issueKeyMemory = AdaptiveIssueKeyMemory(container.seededRandom())
         val actions = listOf(
             RestSearch(baseUri, http, container.actionMeter(), issueKeyMemory)
         )
