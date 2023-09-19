@@ -44,14 +44,3 @@ internal class LoadSegment<CLIENT : AutoCloseable>(
         internal val DRIVER_CLOSE_TIMEOUT = Duration.ofSeconds(30)
     }
 }
-
-internal fun List<LoadSegment<*>>.close() {
-    val logger = LogManager.getLogger(this::class.java)
-    logger.info("Closing segments")
-    val closePool = Executors.newCachedThreadPool { Thread(it, "close-segment") }
-    this
-        .map { closePool.submit { it.close() } }
-        .forEach { it.get() }
-    logger.info("Segments closed")
-    closePool.shutdown()
-}
