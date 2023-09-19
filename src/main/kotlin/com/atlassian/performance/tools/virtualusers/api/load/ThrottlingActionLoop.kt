@@ -1,4 +1,4 @@
-package com.atlassian.performance.tools.virtualusers
+package com.atlassian.performance.tools.virtualusers.api.load
 
 import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter

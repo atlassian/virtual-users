@@ -23,6 +23,12 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.14.1...master
 
+### Added
+- Add `LoadProcess`, `LoadThreadFactory` and `LoadThread` SPIs for greater control over load generation.
+  For example, implementations can avoid starting a `WebDriver` instance if they don't need it. Fix [JPERF-126].
+
+[JPERF-126]: https://ecosystem.atlassian.net/browse/JPERF-126
+
 ## [3.14.1] - 2023-06-05
 [3.14.1]: https://github.com/atlassian/virtual-users/compare/release-3.14.0...release-3.14.1
 
