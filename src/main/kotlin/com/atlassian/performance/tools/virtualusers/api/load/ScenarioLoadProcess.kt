@@ -78,7 +78,7 @@ private class ScenarioThreadFactory(
         val userLogin = scenario.getLogInAction(webJira, meter, userMemory)
         val looper = ThrottlingActionLoop(
             actions = scenario.getActions(webJira, random, meter),
-            load = container.singleThreadLoad(),
+            maxLoad = container.singleThreadLoad().maxOverallLoad,
             taskMeter = container.taskMeter(),
             diagnostics = diagnostics
         )
@@ -132,8 +132,7 @@ private class ScenarioThread(
         nodeCounter.count(Supplier {
             webJira.getJiraNode()
         })
-        looper.hold()
         looper.runWithDiagnostics(userLogin)
-        looper.applyLoad(stop)
+        looper.generateLoad(stop)
     }
 }

@@ -100,9 +100,7 @@ class ThrottlingActionLoopLoadIT {
         actions = actions,
         diagnostics = DisabledDiagnostics(),
         taskMeter = mockMeter(),
-        load = VirtualUserLoad.Builder()
-            .maxOverallLoad(maxLoad)
-            .build()
+        maxLoad = maxLoad
     )
 
     private fun applyLoad(
@@ -114,7 +112,7 @@ class ThrottlingActionLoopLoadIT {
             done.set(true)
         }
         return ofMillis(measureTimeMillis {
-            virtualUser.applyLoad(done)
+            virtualUser.generateLoad(done)
         })
     }
 

@@ -2,7 +2,7 @@ package com.atlassian.performance.tools.virtualusers.api.load
 
 import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
-import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
+import com.atlassian.performance.tools.virtualusers.api.TemporalRate
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.ACTING
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.DIAGNOSING
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserTasks.THROTTLING
@@ -16,28 +16,20 @@ import java.time.Instant.now
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Respects [VirtualUserLoad.hold] and [VirtualUserLoad.maxOverallLoad].
+ * Respects [maxLoad].
  * Loops through [actions] and uses [diagnostics] when  an action fails.
  * Measures overheads with [taskMeter].
  */
 class ThrottlingActionLoop(
-    private val load: VirtualUserLoad,
+    private val maxLoad: TemporalRate,
     private val taskMeter: ActionMeter,
     private val actions: Iterable<Action>,
     private val diagnostics: Diagnostics
-) {
+) : LoadThread {
     private val logger: Logger = LogManager.getLogger(this::class.java)
 
-    fun hold() {
-        logger.info("Waiting for ${load.hold}")
-        sleep(load.hold.toMillis())
-    }
-
-    /**
-     * Repeats [actions] until [done] is `true`.
-     */
-    fun applyLoad(
-        done: AtomicBoolean
+    override fun generateLoad(
+        stop: AtomicBoolean
     ) {
         logger.info("Applying load...")
         val actionNames = actions.map { it.javaClass.simpleName }
@@ -45,7 +37,7 @@ class ThrottlingActionLoop(
         var actionsPerformed = 0.0
         val start = now()
         for (action in CircularIterator(actions)) {
-            if (done.get()) {
+            if (stop.get()) {
                 logger.info("Done applying load")
                 break
             }
@@ -55,7 +47,7 @@ class ThrottlingActionLoop(
                 logger.error("Failed to run $action, but we keep running", e)
             } finally {
                 actionsPerformed++
-                val expectedTimeSoFar = load.maxOverallLoad.scaleChange(actionsPerformed).time
+                val expectedTimeSoFar = maxLoad.scaleChange(actionsPerformed).time
                 val actualTimeSoFar = Duration.between(start, now())
                 val extraTime = expectedTimeSoFar - actualTimeSoFar
                 if (extraTime > Duration.ZERO) {
