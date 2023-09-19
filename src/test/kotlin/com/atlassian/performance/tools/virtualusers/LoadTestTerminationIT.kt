@@ -13,6 +13,7 @@ import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.browsers.CloseableRemoteWebDriver
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserBehavior
 import com.atlassian.performance.tools.virtualusers.api.config.VirtualUserTarget
+import com.atlassian.performance.tools.virtualusers.api.load.ScenarioThreadFactory
 import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
 import org.assertj.core.api.Assertions.assertThat
@@ -42,7 +43,7 @@ class LoadTestTerminationIT {
 
         val termination = testTermination(loadTest, "shouldHaveReasonableOverheadDespiteSlowNavigations")
 
-        assertThat(termination.overhead).isLessThan(Duration.ofSeconds(2) + LoadSegment.DRIVER_CLOSE_TIMEOUT)
+        assertThat(termination.overhead).isLessThan(Duration.ofSeconds(2) + ScenarioThreadFactory.DRIVER_CLOSE_TIMEOUT)
         assertThat(termination.blockingThreads).isEmpty()
     }
 
