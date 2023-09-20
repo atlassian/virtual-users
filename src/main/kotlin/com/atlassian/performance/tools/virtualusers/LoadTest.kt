@@ -52,7 +52,7 @@ internal class LoadTest(
         val threads = (1..threadCount).map { threadIndex ->
             val threadContainer = LoadThreadContainer.create(processContainer, threadIndex, UUID.randomUUID())
             val readyThread = threadFactory.prepareThread(threadContainer)
-            ContainedThread(readyThread, threadContainer)
+            LoadThreadWithContainer(readyThread, threadContainer)
         }
         threads.forEach { thread ->
             pool.submitWithLogContext(thread.container.id) {
@@ -67,7 +67,7 @@ internal class LoadTest(
         return processContainer.result()
     }
 
-    private fun close(threads: List<ContainedThread>) {
+    private fun close(threads: List<LoadThreadWithContainer>) {
         logger.info("Closing thread containers")
         AbruptExecutorService(newCachedThreadPool { Thread(it, "close-thread-containers") }).use { pool ->
             threads
@@ -78,7 +78,7 @@ internal class LoadTest(
     }
 }
 
-private class ContainedThread(
+private class LoadThreadWithContainer(
     val loadThread: LoadThread,
     val container: LoadThreadContainer
 )
