@@ -85,7 +85,8 @@ private class RestSearch(
                 .build()
             val response = http.newCall(request).execute()
             if (response.isSuccessful.not()) {
-                throw Exception("Response failed: $response")
+                val body = response.body()?.use { it.string() }
+                throw Exception("Response failed: $response. Body: $body")
             }
             val responseJson = response.body()!!.use {
                 json.createReader(it.byteStream()).readObject()
