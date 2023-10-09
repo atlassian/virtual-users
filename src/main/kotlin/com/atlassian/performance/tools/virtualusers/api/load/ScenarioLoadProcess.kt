@@ -114,7 +114,7 @@ internal class ScenarioThreadFactory(
             diagnostics = diagnostics
         )
         setUpOnce(behavior, webJira, meter, target, looper)
-        return ScenarioThread(webJira, looper, userLogin, nodeCounter)
+        return ScenarioThread(webJira, looper, userLogin, nodeCounter, diagnostics)
     }
 
     private fun allocateUser(random: SeededRandom): UserMemory {
@@ -164,13 +164,19 @@ private class ScenarioThread(
     private val webJira: WebJira,
     private val looper: ThrottlingActionLoop,
     private val userLogin: Action,
-    private val nodeCounter: ClusterNodeCounter
+    private val nodeCounter: ClusterNodeCounter,
+    private val diagnostics: Diagnostics
 ) : LoadThread {
     override fun generateLoad(
         stop: AtomicBoolean
     ) {
         nodeCounter.count(Supplier {
-            webJira.getJiraNode()
+            try {
+                webJira.getJiraNode()
+            } catch (e: Exception) {
+                diagnostics.diagnose(e)
+                throw e
+            }
         })
         looper.logInThenGenerate(userLogin, stop)
     }
