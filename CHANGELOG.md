@@ -21,7 +21,18 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.14.1...master
+[Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.15.1...master
+
+## [3.15.1] - 2023-10-09
+[3.15.1]: https://github.com/atlassian/virtual-users/compare/release-3.15.0...release-3.15.1
+
+### Fixed
+- Take screenshots and browser logs after failed node identification. Unblock [JPERF-1395].
+
+[JPERF-1395]: https://ecosystem.atlassian.net/browse/JPERF-1395
+
+## [3.15.0] - 2023-09-21
+[3.15.0]: https://github.com/atlassian/virtual-users/compare/release-3.14.1...release-3.15.0
 
 ### Added
 - Add `LoadProcess`, `LoadThreadFactory` and `LoadThread` SPIs for greater control over load generation.
@@ -30,9 +41,6 @@ Dropping a requirement of a major version of a dependency is a new contract.
 
 ### Deprecated
 - Deprecate `VirtualUserBehavior.scenario`, `Browser` and `UserGenerator` in favor of `LoadProcess`.
-
-### Fixed
-- Take screenshots and browser logs after failed node identification.
 
 [JPERF-126]: https://ecosystem.atlassian.net/browse/JPERF-126
 
