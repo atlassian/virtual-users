@@ -31,6 +31,9 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ### Deprecated
 - Deprecate `VirtualUserBehavior.scenario`, `Browser` and `UserGenerator` in favor of `LoadProcess`.
 
+### Fixed
+- Take screenshots and browser logs after failed node identification.
+
 [JPERF-126]: https://ecosystem.atlassian.net/browse/JPERF-126
 
 ## [3.14.1] - 2023-06-05
