@@ -14,6 +14,7 @@ import com.atlassian.performance.tools.virtualusers.api.browsers.HeadlessChromeB
 import com.atlassian.performance.tools.virtualusers.load.HttpLoadProcess
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Condition
+import org.assertj.core.api.SoftAssertions
 import org.junit.Test
 import java.time.Duration
 import java.util.function.Predicate
@@ -29,7 +30,7 @@ class EntryPointIT {
             main(
                 arrayOf(
                     *jira.toTargetArgs(),
-                    "--virtual-users", "1",
+                    "--virtual-users", "2",
                     "--hold", "PT0S",
                     "--ramp", "PT0S",
                     "--flat", desiredTotalTime.toString(),
@@ -48,16 +49,19 @@ class EntryPointIT {
         val tasks = result.streamTasks().toList()
         val actions = result.streamActions().toList()
         val unaccountedTime = desiredTotalTime - tasks.sumDurations()
-        assertThat(actions.map { it.label }).containsOnly("Log In", "See System Info", "Set Up")
-        assertThat(actions).haveAtLeast(3, isOk())
-        assertThat(tasks.map { it.label })
-            .contains(ACTING.label, THROTTLING.label, DIAGNOSING.label)
-            .doesNotContain(MYSTERY.label)
-        assertThat(unaccountedTime).isLessThan(Duration.ofSeconds(5))
-        assertThat(nodeResult.nodeDistribution.parent.fileName.toString()).isEqualTo("test-results")
-        assertThat(nodeResult.countVusPerNode())
-            .hasSize(1)
-            .containsValue(1)
+        with(SoftAssertions()) {
+            assertThat(actions.map { it.label }.toSet()).containsOnly("Log In", "See System Info", "Set Up")
+            assertThat(actions).haveAtLeast(3, isOk())
+            assertThat(tasks.map { it.label })
+                .contains(ACTING.label, THROTTLING.label, DIAGNOSING.label)
+                .doesNotContain(MYSTERY.label)
+            assertThat(unaccountedTime).isLessThan(Duration.ofSeconds(5))
+            assertThat(nodeResult.nodeDistribution.parent.fileName.toString()).isEqualTo("test-results")
+            assertThat(nodeResult.countVusPerNode())
+                .hasSize(1)
+                .containsValue(2)
+            assertAll()
+        }
     }
 
     @Test
