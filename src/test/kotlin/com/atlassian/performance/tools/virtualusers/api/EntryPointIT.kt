@@ -24,13 +24,14 @@ class EntryPointIT {
 
     @Test
     fun shouldProduceBrowserLoadMetrics() {
+        val vuCount = 2
         val desiredTotalTime = Duration.ofMinutes(2)
         val resultPath = TestVuNode.isolateTestNode(javaClass)
         SMALL_JIRA.runWithJira { jira ->
             main(
                 arrayOf(
                     *jira.toTargetArgs(),
-                    "--virtual-users", "2",
+                    "--virtual-users", vuCount.toString(),
                     "--hold", "PT0S",
                     "--ramp", "PT0S",
                     "--flat", desiredTotalTime.toString(),
@@ -46,7 +47,7 @@ class EntryPointIT {
         val nodeResult = VirtualUserNodeResult(resultPath)
         val tasks = nodeResult.listResults().flatMap { it.streamTasks().toList() }
         val actions = nodeResult.listResults().flatMap { it.streamActions().toList() }
-        val unaccountedTime = desiredTotalTime - tasks.sumDurations()
+        val unaccountedTime = desiredTotalTime.multipliedBy(vuCount.toLong()) - tasks.sumDurations()
         with(SoftAssertions()) {
             assertThat(actions.map { it.label }.toSet()).containsOnly("Log In", "See System Info", "Set Up")
             assertThat(actions).haveAtLeast(3, isOk())
