@@ -107,6 +107,7 @@ internal class ScenarioThreadFactory(
             DiagnosisLimit(behavior.diagnosticsLimit)
         )
         val userLogin = scenario.getLogInAction(webJira, meter, userMemory)
+        val countNode = CountClusterNode(nodeCounter, webJira, diagnostics)
         val looper = ThrottlingActionLoop(
             actions = scenario.getActions(webJira, random, meter),
             maxLoad = container.singleThreadLoad().maxOverallLoad,
@@ -114,7 +115,7 @@ internal class ScenarioThreadFactory(
             diagnostics = diagnostics
         )
         setUpOnce(behavior, webJira, meter, target, looper)
-        return ScenarioThread(webJira, looper, userLogin, nodeCounter, diagnostics)
+        return ScenarioThread(looper, userLogin, countNode)
     }
 
     private fun allocateUser(random: SeededRandom): UserMemory {
@@ -158,26 +159,31 @@ internal class ScenarioThreadFactory(
         }
     }
 
+    private class CountClusterNode(
+        private val nodeCounter: ClusterNodeCounter,
+        private val webJira: WebJira,
+        private val diagnostics: Diagnostics
+    ) : Action {
+        override fun run() {
+            nodeCounter.count(
+                Supplier { webJira.getJiraNode() },
+                diagnostics
+            )
+        }
+    }
 }
 
-private class ScenarioThread(
-    private val webJira: WebJira,
+internal class ScenarioThread(
     private val looper: ThrottlingActionLoop,
     private val userLogin: Action,
-    private val nodeCounter: ClusterNodeCounter,
-    private val diagnostics: Diagnostics
+    private val countNode: Action
 ) : LoadThread {
+
     override fun generateLoad(
         stop: AtomicBoolean
     ) {
-        nodeCounter.count(Supplier {
-            try {
-                webJira.getJiraNode()
-            } catch (e: Exception) {
-                diagnostics.diagnose(e)
-                throw e
-            }
-        })
-        looper.logInThenGenerate(userLogin, stop)
+        looper.runWithDiagnostics(userLogin)
+        looper.runWithDiagnostics(countNode)
+        looper.generateLoad(stop)
     }
 }

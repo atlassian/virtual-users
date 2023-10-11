@@ -23,6 +23,9 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.15.1...master
 
+### Fixed
+- Fix node counting in `ScenarioLoadProcess`.
+
 ## [3.15.1] - 2023-10-09
 [3.15.1]: https://github.com/atlassian/virtual-users/compare/release-3.15.0...release-3.15.1
 
