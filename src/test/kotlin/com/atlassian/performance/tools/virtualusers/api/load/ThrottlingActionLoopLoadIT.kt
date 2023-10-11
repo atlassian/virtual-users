@@ -3,6 +3,7 @@ package com.atlassian.performance.tools.virtualusers.api.load
 import com.atlassian.performance.tools.jiraactions.api.action.Action
 import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
 import com.atlassian.performance.tools.jiraactions.api.measure.output.ThrowawayActionMetricOutput
+import com.atlassian.performance.tools.virtualusers.FailingAction
 import com.atlassian.performance.tools.virtualusers.api.TemporalRate
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.diagnostics.DisabledDiagnostics
@@ -50,22 +51,22 @@ class ThrottlingActionLoopLoadIT {
         assertLoadInRange(actualLoad, closeToMaxLoad, maxLoad)
     }
 
+    /**
+     * Actually tests [ScenarioThread] more than [ThrottlingActionLoop].
+     */
     @Test
     fun shouldNotRetryOnLoginAction() {
         val server = QuickServer()
-        val logInAction = object : Action {
-            override fun run() {
-                throw Exception("Failed login attempt.")
-            }
-        }
+        val logInAction = FailingAction()
         val virtualUser = prepareVu(
             actions = listOf(server),
             maxLoad = TemporalRate(1_000_000.00, ofSeconds(1))
         )
+        val scenarioThread = ScenarioThread(virtualUser, logInAction, server)
 
         val done = AutoCloseableExecutorService(Executors.newSingleThreadExecutor()).use { executorService ->
             val applyLoadFuture = executorService.submit {
-                virtualUser.logInThenGenerate(logInAction, AtomicBoolean(true))
+                scenarioThread.generateLoad(AtomicBoolean(true))
             }
             Thread.sleep(1000)
             return@use applyLoadFuture.isDone

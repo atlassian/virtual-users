@@ -57,14 +57,6 @@ class ThrottlingActionLoop(
         }
     }
 
-    internal fun logInThenGenerate(
-        logInAction: Action,
-        stop: AtomicBoolean
-    ) {
-        runWithDiagnostics(logInAction)
-        generateLoad(stop)
-    }
-
     internal fun runWithDiagnostics(
         action: Action
     ) {

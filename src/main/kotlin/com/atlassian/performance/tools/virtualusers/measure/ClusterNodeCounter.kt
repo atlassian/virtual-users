@@ -1,11 +1,10 @@
 package com.atlassian.performance.tools.virtualusers.measure
 
+import com.atlassian.performance.tools.virtualusers.api.diagnostics.Diagnostics
 import net.jcip.annotations.ThreadSafe
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import org.apache.commons.csv.CSVPrinter
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
 import java.io.Reader
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -15,13 +14,12 @@ import java.util.function.Supplier
 internal class ClusterNodeCounter {
 
     private val counter: MutableMap<String, AtomicInteger> = ConcurrentHashMap()
-    private val logger: Logger = LogManager.getLogger(this::class.java)
 
-    fun count(node: Supplier<String>) {
+    fun count(node: Supplier<String>, diagnostics: Diagnostics) {
         val nodeId = try {
             node.get()
         } catch (exception: Exception) {
-            logger.warn("Failed to identify jira node", exception)
+            diagnostics.diagnose(exception)
             "unknown"
         }
         counter
