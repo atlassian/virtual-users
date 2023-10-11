@@ -44,10 +44,8 @@ class EntryPointIT {
             )
         }
         val nodeResult = VirtualUserNodeResult(resultPath)
-        val result = nodeResult.listResults().last()
-
-        val tasks = result.streamTasks().toList()
-        val actions = result.streamActions().toList()
+        val tasks = nodeResult.listResults().flatMap { it.streamTasks().toList() }
+        val actions = nodeResult.listResults().flatMap { it.streamActions().toList() }
         val unaccountedTime = desiredTotalTime - tasks.sumDurations()
         with(SoftAssertions()) {
             assertThat(actions.map { it.label }.toSet()).containsOnly("Log In", "See System Info", "Set Up")
