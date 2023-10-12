@@ -185,6 +185,7 @@ internal class ScenarioThread(
     override fun generateLoad(
         stop: AtomicBoolean
     ) {
+        Thread.sleep(load.hold.toMillis())
         looper.runWithDiagnostics(userLogin)
         looper.runWithDiagnostics(countNode)
         looper.generateLoad(stop)

@@ -23,6 +23,9 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.15.2...master
 
+### Fixed
+- Fix `VirtualUserLoad.ramp` usage that was lost in [3.15.0].
+
 ## [3.15.2] - 2023-10-12
 [3.15.2]: https://github.com/atlassian/virtual-users/compare/release-3.15.1...release-3.15.2
 
