@@ -21,7 +21,10 @@ Adding a requirement of a major version of a dependency is breaking a contract.
 Dropping a requirement of a major version of a dependency is a new contract.
 
 ## [Unreleased]
-[Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.15.2...master
+[Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.15.3...master
+
+## [3.15.3] - 2023-10-12
+[3.15.3]: https://github.com/atlassian/virtual-users/compare/release-3.15.2...release-3.15.3
 
 ### Fixed
 - Fix `VirtualUserLoad.ramp` usage that was lost in [3.15.0].
