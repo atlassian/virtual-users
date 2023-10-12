@@ -7,7 +7,6 @@ import com.atlassian.performance.tools.virtualusers.api.TemporalRate
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
 import com.atlassian.performance.tools.virtualusers.diagnostics.DisabledDiagnostics
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Ignore
 import org.junit.Test
 import java.time.Duration
 import java.time.Instant
@@ -16,7 +15,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 class ScenarioThreadTest {
 
     @Test
-    @Ignore("TDD: red")
     fun shouldWaitBeforeLogin() {
         // given
         val expectedHold = Duration.ofMillis(500)
