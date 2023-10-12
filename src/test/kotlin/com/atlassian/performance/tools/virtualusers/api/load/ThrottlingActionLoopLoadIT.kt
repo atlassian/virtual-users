@@ -62,7 +62,8 @@ class ThrottlingActionLoopLoadIT {
             actions = listOf(server),
             maxLoad = TemporalRate(1_000_000.00, ofSeconds(1))
         )
-        val scenarioThread = ScenarioThread(virtualUser, logInAction, server)
+        val load = VirtualUserLoad.Builder().build()
+        val scenarioThread = ScenarioThread(load, virtualUser, logInAction, server)
 
         val done = AutoCloseableExecutorService(Executors.newSingleThreadExecutor()).use { executorService ->
             val applyLoadFuture = executorService.submit {
