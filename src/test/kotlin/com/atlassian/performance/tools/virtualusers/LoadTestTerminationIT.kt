@@ -20,7 +20,6 @@ import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions
-import org.junit.Ignore
 import org.junit.Test
 import org.openqa.selenium.remote.DesiredCapabilities
 import org.openqa.selenium.remote.RemoteWebDriver
@@ -43,7 +42,6 @@ class LoadTestTerminationIT {
         .build()
 
     @Test
-    @Ignore("TDD: red. Now problem is exposed and we have expected failed actions")
     fun shouldHaveReasonableOverheadDespiteSlowNavigations() {
         val loadTest = prepareLoadTest(SlowShutdownBrowser::class.java)
 
