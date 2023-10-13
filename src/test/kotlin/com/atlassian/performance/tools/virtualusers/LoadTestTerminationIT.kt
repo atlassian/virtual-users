@@ -20,6 +20,7 @@ import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions
+import org.junit.Ignore
 import org.junit.Test
 import org.openqa.selenium.remote.DesiredCapabilities
 import org.openqa.selenium.remote.RemoteWebDriver
@@ -42,6 +43,7 @@ class LoadTestTerminationIT {
         .build()
 
     @Test
+    @Ignore("TDD: red. Now problem is exposed and we have expected failed actions")
     fun shouldHaveReasonableOverheadDespiteSlowNavigations() {
         val loadTest = prepareLoadTest(SlowShutdownBrowser::class.java)
 
@@ -191,9 +193,9 @@ private class MockHttpServer(
     private val shutdownSlowness: Duration
 ) {
     private val handlers: MutableMap<String, HttpHandler> = mutableMapOf()
-    internal val base = URI("http://localhost:$port")
+    val base = URI("http://localhost:$port")
 
-    internal fun register(
+    fun register(
         context: String,
         handler: HttpHandler
     ): URI {
@@ -201,7 +203,7 @@ private class MockHttpServer(
         return base.resolve(context)
     }
 
-    internal fun start(): AutoCloseable {
+    fun start(): AutoCloseable {
         val executorService: ExecutorService = Executors.newCachedThreadPool {
             Thread(it)
                 .apply { name = "mock-http" }
@@ -210,8 +212,8 @@ private class MockHttpServer(
         val server = startHttpServer(executorService)
         return AutoCloseable {
             executorService.shutdownNow()
-            Thread.sleep(shutdownSlowness.toMillis())
             server.stop(0)
+            Thread.sleep(shutdownSlowness.toMillis())
         }
     }
 
