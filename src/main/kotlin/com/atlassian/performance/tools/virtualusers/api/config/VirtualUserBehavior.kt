@@ -19,6 +19,7 @@ import java.time.Duration
 
 /**
  * @param [maxOverhead] Maximum time to be running, but not applying load.
+ * @param [seed] Controls random processes. Same seed should result in the same randomization inside [loadProcess].
  */
 @Suppress("DEPRECATION") // maintain deprecated impl for bridge APIs like `ScenarioLoadProcess`
 class VirtualUserBehavior private constructor(
@@ -31,7 +32,7 @@ class VirtualUserBehavior private constructor(
     internal val loadProcess: Class<out LoadProcess>,
     val load: VirtualUserLoad,
     val maxOverhead: Duration,
-    internal val seed: Long,
+    val seed: Long,
     internal val diagnosticsLimit: Int,
     internal val browser: Class<out Browser>,
     internal val skipSetup: Boolean,

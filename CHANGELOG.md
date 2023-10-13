@@ -23,6 +23,11 @@ Dropping a requirement of a major version of a dependency is a new contract.
 ## [Unreleased]
 [Unreleased]: https://github.com/atlassian/virtual-users/compare/release-3.15.3...master
 
+### Added
+- Expose `VirtualUserBehavior.seed`. Aid with [JPERF-1405].
+
+[JPERF-1405]: https://ecosystem.atlassian.net/browse/JPERF-1405
+
 ## [3.15.3] - 2023-10-12
 [3.15.3]: https://github.com/atlassian/virtual-users/compare/release-3.15.2...release-3.15.3
 
