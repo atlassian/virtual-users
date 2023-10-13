@@ -39,6 +39,21 @@ class ThrottlingActionLoopLoadIT {
     }
 
     @Test
+    fun canHaveLastSleepOverhead() {
+        val maxLoad = TemporalRate(120.0, ofMinutes(1))
+        val virtualUser = prepareVu(listOf(QuickServer()), maxLoad)
+        val expectedDuration = ofSeconds(8)
+        // stop can happen during the last sleep
+        val maxAcceptableOverhead = maxLoad.scaleChange(1.0).time
+
+        val actualDuration = applyLoad(virtualUser, expectedDuration)
+
+        val actualOverhead = actualDuration - expectedDuration
+        println("actualOverhead = $actualOverhead")
+        assertThat(actualOverhead).isBetween(ZERO, maxAcceptableOverhead)
+    }
+
+    @Test
     fun shouldBeCloseToMaxLoadDespiteSlowStart() {
         val maxLoad = TemporalRate(80.0, ofMinutes(1))
         val server = SlowlyWarmingServer(ofMillis(2500))
