@@ -87,6 +87,9 @@ internal class ScenarioThreadFactory(
         val options = container.loadProcessContainer().options()
         val behavior = options.behavior
         val closeableWebDriver = browser.start()
+        container.addCloseable(
+            BestEffortCloseable(closeableWebDriver, DRIVER_CLOSE_TIMEOUT, "WebDriver", logger)
+        )
         val webDriver = closeableWebDriver.getDriver()
         val target = options.target
         val webJira = WebJira(
@@ -112,9 +115,6 @@ internal class ScenarioThreadFactory(
             maxLoad = load.maxOverallLoad,
             taskMeter = container.taskMeter(),
             diagnostics = diagnostics
-        )
-        container.addCloseable(
-            BestEffortCloseable(closeableWebDriver, DRIVER_CLOSE_TIMEOUT, "WebDriver", logger)
         )
         setUpOnce(behavior, webJira, meter, target, looper)
         return ScenarioThread(load, looper, userLogin, countNode)
