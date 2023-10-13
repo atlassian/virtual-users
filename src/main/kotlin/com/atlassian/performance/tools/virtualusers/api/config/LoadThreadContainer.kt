@@ -17,6 +17,7 @@ class LoadThreadContainer private constructor(
     private val uuid: UUID
 ) : AutoCloseable {
 
+    private val meterOutputs: Queue<AutoCloseable> = ConcurrentLinkedQueue<AutoCloseable>()
     private val closeables: Queue<AutoCloseable> = ConcurrentLinkedQueue<AutoCloseable>()
 
     val id: String = uuid.toString()
@@ -29,7 +30,7 @@ class LoadThreadContainer private constructor(
 
     fun actionMeter(): ActionMeter {
         val actionOutput = threadResult().writeActionMetrics()
-        addCloseable(actionOutput)
+        meterOutputs.add(actionOutput)
         return ActionMeter.Builder(AppendableActionMetricOutput(actionOutput))
             .virtualUser(uuid)
             .build()
@@ -37,7 +38,7 @@ class LoadThreadContainer private constructor(
 
     fun taskMeter(): ActionMeter {
         val taskOutput = threadResult().writeTaskMetrics()
-        addCloseable(taskOutput)
+        meterOutputs.add(taskOutput)
         return ActionMeter.Builder(AppendableActionMetricOutput(taskOutput))
             .virtualUser(uuid)
             .build()
@@ -63,6 +64,8 @@ class LoadThreadContainer private constructor(
 
     override fun close() {
         synchronized(this) {
+            meterOutputs.forEach { it.close() }
+            meterOutputs.clear()
             closeables.forEach { it.close() }
             closeables.clear()
         }
