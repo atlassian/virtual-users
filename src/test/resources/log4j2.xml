@@ -15,7 +15,7 @@
         <Appender type="Null" name="Nothingness"/>
     </Appenders>
     <Loggers>
-        <Logger name="com.atlassian.performance.tools" level="debug">
+        <Logger name="com.atlassian.performance.tools" level="trace">
             <AppenderRef ref="Console"/>
         </Logger>
         <Root>

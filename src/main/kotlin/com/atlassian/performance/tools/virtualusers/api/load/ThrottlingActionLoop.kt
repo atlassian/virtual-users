@@ -61,10 +61,11 @@ class ThrottlingActionLoop(
         action: Action
     ) {
         try {
-            logger.trace("Running $action")
+            logger.trace("Running $action...")
             taskMeter.measure(ACTING) {
                 action.run()
             }
+            logger.trace("Finished $action")
         } catch (e: Exception) {
             taskMeter.measure(DIAGNOSING) {
                 diagnostics.diagnose(e)
