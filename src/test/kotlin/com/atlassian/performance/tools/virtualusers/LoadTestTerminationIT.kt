@@ -1,5 +1,6 @@
 package com.atlassian.performance.tools.virtualusers
 
+import com.atlassian.performance.tools.jiraactions.api.ActionResult
 import com.atlassian.performance.tools.jiraactions.api.ActionType
 import com.atlassian.performance.tools.jiraactions.api.SeededRandom
 import com.atlassian.performance.tools.jiraactions.api.WebJira
@@ -8,6 +9,7 @@ import com.atlassian.performance.tools.jiraactions.api.measure.ActionMeter
 import com.atlassian.performance.tools.jiraactions.api.memories.UserMemory
 import com.atlassian.performance.tools.jiraactions.api.scenario.Scenario
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserLoad
+import com.atlassian.performance.tools.virtualusers.api.VirtualUserNodeResult
 import com.atlassian.performance.tools.virtualusers.api.VirtualUserOptions
 import com.atlassian.performance.tools.virtualusers.api.browsers.Browser
 import com.atlassian.performance.tools.virtualusers.api.browsers.CloseableRemoteWebDriver
@@ -17,6 +19,7 @@ import com.atlassian.performance.tools.virtualusers.api.load.ScenarioThreadFacto
 import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.SoftAssertions
 import org.junit.Test
 import org.openqa.selenium.remote.DesiredCapabilities
 import org.openqa.selenium.remote.RemoteWebDriver
@@ -26,6 +29,7 @@ import java.time.Duration
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.streams.toList
 import kotlin.system.measureTimeMillis
 
 class LoadTestTerminationIT {
@@ -43,8 +47,17 @@ class LoadTestTerminationIT {
 
         val termination = testTermination(loadTest, "shouldHaveReasonableOverheadDespiteSlowNavigations")
 
-        assertThat(termination.overhead).isLessThan(Duration.ofSeconds(2) + ScenarioThreadFactory.DRIVER_CLOSE_TIMEOUT)
-        assertThat(termination.blockingThreads).isEmpty()
+        with(SoftAssertions()) {
+            assertThat(termination.overhead).isLessThan(Duration.ofSeconds(2) + ScenarioThreadFactory.DRIVER_CLOSE_TIMEOUT)
+            assertThat(termination.blockingThreads).isEmpty()
+            val actionMetrics = termination
+                .result!!
+                .listResults()
+                .flatMap { it.streamActions().toList() }
+            assertThat(actionMetrics).isNotEmpty()
+            assertThat(actionMetrics.filter { it.result == ActionResult.ERROR }).isEmpty()
+            assertAll()
+        }
     }
 
     @Test
@@ -72,6 +85,7 @@ class LoadTestTerminationIT {
                 .browser(browser)
                 .load(load)
                 .results(TestVuNode.isolateTestNode(javaClass))
+                .diagnosticsLimit(0)
                 .build()
         )
         return LoadTest(options)
@@ -83,17 +97,19 @@ class LoadTestTerminationIT {
     ): TerminationResult {
         val threadGroup = ThreadGroup(label)
         val threadName = "parent-for-$label"
+        var result : VirtualUserNodeResult? = null
         val testDuration = measureTimeMillis {
             Executors.newSingleThreadExecutor {
                 Thread(threadGroup, it, threadName)
             }.submit {
-                test.run()
+                result = test.run()
             }.get()
         }
         Thread.sleep(200) // give the threads from the [test] a chance to die
         return TerminationResult(
             overhead = Duration.ofMillis(testDuration) - load.total,
-            blockingThreads = threadGroup.listBlockingThreads().filter { it.name != threadName }
+            blockingThreads = threadGroup.listBlockingThreads().filter { it.name != threadName },
+            result = result
         )
     }
 
@@ -103,7 +119,8 @@ class LoadTestTerminationIT {
          * If you want to find out who created these threads, you can debug with a breakpoint on [Thread.start]
          * and filter e.g. by [Thread.getName].
          */
-        val blockingThreads: List<Thread>
+        val blockingThreads: List<Thread>,
+        val result: VirtualUserNodeResult?
     )
 
     private fun ThreadGroup.listBlockingThreads(): List<Thread> {
@@ -128,7 +145,7 @@ class FastShutdownBrowser : SlowNavigationBrowser() {
 }
 
 abstract class SlowNavigationBrowser : Browser {
-    private val navigation: Duration = Duration.ofSeconds(10)
+    private val navigation: Duration = Duration.ofSeconds(1)
     abstract val shutdown: Duration
 
     override fun start(): CloseableRemoteWebDriver {
@@ -232,7 +249,9 @@ class NavigatingScenario : Scenario {
             private val navigation = ActionType("Navigation") { }
             override fun run() {
                 meter.measure(navigation) {
-                    jira.navigateTo("whatever")
+                    repeat(10) {
+                        jira.navigateTo("whatever")
+                    }
                 }
             }
         }
