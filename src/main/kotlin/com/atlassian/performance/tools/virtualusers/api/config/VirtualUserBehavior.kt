@@ -32,6 +32,9 @@ class VirtualUserBehavior private constructor(
     internal val loadProcess: Class<out LoadProcess>,
     val load: VirtualUserLoad,
     val maxOverhead: Duration,
+    /**
+     * @since 3.16.0
+     */
     val seed: Long,
     internal val diagnosticsLimit: Int,
     internal val browser: Class<out Browser>,
